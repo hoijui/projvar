@@ -1,0 +1,16 @@
+Description,Agnostic,GitHub,GitLab,Jenkins,BitBucket,TravisCI
+"'true' if running on a CI/build-bot.",-,CI,CI,-,CI,-
+"The repo-root relative path to the current (source) file",SRC_FILE_PATH,-,-,-,-,-
+"The Repo web UI URL.",REPO_WEB_URL,"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/",CI_PROJECT_URL,-,BITBUCKET_GIT_HTTP_ORIGIN,-
+"The Repo clone URL.",REPO_CLONE_URL,"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/",CI_REPOSITORY_URL,-,BITBUCKET_GIT_SSH_ORIGIN,-
+"The name of the project",PROJECT_NAME,"`'${GITHUB_REPOSITORY}'.replace('.*/', '')`",CI_PROJECT_NAME,APP_NAME,BITBUCKET_PROJECT_KEY,"`'${TRAVIS_REPO_SLUG}'.replace('.*/', '')`"
+"The development branch name.",SC_BRANCH,GITHUB_REF,CI_COMMIT_BRANCH,BRANCH_NAME,BITBUCKET_BRANCH,TRAVIS_BRANCH
+"The tag of a commit that kicked off the build. This value is only available on tags. Not available for builds against branches.",SC_TAG,GITHUB_REF,CI_COMMIT_TAG,-,BITBUCKET_TAG,TRAVIS_TAG
+"The project version.",VERSION,-,CI_COMMIT_SHORT_SHA,VERSION,-,-
+"Unique identifier of the state of the project that is being built (e.g. git SHA).",SC_IDENT,GITHUB_SHA,CI_COMMIT_SHA,PULL_BASE_SHA,BITBUCKET_COMMIT,TRAVIS_COMMIT
+"Date this version was committed to source control. ['%Y-%m-%d']",VERSION_DATE,-,CI_COMMIT_TIMESTAMP,-,-,-
+"Date of this build. ['%Y-%m-%d']",BUILD_DATE,-,-,-,-,-
+"Operating System we are building on",BUILD_OS,RUNNER_OS,CI_RUNNER_EXECUTABLE_ARCH,-,-,TRAVIS_OS_NAME
+"Web URL under which the generated output will be available.",HOSTING_URL,-,CI_PAGES_URL,-,-,-
+"A comma-separated, lowercase list of the languages used in the repository. For example 'ruby,javascript,html,css'.",-,-,CI_PROJECT_REPOSITORY_LANGUAGES,-,-,-
+"The build number (1, 2, 3) starts at <code>1</code> for each repo and branch",BUILD_NUMBER,???,???,BUILD_NUMBER,BITBUCKET_BUILD_NUMBER,TRAVIS_BUILD_NUMBER

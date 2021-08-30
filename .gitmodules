@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+#
+# SPDX-License-Identifier: Unlicense
+
+[submodule "scripts"]
+	path = scripts
+	url = https://github.com/hoijui/rust-project-scripts.git

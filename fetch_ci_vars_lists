@@ -1,0 +1,161 @@
+#!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+#
+# SPDX-License-Identifier: Unlicense
+
+# Exit immediately on each error and unset variable;
+# see: https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
+set -Eeuo pipefail
+#set -Eeu
+
+script_dir=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+
+function filter_tabular_html() {
+
+  VARS_LIST_HTML_FILE="$1"
+  COL_NUM_VAR_NAME="$2"
+  COL_NUM_DESC="$3"
+  cat "$VARS_LIST_HTML_FILE" \
+    | awk -e '
+  BEGIN {
+    in_row = 0
+    col_num = -99
+    COL_NUM_VAR_NAME = '"$COL_NUM_VAR_NAME"'
+    COL_NUM_DESC = '"$COL_NUM_DESC"'
+  }
+
+  /^<tr[^>]*>$/ {
+    in_row = 1
+    col_num = 0
+  }
+
+  /^<\/tr>$/ {
+    in_row = 0
+    col_num = -99
+  }
+
+  /^<td[^>]*>/ {
+    if (col_num == COL_NUM_VAR_NAME) {
+      var_name = $0
+      gsub("^<td[^>]*>", "", var_name)
+      gsub("</td>$", "", var_name)
+      gsub("^<code[^>]*>", "", var_name)
+      gsub("</code>$", "", var_name)
+    }
+    if (col_num == COL_NUM_DESC) {
+      description = $0
+      gsub("^<td[^>]*>", "", description)
+      gsub("</td>$", "", description)
+      printf("%s=\"%s\"\n" , var_name, description)
+    }
+    col_num = col_num + 1
+  }
+  ' | sort
+}
+
+function filter_list_html() {
+
+  VARS_LIST_HTML_FILE="$1"
+  cat "$VARS_LIST_HTML_FILE" \
+    | awk -e '
+  BEGIN {
+    var_name_set = 0
+    desc_set = 0
+  }
+
+  {
+    if (var_name_set && !desc_set) {
+      # We actually want the space inserted between them here!
+      desc = desc " " $0
+      if (match($0, "<li>")) {
+        open_li_s = open_li_s + 1
+      }
+      if (match($0, "</li>")) {
+        open_li_s = open_li_s - 1
+      }
+      if (open_li_s == 0) {
+        desc_set = 1
+      }
+    }
+    if (desc_set) {
+      printf("%s=\"%s\"\n" , var_name, desc)
+      var_name_set = 0
+      desc_set = 0
+    }
+  }
+
+  /^<li><code class="highlighter-rouge">.*<\/code>:/ {
+      var_name = $0
+      gsub("^<li[^>]*>", "", var_name)
+      gsub("</li>$", "", var_name)
+      gsub("^<code[^>]*>", "", var_name)
+      gsub("</code>.*", "", var_name)
+      var_name_set = 1
+      if (match($0, "</li>$")) {
+        desc = $0
+        gsub(".*</code>: ", "", desc)
+        gsub("</li>$", "", desc)
+        desc_set = 1
+      } else {
+        desc = ""
+        open_li_s = 1
+      }
+  }
+  ' | sort
+}
+
+function cleanup_html_files() {
+
+  tidy -wrap 4096 --show-warnings false \
+    -modify \
+    "$@" \
+    2> /dev/null || true
+}
+
+VARS_LIST_HTML_GITLAB_URL="https://docs.gitlab.com/ee/ci/variables/predefined_variables.html"
+VARS_LIST_HTML_GITHUB_URL="https://docs.github.com/en/actions/reference/environment-variables"
+VARS_LIST_HTML_BITBUCKET_URL="https://support.atlassian.com/bitbucket-cloud/docs/variables-and-secrets/"
+VARS_LIST_HTML_JENKINS_URL="https://jenkins-x.io/docs/resources/guides/using-jx/pipelines/envvars/"
+VARS_LIST_HTML_TRAVISCI_URL="https://docs-staging.travis-ci.com/user/environment-variables/#default-environment-variables"
+# NOTE CirceCI does not use environment variables. We suggest to manually transfer config values from there into environment variables.
+# NOTE TeamCity uses (almost) no environment variables. We suggest to manually transfer config values from there into environment variables.
+
+VARS_LIST_HTML_GITLAB_FILE="target/ci_vers_gitlab.html"
+VARS_LIST_HTML_GITHUB_FILE="target/ci_vers_github.html"
+VARS_LIST_HTML_BITBUCKET_FILE="target/ci_vers_bitbucket.html"
+VARS_LIST_HTML_JENKINS_FILE="target/ci_vers_jenkins.html"
+VARS_LIST_HTML_TRAVISCI_FILE="target/ci_vers_travisci.html"
+
+GITLAB_FILE="target/gitlab.sh.env"
+GITHUB_FILE="target/github.sh.env"
+BITBUCKET_FILE="target/bitbucket.sh.env"
+JENKINS_FILE="target/jenkins.sh.env"
+TRAVISCI_FILE="target/travisci.sh.env"
+
+download=false
+if $download
+then
+  wget "$VARS_LIST_HTML_GITLAB_URL"    -O "$VARS_LIST_HTML_GITLAB_FILE"
+  wget "$VARS_LIST_HTML_GITHUB_URL"    -O "$VARS_LIST_HTML_GITHUB_FILE"
+  wget "$VARS_LIST_HTML_BITBUCKET_URL" -O "$VARS_LIST_HTML_BITBUCKET_FILE"
+  wget "$VARS_LIST_HTML_JENKINS_URL"   -O "$VARS_LIST_HTML_JENKINS_FILE"
+  wget "$VARS_LIST_HTML_TRAVISCI_URL"  -O "$VARS_LIST_HTML_TRAVISCI_FILE"
+fi
+
+# Cleanup the downloaded HTML
+cleanup_html_files \
+  "$VARS_LIST_HTML_GITLAB_FILE" \
+  "$VARS_LIST_HTML_GITHUB_FILE" \
+  "$VARS_LIST_HTML_BITBUCKET_FILE" \
+  "$VARS_LIST_HTML_JENKINS_FILE" \
+  "$VARS_LIST_HTML_TRAVISCI_FILE"
+
+sed -i -e 's|<p[^>]*>||g' -e 's|</p>||g' "$VARS_LIST_HTML_BITBUCKET_FILE"
+cleanup_html_files "$VARS_LIST_HTML_BITBUCKET_FILE"
+
+filter_tabular_html "$VARS_LIST_HTML_GITLAB_FILE" 0 3 > "$GITLAB_FILE"
+filter_tabular_html "$VARS_LIST_HTML_GITHUB_FILE" 0 1 > "$GITHUB_FILE"
+filter_tabular_html "$VARS_LIST_HTML_BITBUCKET_FILE" 0 1 > "$BITBUCKET_FILE"
+filter_tabular_html "$VARS_LIST_HTML_JENKINS_FILE" 0 1 > "$JENKINS_FILE"
+filter_list_html "$VARS_LIST_HTML_TRAVISCI_FILE" > "$TRAVISCI_FILE"

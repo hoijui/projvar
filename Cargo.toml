@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+#
+# SPDX-License-Identifier: Unlicense
+
+[package]
+name = "projvar"
+version = "0.1.0"
+authors = ["Robin Vobruba <hoijui.quaero@gmail.com>"]
+description = """
+    A tiny CLI tool that tries to gather project specific meta-data in different ways,
+    to store them into environment variables
+    for later use by other tools.
+    """
+license = "GPL-3.0-or-later"
+repository = "https://github.com/hoijui/repvar"
+keywords = ["cli", "ci"]
+categories = ["command-line-utilities", "text-processing"]
+edition = "2018"
+
+[dependencies]
+clap = "3.0.0-beta.2"
+regex = "1"
+repvar = { git = "https://github.com/hoijui/repvar.git" }
+git2 = "0.13"
+chrono = "0.4.19"
+log = "0.4.14"
+simplelog = "0.10.0"
+flexi_logger = "0.18.0"
+strum = "0.21"
+strum_macros = "0.21"
+maplit = "1.0.2"

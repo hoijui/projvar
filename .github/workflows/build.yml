@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+#
+# SPDX-License-Identifier: Unlicense
+
+name: build
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'src/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+  release:
+    types: [ published ]
+jobs:
+  push_to_registry:
+    name: Compile
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Get the Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+            toolchain: stable
+            override: true
+            components: rustfmt, clippy
+      # Smart caching for rust/cargo projects with sensible defaults.
+      - uses: Swatinem/rust-cache@v1
+      - name: Build
+        run: scripts/build
+      - name: Test & Check
+        run: scripts/test
+
