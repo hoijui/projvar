@@ -94,23 +94,23 @@ pub fn list(alt_keys: bool) {
     }
 }
 
-pub const KEY_VERSION: &str = "PROJECT_VERSION";
-pub const KEY_LICENSE: &str = "PROJECT_LICENSE";
-pub const KEY_REPO_WEB_URL: &str = "PROJECT_REPO_WEB_URL";
-pub const KEY_REPO_FROZEN_WEB_URL: &str = "BUILD_REPO_FROZEN_WEB_URL";
-pub const KEY_REPO_CLONE_URL: &str = "PROJECT_REPO_CLONE_URL";
-pub const KEY_NAME: &str = "PROJECT_NAME";
-pub const KEY_VERSION_DATE: &str = "PROJECT_VERSION_DATE";
-pub const KEY_BUILD_DATE: &str = "BUILD_DATE";
-pub const KEY_BUILD_BRANCH: &str = "BUILD_BRANCH";
-pub const KEY_BUILD_TAG: &str = "BUILD_TAG";
-pub const KEY_BUILD_IDENT: &str = "BUILD_IDENT"; // TODO This name is very bad, as it makes one think of BUILD_NUMBER; choose a different one!
-pub const KEY_BUILD_OS: &str = "BUILD_OS";
-pub const KEY_BUILD_OS_FAMILY: &str = "BUILD_OS_FAMILY";
-pub const KEY_BUILD_ARCH: &str = "BUILD_ARCH";
-pub const KEY_BUILD_HOSTING_URL: &str = "BUILD_HOSTING_URL";
-pub const KEY_BUILD_NUMBER: &str = "BUILD_NUMBER";
-pub const KEY_CI: &str = "CI";
+pub const KEY_VERSION: &'static str = "PROJECT_VERSION";
+pub const KEY_LICENSE: &'static str = "PROJECT_LICENSE";
+pub const KEY_REPO_WEB_URL: &'static str = "PROJECT_REPO_WEB_URL";
+pub const KEY_REPO_FROZEN_WEB_URL: &'static str = "BUILD_REPO_FROZEN_WEB_URL";
+pub const KEY_REPO_CLONE_URL: &'static str = "PROJECT_REPO_CLONE_URL";
+pub const KEY_NAME: &'static str = "PROJECT_NAME";
+pub const KEY_VERSION_DATE: &'static str = "PROJECT_VERSION_DATE";
+pub const KEY_BUILD_DATE: &'static str = "BUILD_DATE";
+pub const KEY_BUILD_BRANCH: &'static str = "BUILD_BRANCH";
+pub const KEY_BUILD_TAG: &'static str = "BUILD_TAG";
+pub const KEY_BUILD_IDENT: &'static str = "BUILD_IDENT"; // TODO This name is very bad, as it makes one think of BUILD_NUMBER; choose a different one!
+pub const KEY_BUILD_OS: &'static str = "BUILD_OS";
+pub const KEY_BUILD_OS_FAMILY: &'static str = "BUILD_OS_FAMILY";
+pub const KEY_BUILD_ARCH: &'static str = "BUILD_ARCH";
+pub const KEY_BUILD_HOSTING_URL: &'static str = "BUILD_HOSTING_URL";
+pub const KEY_BUILD_NUMBER: &'static str = "BUILD_NUMBER";
+pub const KEY_CI: &'static str = "CI";
 
 // pub const VARS: &[Variable] = &[
 //     Variable {
