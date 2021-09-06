@@ -264,18 +264,18 @@ use maplit::hashmap;
 
 lazy_static! {
 // pub const VARS: HashMap<&'static str, Variable> = hashmap! {
-pub static ref VARS: HashMap<&'static str, Variable> = hashmap! {
-    KEY_VERSION => Variable {
+pub static ref VARS: HashMap<&'static str, Variable> = vec![
+    (KEY_VERSION, Variable {
         key: KEY_VERSION,
         description: "The project version.",
         alt_keys: &["VERSION", "CI_COMMIT_SHORT_SHA"],
-    },
-    KEY_LICENSE => Variable {
+    }),
+    (KEY_LICENSE, Variable {
         key: KEY_LICENSE,
         description: "Main License of the sources.",
         alt_keys: &["LICENSE"],
-    },
-    KEY_REPO_WEB_URL => Variable {
+    }),
+    (KEY_REPO_WEB_URL, Variable {
         key: KEY_REPO_WEB_URL,
         description: "The Repo web UI URL.",
         alt_keys: &[
@@ -284,16 +284,16 @@ pub static ref VARS: HashMap<&'static str, Variable> = hashmap! {
             "CI_PROJECT_URL",
             "BITBUCKET_GIT_HTTP_ORIGIN",
         ],
-    },
-    KEY_REPO_FROZEN_WEB_URL => Variable {
+    }),
+    (KEY_REPO_FROZEN_WEB_URL, Variable {
         key: KEY_REPO_FROZEN_WEB_URL,
         description: "The Repo web UI URL, pointing to the specific version of this build.",
         alt_keys: &[
             "FROZEN_WEB_URL",
             "COMMIT_URL",
         ],
-    },
-    KEY_REPO_CLONE_URL => Variable {
+    }),
+    (KEY_REPO_CLONE_URL, Variable {
         key: KEY_REPO_CLONE_URL,
         description: "The Repo clone URL.",
         alt_keys: &[
@@ -302,8 +302,8 @@ pub static ref VARS: HashMap<&'static str, Variable> = hashmap! {
             "CI_REPOSITORY_URL",
             "BITBUCKET_GIT_SSH_ORIGIN",
         ],
-    },
-    KEY_NAME => Variable {
+    }),
+    (KEY_NAME, Variable {
         key: KEY_NAME,
         description: "The name of the project.",
         alt_keys: &[
@@ -312,8 +312,8 @@ pub static ref VARS: HashMap<&'static str, Variable> = hashmap! {
             "APP_NAME",
             "BITBUCKET_PROJECT_KEY",
         ],
-    },
-    KEY_VERSION_DATE => Variable {
+    }),
+    (KEY_VERSION_DATE, Variable {
         key: KEY_VERSION_DATE,
         description: "Date this version was committed to source control. ['%Y-%m-%d']",
         alt_keys: &[
@@ -323,13 +323,13 @@ pub static ref VARS: HashMap<&'static str, Variable> = hashmap! {
             "PROJECT_COMMIT_DATE",
             "CI_COMMIT_TIMESTAMP",
         ],
-    },
-    KEY_BUILD_DATE => Variable {
+    }),
+    (KEY_BUILD_DATE, Variable {
         key: KEY_BUILD_DATE,
         description: "Date of this build. ['%Y-%m-%d']",
         alt_keys: &[],
-    },
-    KEY_BUILD_BRANCH => Variable {
+    }),
+    (KEY_BUILD_BRANCH, Variable {
         key: KEY_BUILD_BRANCH,
         description: "The development branch name.",
         alt_keys: &[
@@ -340,8 +340,8 @@ pub static ref VARS: HashMap<&'static str, Variable> = hashmap! {
             "BITBUCKET_BRANCH",
             "TRAVIS_BRANCH",
         ],
-    },
-    KEY_BUILD_TAG => Variable {
+    }),
+    (KEY_BUILD_TAG, Variable {
         key: KEY_BUILD_TAG,
         description: "The tag of a commit that kicked off the build. This value is only available on tags. Not available for builds against branches.",
         alt_keys: &[
@@ -351,8 +351,8 @@ pub static ref VARS: HashMap<&'static str, Variable> = hashmap! {
             "BITBUCKET_TAG",
             "TRAVIS_TAG",
         ],
-    },
-    KEY_BUILD_IDENT => Variable {
+    }),
+    (KEY_BUILD_IDENT, Variable {
         key: KEY_BUILD_IDENT,
         description: "Unique identifier of the state of the project that is being built (e.g. git commit SHA).",
         alt_keys: &[
@@ -362,8 +362,8 @@ pub static ref VARS: HashMap<&'static str, Variable> = hashmap! {
             "BITBUCKET_COMMIT",
             "TRAVIS_COMMIT",
         ],
-    },
-    KEY_BUILD_OS => Variable {
+    }),
+    (KEY_BUILD_OS, Variable {
         key: KEY_BUILD_OS,
         description: "Operating system we are building on. (common values: 'linux', 'macos', 'windows')",
         alt_keys: &[
@@ -372,28 +372,28 @@ pub static ref VARS: HashMap<&'static str, Variable> = hashmap! {
             "CI_RUNNER_EXECUTABLE_ARCH",
             "TRAVIS_OS_NAME",
         ],
-    },
-    KEY_BUILD_OS_FAMILY => Variable {
+    }),
+    (KEY_BUILD_OS_FAMILY, Variable {
         key: KEY_BUILD_OS_FAMILY,
         description: "Operating system family we are building on. (should be either 'unix' or 'windows')",
         alt_keys: &[
             "OS_FAMILY",
             "FAMILY",
         ],
-    },
-    KEY_BUILD_ARCH => Variable {
+    }),
+    (KEY_BUILD_ARCH, Variable {
         key: KEY_BUILD_ARCH,
         description: "Computer hardware architecture we are building on. (common values: 'x86', 'x86_64')",
         alt_keys: &[
             "ARCH",
         ],
-    },
-    KEY_BUILD_HOSTING_URL => Variable {
+    }),
+    (KEY_BUILD_HOSTING_URL, Variable {
         key: KEY_BUILD_HOSTING_URL,
         description: "Web URL under which the generated output will be available.",
         alt_keys: &["HOSTING_URL", "CI_PAGES_URL"],
-    },
-    KEY_BUILD_NUMBER => Variable {
+    }),
+    (KEY_BUILD_NUMBER, Variable {
         key: KEY_BUILD_NUMBER,
         description: "The build number (1, 2, 3) starts at 1 for each repo and branch.",
         alt_keys: &[
@@ -403,11 +403,11 @@ pub static ref VARS: HashMap<&'static str, Variable> = hashmap! {
             "BITBUCKET_BUILD_NUMBER",
             "TRAVIS_BUILD_NUMBER",
         ],
-    },
-    KEY_CI => Variable {
+    }),
+    (KEY_CI, Variable {
         key: KEY_CI,
         description: "'true' if running on a CI/build-bot.",
         alt_keys: &[],
-    },
-};
+    }),
+    ].into_iter().collect();
 }

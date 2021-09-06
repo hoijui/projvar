@@ -6,8 +6,6 @@
 extern crate clap;
 #[macro_use]
 extern crate log;
-#[macro_use]
-extern crate maplit;
 
 use crate::environment::Environment;
 use crate::settings::Settings;
