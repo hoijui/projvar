@@ -6,9 +6,12 @@
 // use std::io;
 // use std::io::BufRead;
 // use std::io::Write;
-use crate::git;
-use crate::settings::{Settings, StorageMode};
-use crate::storage;
+use crate::settings::Settings;
+// use crate::sinks::VarSink;
+// use crate::sources::VarSource;
+use crate::tools::git;
+use crate::var::Key;
+use std::collections::HashMap;
 use std::convert::TryFrom;
 
 // #[derive(Debug)]
@@ -16,24 +19,39 @@ use std::convert::TryFrom;
 // pub struct Environment<'t, S> where S: storage::Storage {
 pub struct Environment<'t> {
     pub settings: &'t Settings,
-    pub vars: Box<dyn storage::Storage>,
+    // pub vars: Box<dyn storage::Storage>,
+    /// The input variables, as supplied by the environment,
+    /// on the command line or through input files.
+    pub vars: HashMap<String, String>,
+    /// The output values we evaluated for the project properties we want to know.
+    pub output: HashMap<Key, String>,
     // #[builder(default = false)]
     repo: Option<git::Repo>,
     // #[builder(default = false)]
     // verbose: bool,
+    // pub sources: Vec<Box<dyn VarSource>>,
+    // pub sinks: Vec<Box<dyn VarSink>>,
 }
 
 impl<'t> Environment<'t> {
     #[must_use]
-    pub fn new(settings: &Settings) -> Environment {
-        let vars: Box<dyn storage::Storage> = match settings.storage {
-            StorageMode::Environment => Box::new(storage::Env::new()),
-            _ => Box::new(storage::InMemory::new()),
-        };
+    pub fn new(
+        settings: &Settings, /*, sources: Vec<Box<dyn VarSource>>, sinks: Vec<Box<dyn VarSink>>*/
+    ) -> Environment {
+        // let vars: Box<dyn storage::Storage>  = Box::new(storage::InMemory::new());
+        let vars = HashMap::<String, String>::new();
+        let output = HashMap::<Key, String>::new();
+        // match settings.storage {
+        //     StorageMode::Environment => Box::new(storage::Env::new()),
+        //     _ => Box::new(storage::InMemory::new()),
+        // };
         Environment {
             settings,
             vars,
+            output,
             repo: None,
+            // sources,
+            // sinks,
         }
     }
 

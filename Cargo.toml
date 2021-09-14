@@ -28,3 +28,8 @@ simplelog = "0.10.0"
 flexi_logger = "0.18.0"
 strum = "0.21"
 strum_macros = "0.21"
+# Until this is merged, we have to use the pull-requesters- version:
+# https://gitlab.com/KonradBorowski/enum-map/-/merge_requests/40
+#enum-map = "1.1.1"
+enum-map = { git = "https://gitlab.com/bit_network/enum-map.git", branch = "impl_fromiter" }
+#enumset = "1.0.7"

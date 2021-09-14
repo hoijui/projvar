@@ -94,6 +94,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "enum-map"
+version = "1.1.1"
+source = "git+https://gitlab.com/bit_network/enum-map.git?branch=impl_fromiter#e163653632e89062c35d5a067248a4df07e0c91e"
+dependencies = [
+ "enum-map-derive",
+]
+
+[[package]]
+name = "enum-map-derive"
+version = "0.6.0"
+source = "git+https://gitlab.com/bit_network/enum-map.git?branch=impl_fromiter#e163653632e89062c35d5a067248a4df07e0c91e"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "flexi_logger"
 version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -362,6 +380,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "clap",
+ "enum-map",
  "flexi_logger",
  "git2",
  "log",
@@ -401,7 +420,7 @@ checksum = "f497285884f3fcff424ffc933e56d7cbca511def0c9831a7f9b5f6153e3cc89b"
 [[package]]
 name = "repvar"
 version = "0.1.19"
-source = "git+https://github.com/hoijui/repvar.git#1e572f2b51c519ab23a235ada5f968e1cf051b72"
+source = "git+https://github.com/hoijui/repvar.git#dbd53e429e6475e33538e3b716991fdf9ec2c26f"
 dependencies = [
  "clap",
  "regex",
@@ -520,8 +539,8 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "typed-builder"
-version = "0.9.0"
-source = "git+https://github.com/idanarye/rust-typed-builder.git#69d6aac815eda708557414b62fad9e02c4e3f452"
+version = "0.9.1"
+source = "git+https://github.com/idanarye/rust-typed-builder.git#9bc37d841e6a04e5ab7f3a155a254f072db57603"
 dependencies = [
  "proc-macro2",
  "quote",

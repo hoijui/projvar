@@ -1,0 +1,69 @@
+// SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+use crate::environment::Environment;
+use crate::var::{self, Key, Variable};
+use std::collections::HashMap;
+use std::error::Error;
+use std::fmt;
+use std::fs::File;
+use std::io::LineWriter;
+use std::io::Write;
+use std::path::PathBuf;
+
+pub struct VarSink {
+    pub file: PathBuf,
+}
+
+type BoxResult<T> = Result<T, Box<dyn Error>>;
+
+/// Stores evaluated values (output) into a file in a BASH compatible way ("KEY=VALUE\n").
+impl super::VarSink for VarSink {
+    fn is_usable(&self, _environment: &mut Environment) -> bool {
+        true
+    }
+
+    fn store(
+        &self,
+        environment: &mut Environment,
+        values: &[(Key, &Variable, String)],
+    ) -> BoxResult<()> {
+        let previous_vars = if self.file.exists() {
+            var::parse_vars_file_reader(repvar::tools::create_input_reader(self.file.to_str())?)?
+        } else {
+            HashMap::new()
+        };
+
+        let file = File::create(self.file.as_path())?;
+        let mut file = LineWriter::new(file);
+        for (_key, var, value) in values {
+            if environment.settings.to_set.main() {
+                let key = var.key;
+                if environment.settings.overwrite.main() || previous_vars.contains_key(key) {
+                    file.write_fmt(format_args!("{}={}\n", key, value))?;
+                }
+            }
+            if environment.settings.to_set.alt() {
+                for alt_key in var.alt_keys {
+                    if environment.settings.overwrite.alt() || previous_vars.contains_key(*alt_key)
+                    {
+                        file.write_fmt(format_args!("{}={}\n", alt_key, value))?;
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+impl fmt::Display for VarSink {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}(file: {})",
+            std::any::type_name::<VarSink>(),
+            self.file.as_path().to_str().ok_or(fmt::Error {})?
+        )
+    }
+}

@@ -2,26 +2,20 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// use std::process::Command;
-// use crate::environment::Environment;
 use chrono::DateTime;
-use std::convert::TryFrom;
-use std::fmt;
-use std::path::PathBuf;
-// use chrono::Local;
 use chrono::NaiveDateTime;
 use chrono::Utc;
 use clap::lazy_static::lazy_static;
 use git2::{self, Repository};
 use regex::Regex;
-// use std::collections::HashMap;
+use std::convert::TryFrom;
 use std::error::Error;
+use std::fmt;
 use std::path::Path;
+use std::path::PathBuf;
 use std::str;
-// use crate::props::version;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
-// type Git2Result<T> = Result<T, git2::Error>;
 
 /// The default date format.
 /// For formatting specifiers, see:
@@ -53,17 +47,37 @@ impl Error for UrlConversionError {
     }
 }
 
-/// Converts a common git remote URL
-/// into a web-ready (http(s)) URL of the project.
+/// Converts a common git remote URL (HTTP(S) or SSH)
+/// into a web-ready (HTTPS) URL of the project.
 ///
 /// for example:
 ///
-/// `git@github.com:hoijui/kicad-text-injector.git`
-/// ->
-/// `https://github.com/hoijui/kicad-text-injector`
+/// ```
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # use projvar::tools::git::clone_to_web_url;
+/// assert_eq!(
+///     clone_to_web_url("git@github.com:hoijui/kicad-text-injector.git"),
+///     "https://github.com/hoijui/kicad-text-injector"
+/// );
+/// assert_eq!(
+///     clone_to_web_url("https://github.com/hoijui/kicad-text-injector.git"),
+///     "https://github.com/hoijui/kicad-text-injector"
+/// );
+/// assert_eq!(
+///     clone_to_web_url("git@gitlab.com:hoijui/kicad-text-injector.git"),
+///     "https://gitlab.com/hoijui/kicad-text-injector"
+/// );
+/// assert_eq!(
+///     clone_to_web_url("https://gitlab.com/hoijui/kicad-text-injector.git"),
+///     "https://gitlab.com/hoijui/kicad-text-injector"
+/// );
+/// # Ok(())
+/// # }
+/// ```
 #[must_use]
 pub fn clone_to_web_url(url: &str) -> String {
     lazy_static! {
+        // static ref R_CLONE_URL: Regex = Regex::new(r"((?P<protocol>[0-9a-zA-Z_-]+)://)?((?P<protocol_user>[0-9a-zA-Z_-]+)@)?(?P<server>[0-9a-zA-Z_-]+)\.com/(?P<user>[^/]+)/(?P<project>[^/]+)\.git").unwrap();
         static ref R_GIT_AT: Regex = Regex::new(r"^git@").unwrap();
         static ref R_DOT_COM: Regex = Regex::new(r"\.com:").unwrap();
         static ref R_DOT_GIT: Regex = Regex::new(r"\.git$").unwrap();
@@ -74,6 +88,95 @@ pub fn clone_to_web_url(url: &str) -> String {
     public_url.into_owned()
 }
 
+macro_rules! let_named_cap {
+    ($caps:ident,$name:ident) => {
+        let $name = if let Some(rmatch) = $caps.name(stringify!($name)) {
+            rmatch.as_str()
+        } else {
+            ""
+        };
+    };
+}
+
+/// Converts a common web hosting URL (HTTPS)
+/// into a git remote URL (HTTPS or SSH).
+///
+/// for example:
+///
+/// ```
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # use projvar::tools::git::web_to_clone_url;
+/// assert_eq!(
+///     web_to_clone_url("https://github.com/hoijui/kicad-text-injector/", true)?,
+///     "git@github.com:hoijui/kicad-text-injector.git",
+/// );
+/// assert_eq!(
+///     web_to_clone_url("https://github.com/hoijui/kicad-text-injector", false)?,
+///     "https://github.com/hoijui/kicad-text-injector.git"
+/// );
+/// assert_eq!(
+///     web_to_clone_url("https://gitlab.com/hoijui/kicad-text-injector", true)?,
+///     "git@gitlab.com:hoijui/kicad-text-injector.git"
+/// );
+/// assert_eq!(
+///     web_to_clone_url("https://gitlab.com/hoijui/kicad-text-injector/", false)?,
+///     "https://gitlab.com/hoijui/kicad-text-injector.git"
+/// );
+/// # Ok(())
+/// # }
+/// ```
+///
+/// # Errors
+///
+/// If the conversion failed,
+/// which usually happens if the `web_url` is not a github.com or gitlab.com.
+pub fn web_to_clone_url(web_url: &str, ssh: bool) -> BoxResult<String> {
+    lazy_static! {
+        static ref R_WEB_URL: Regex = Regex::new(
+            r"(?P<protocol>[0-9a-zA-Z_-]+)://((?P<protocol_user>[0-9a-zA-Z_-]+)@)?(?P<server>[0-9a-zA-Z_-]+)\.com/(?P<user>[^/]+)/(?P<project>[^/]+)/?"
+        ).unwrap();
+    }
+    let clone_url = R_WEB_URL.replace(web_url, |caps: &regex::Captures| {
+        let clone_protocol = if ssh {
+            /*"ssh://"*/
+            ""
+        } else {
+            "https://"
+        };
+        let sep = if ssh { ':' } else { '/' };
+        let_named_cap!(caps, protocol_user);
+        let protocol_user = if protocol_user.is_empty() {
+            if ssh {
+                "git@".to_owned()
+            } else {
+                "".to_owned()
+            }
+        } else {
+            format!("{}@", protocol_user)
+        };
+        // let_named_cap!(caps, protocol);
+        let_named_cap!(caps, server);
+        let_named_cap!(caps, user);
+        let_named_cap!(caps, project);
+        format!(
+            "{clone_protocol}{protocol_user}{server}.com{sep}{user}/{project}.git",
+            clone_protocol = clone_protocol,
+            protocol_user = protocol_user,
+            sep = sep,
+            user = user,
+            server = server,
+            project = project,
+        )
+    });
+    if clone_url == web_url {
+        Err(Box::new(UrlConversionError::new(&format!(
+            "Not a supported hosting platform for converting repo web hosting URL to clone URL: '{}'",
+            web_url))))
+    } else {
+        Ok(clone_url.into_owned())
+    }
+}
+
 /// Converts a common git repo web-host URL
 /// into the URL of where to find hosted CI output
 /// (commonly known as "pages" URL).
@@ -82,8 +185,20 @@ pub fn clone_to_web_url(url: &str) -> String {
 ///
 /// for example:
 ///
-/// <https://gitlab.com/OSEGermany/OHS-3105/> -> <https://osegermany.gitlab.io/OHS-3105/>
-/// <https://github.com/hoijui/escher> -> <https://hoijui.github.io/escher/>
+/// ```
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # use projvar::tools::git::web_to_build_hosting_url;
+/// assert_eq!(
+///     web_to_build_hosting_url("https://github.com/hoijui/kicad-text-injector/")?,
+///     "https://hoijui.github.io/kicad-text-injector",
+/// );
+/// assert_eq!(
+///     web_to_build_hosting_url("https://gitlab.com/hoijui/kicad-text-injector")?,
+///     "https://hoijui.gitlab.io/kicad-text-injector"
+/// );
+/// # Ok(())
+/// # }
+/// ```
 ///
 /// # Errors
 ///
@@ -93,21 +208,28 @@ pub fn clone_to_web_url(url: &str) -> String {
 /// likely because the remote is neither "github.com" nor "gitlab.com".
 pub fn web_to_build_hosting_url(web_url: &str) -> BoxResult<String> {
     lazy_static! {
-        static ref R_WEB_URL: Regex = Regex::new(r"(?P<protocol>[0-9a-zA-Z_-]+)://(?P<server>[0-9a-zA-Z_-]+)\.com/(?P<user>[^/]+)/(?P<project>[^/]+)/?").unwrap();
+        static ref R_WEB_URL: Regex = Regex::new(
+            r"(?P<protocol>[0-9a-zA-Z_-]+)://((?P<protocol_user>[0-9a-zA-Z_-]+)@)?(?P<server>[0-9a-zA-Z_-]+)\.com/(?P<user>[^/]+)/(?P<project>[^/]+)/?"
+        ).unwrap();
     }
-    // let build_hosting_url = R_WEB_URL.replace(url, "${protocol}://${user}.${server}.io/${project}/");
     let build_hosting_url = R_WEB_URL.replace(web_url, |caps: &regex::Captures| {
+        let_named_cap!(caps, protocol);
+        let_named_cap!(caps, server);
+        let_named_cap!(caps, user);
+        let_named_cap!(caps, project);
         format!(
-            "{protocol}://{user}.{server}.io/{project}/",
-            protocol = &caps[1],
-            server = &caps[2],
-            user = &caps[3].to_lowercase(),
-            project = &caps[4]
+            "{protocol}://{user}.{server}.io/{project}",
+            protocol = protocol,
+            user = user.to_lowercase(),
+            server = server,
+            project = project,
         )
     });
     if build_hosting_url == web_url {
         // Err(Box::new(Err("")))
-        Err(Box::new(UrlConversionError::new(&format!("Not a supported hosting platform for converting repo web hosting URL to \"pages\" URL: '{}'", web_url))))
+        Err(Box::new(UrlConversionError::new(&format!(
+            "Not a supported hosting platform for converting repo web hosting URL to \"pages\" URL: '{}'",
+            web_url))))
     } else {
         Ok(build_hosting_url.into_owned())
     }
@@ -134,7 +256,7 @@ fn _version(repo: &git2::Repository) -> BoxResult<String> {
         .describe(git2::DescribeOptions::new().describe_tags())?
         .format(Some(
             git2::DescribeFormatOptions::new()
-                .always_use_long_format(true)
+                .always_use_long_format(false)
                 .dirty_suffix("-dirty"),
         ))?)
 }
@@ -225,6 +347,24 @@ impl Repo {
     fn _branch(&self) -> BoxResult<git2::Branch> {
         // self.repo.head()?.is_branch()
         Ok(git2::Branch::wrap(self.repo.head()?))
+    }
+
+    /// Returns the SHA of the currently checked-out commit,
+    /// if any.
+    //
+    /// # Errors
+    ///
+    /// If some git-related magic goes south,
+    /// or there is no commit.
+    pub fn sha(&self) -> BoxResult<Option<String>> {
+        let head = self.repo.head()?;
+        Ok(//Some(
+            head.resolve()?
+                .target()
+                .map(|oid| oid.to_string())
+                // .ok_or_else(|| git2::Error::from_str("Not a direct reference"))?
+                // .to_owned(),
+        ) //)
     }
 
     /// Returns the local name of the currently checked-out branch,
@@ -389,7 +529,7 @@ impl Repo {
     /// Failed generating the "pages" URL,
     /// likely because the remote is neither "github.com" nor "gitlab.com".
     pub fn build_hosting_url(&self) -> BoxResult<String> {
-        let web_url = self.remote_clone_url()?;
+        let web_url = self.remote_web_url()?;
         web_to_build_hosting_url(&web_url)
     }
 
@@ -421,11 +561,18 @@ impl Repo {
     }
 }
 
+/*
 #[cfg(test)]
 mod tests {
     // Note this useful idiom:
     // importing names from outer (for mod tests) scope.
     use super::*;
+
+    macro_rules! is_that_error {
+        ($result:ident,$err_type:ident) => {
+            $result.unwrap_err().downcast_ref::<$err_type>().is_some()
+        };
+    }
 
     #[test]
     fn test_is_git_dirty_version() {
@@ -443,11 +590,15 @@ mod tests {
     fn test_web_to_build_hosting_url() {
         assert_eq!(
             web_to_build_hosting_url("https://gitlab.com/OSEGermany/OHS-3105/").unwrap(),
-            "https://osegermany.gitlab.io/OHS-3105/"
+            "https://osegermany.gitlab.io/OHS-3105"
         );
         assert_eq!(
             web_to_build_hosting_url("https://github.com/hoijui/escher").unwrap(),
-            "https://hoijui.github.io/escher/"
+            "https://hoijui.github.io/escher"
         );
+
+        let result = web_to_build_hosting_url("git@github.com:hoijui/escher.git");
+        assert!(is_that_error!(result, UrlConversionError));
     }
 }
+*/

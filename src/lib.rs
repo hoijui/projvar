@@ -2,19 +2,17 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#[macro_use]
+// #[macro_use]
 extern crate clap;
-#[macro_use]
+// #[macro_use]
+extern crate enum_map;
 extern crate log;
 
-// pub mod kicad_quoter;
-// pub mod replacer;
 pub mod environment;
-pub mod git;
 pub mod settings;
-pub mod storage;
+pub mod sinks;
+pub mod sources;
+// pub mod storage;
+pub mod tools;
 pub mod var;
 pub mod vars_preparator;
-// pub mod props {
-//     pub mod version;
-// }
