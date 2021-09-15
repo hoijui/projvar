@@ -227,7 +227,7 @@ fn arg_dry() -> Arg<'static> {
 
 fn arg_overwrite() -> Arg<'static> {
     Arg::new("overwrite")
-        .about("TODO.") // TODO
+        .about("Whether to overwrite already set value in the output.")
         .takes_value(true)
         .possible_values(settings::Overwrite::VARIANTS) //iter().map(|ovr| &*format!("{:?}", ovr)).collect())
         // .short('O')
