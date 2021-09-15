@@ -44,6 +44,20 @@ fn is_git_repo_root(repo_path: Option<&Path>) -> bool {
     tools::git::Repo::try_from(repo_path).is_ok()
 }
 
+fn arg_project_root() -> Arg<'static> {
+    Arg::new("variable")
+        .about("The root of the project, mainly used for SCM (e.g. git) information gathering.")
+        .takes_value(true)
+        .forbid_empty_values(true)
+        .value_name("DIR")
+        .value_hint(ValueHint::DirPath)
+        .short('C')
+        .long("project-root")
+        .multiple_occurrences(false)
+        .required(false)
+        .default_value(".")
+}
+
 fn arg_variable() -> Arg<'static> {
     Arg::new("variable")
         .about("A variable key-value pair to be used as input")
@@ -270,6 +284,7 @@ fn arg_matcher() -> App<'static> {
         .license(crate_license!())
         .setting(AppSettings::ColoredHelp)
         .setting(AppSettings::UnifiedHelpMessage)
+        .arg(arg_project_root())
         .arg(arg_variable())
         .arg(arg_variables_file())
         .arg(arg_no_env_in())
@@ -316,8 +331,8 @@ fn verbosity(args: &ArgMatches) -> BoxResult<(Verbosity, Verbosity)> {
     Ok((std, common))
 }
 
-fn repo_path<'a>(/*args: &'a ArgMatches*/) -> &'a Path {
-    let repo_path: Option<&'static str> = Some("."); // TODO Make an option for that
+fn repo_path<'a>(args: &'a ArgMatches) -> &'a Path {
+    let repo_path: Option<&'static str> = args.value_of("project-root");
     let repo_path_str = repo_path.unwrap_or(".");
     let repo_path = Path::new(repo_path_str);
     log::debug!("Using repo path '{:?}'.", repo_path);
@@ -433,7 +448,7 @@ fn main() -> BoxResult<()> {
 
     // let set_all: bool = args.is_present("set-all");
 
-    let repo_path = repo_path(/*&args*/);
+    let repo_path = repo_path(&args);
     let date_format = date_format(&args);
     let storage = storage_mode(&args);
 
