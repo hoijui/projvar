@@ -175,7 +175,6 @@ fn arg_require_all() -> Arg<'static> {
         .about("Marks all properties as required")
         .long_about("Marks all properties as required. See --fail,--require,--require-not.")
         .takes_value(false)
-        .about("Write evaluated values into a file (using BASH syntax). Note: \"-\" has no special meaning here; it does not mean stdout, but rather the file \"./-\".")
         .long("all")
         .multiple_occurrences(false)
         .required(false)
