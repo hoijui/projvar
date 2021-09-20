@@ -28,119 +28,6 @@ use std::error::Error;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 
-// @click.argument("additional_replacements", type=replace_vars.KEY_VALLUE_PAIR, nargs=-1)
-// @click.option('--src-file-path', '-p',
-//         type=click.Path(dir_okay=False, file_okay=True),
-//         envvar='PROJECT_SRC_FILE_PATH',
-//         default=None,
-//         help='The path to the source file, relative to the repo root. '
-//             + 'This is only used in variable substitution; '
-//             + 'no reading from that path will be attempted. (default: SRC)')
-// @click.option('--repo-path', '-r',
-//         type=click.Path(dir_okay=True, file_okay=False),
-//         envvar='PROJECT_REPO_PATH',
-//         default='.',
-//         help='The path to the local git repo')
-// @click.option('--repo-url', '-u',
-//         type=click.STRING,
-//         envvar='PROJECT_REPO_URL',
-//         default=None,
-//         help='Public project repo URL')
-// @click.option('-n', '--name',
-//         type=click.STRING,
-//         envvar='PROJECT_NAME',
-//         default=None,
-//         help='Project name (prefferably without spaces)')
-// @click.option('--vers',
-//         type=click.STRING,
-//         envvar='PROJECT_VERSION',
-//         default=None,
-//         help='Project version (prefferably without spaces)')
-// @click.option('-d', '--version-date',
-//         type=click.STRING,
-//         envvar='PROJECT_VERSION_DATE',
-//         default=None,
-//         help='Date at which this version of the project was committed/released')
-// @click.option('--build-date',
-//         type=click.STRING,
-//         envvar='PROJECT_BUILD_DATE',
-//         default=None,
-//         help=('Date at which the currently being-made build of '
-//             + 'the project is made. This should basically always be left on the '
-//             + 'default, which is the current date.'))
-
-//     '''
-//     Using a KiCad PCB file as input,
-//     replaces variables of the type `${VAR_NAME}` in text-fields with actual values,
-//     writing the result to an other KiCad PCB file.
-
-//     Key-value pairs to be used for the replacement are collected from 3 sources:
-
-//     * read from common environment variables like `PROJECT_REPO_PATH` and `PROJECT_REPO_URL`
-
-//     * specified through command-line switches like `--repo-url "https://github.com/user/repo/"`
-
-//     * directly specified through `ADDITIONAL_REPLACEMENTS`, for example `"PROJECT_BATCH_ID=john-1"`
-
-//     SRC - The source KiCad PCB file (this will be used as input,
-//     and potentially for the replacement variable `${PROJECT_SRC_FILE_PATH}`).
-
-//     DST - The destination KiCad PCB file (this will be used for the generated output).
-
-//     ADDITIONAL_REPLACEMENTS - Each one of these is a ful key-value pair,
-//     using '=' as the delimiter, for example `"PROJECT_BATCH_ID=john-1"`.
-//     '''
-
-// fn insert_if_missing<K: std::cmp::Eq + std::hash::Hash, V>(
-//     map: &mut HashMap<K, V>,
-//     key: K,
-//     val: V,
-// ) {
-//     map.entry(key).or_insert(val);
-// }
-
-// /// Returns the name of the given path (same as `basename` on UNIX systems)
-// fn dir_name(path: &Path) -> BoxResult<String> {
-//     Ok(path
-//         .canonicalize()?
-//         // .parent()
-//         // .ok_or_else(|| git2::Error::from_str("Unable to get containing directory's name"))?
-//         .file_name()
-//         .ok_or_else(|| git2::Error::from_str("File ends in .."))?
-//         .to_str()
-//         .ok_or_else(|| git2::Error::from_str("File name is not UTF-8 compatible"))?
-//         .to_owned())
-// }
-
-// #[derive(Debug, Clone)]
-// enum VarErrorType {
-//     Get,
-//     Set,
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct NoAltMethodError {
-//     key: String,
-//     // kind: VarErrorType,
-//     // source: Option<env::VarError>,
-// }
-
-// impl Error for NoAltMethodError {
-//     //     fn source(&self) -> Option<&(dyn Error + 'static)> {
-//     //         self.source.map_or_else(|| None, |val| Some(val))
-//     //     }
-// }
-
-// impl fmt::Display for NoAltMethodError {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         write!(
-//             f,
-//             "No alternative mthod to fetch value for key '{}'",
-//             self.key
-//         )
-//     }
-// }
-
 /* fn alt_version(environment: &mut Environment) -> BoxResult<Option<String>> { */
 /*     Ok(if let Some(repo) = environment.repo() { */
 /*         let sc_version = repo.version()?; */
@@ -190,37 +77,6 @@ type BoxResult<T> = Result<T, Box<dyn Error>>;
 /*             } */
 /*         }, */
 /*     ) */
-/* } */
-
-/* fn fetch_key_or_alt(environment: &mut Environment, key: &Key) -> BoxResult<Option<String>> { */
-/*     Ok(environment.vars.get(key).unwrap_or(fetch_alt( */
-/*         environment, */
-/*         var::VARS */
-/*             .get(key) */
-/*             .ok_or_else(|| format!("Key '{:?}' is not part of the main core variables", key))?, */
-/*     )?)) */
-/* } */
-
-/* fn fetch_any_key_or_alt( */
-/*     environment: &mut Environment, */
-/*     var: &var::Variable, */
-/* ) -> BoxResult<Option<String>> { */
-/*     // Ok(var.fetch_any_var(&*environment.vars)?.or_else(|| fetch_alt(environment, var)?)) */
-/*     let mut value = var.fetch_any_var(&*environment.vars)?; */
-/*     if value.is_none() { */
-/*         value = fetch_alt(environment, var)?; */
-/*     } */
-/*     Ok(value) */
-/* } */
-
-/* fn fetch_var_or_key_any_key_or_alt( */
-/*     environment: &mut Environment, */
-/*     key: &Key, */
-/* ) -> BoxResult<Option<String>> { */
-/*     match var::VARS.get(key) { */
-/*         Some(var) => fetch_any_key_or_alt(environment, var), */
-/*         None => fetch_key_or_alt(environment, key), */
-/*     } */
 /* } */
 
 /* /// This uses an alternative method to fetch certain specific variable keys values. */
@@ -375,17 +231,7 @@ pub fn prepare_project_vars(
     environment: &mut Environment,
     sources: Vec<Box<dyn VarSource>>,
     sinks: Vec<Box<dyn VarSink>>,
-    // vars: &mut HashMap<String, String>,
-    // repo_path: Option<&str>,
-    // repo_web_url: Option<&str>,
-    // name: Option<&str>,
-    // version: Option<&str>,
-    // version_date: Option<&str>,
-    // build_date: Option<&str>,
-    // date_format: Option<&str>,
 ) -> BoxResult<()> {
-    // ) {
-    // environment.vars.init();
     for source in sources {
         if source.is_usable(environment) {
             log::trace!("Trying to fetch from source {} ...", source);
@@ -400,10 +246,8 @@ pub fn prepare_project_vars(
         }
     }
 
-    /* let values: Vec<_> = {environment.output.iter().map(|key_value| { */
-    /*     (key_value.0, var::VARS.get(key_value.0).unwrap(), key_value.1.to_owned()) */
-    /* }).collect()}; */
-    // let values: Vec<_> = {environment.output.iter().map(|key_value| {
+    // TODO Add validators here
+
     log::trace!("Evaluated variables ...");
     let values: Vec<(Key, &'static Variable, String)> = {
         environment
@@ -418,42 +262,14 @@ pub fn prepare_project_vars(
             })
             .collect()
     };
-    /* let values: Vec<(&'static Key, &'static Variable, String)> = || todo!(); */
 
     for ref sink in sinks {
         log::trace!("Checking if sink {} is usable ...", sink);
         if sink.is_usable(environment) {
             log::trace!("Storing to sink {} ...", sink);
             sink.store(environment, &values)?;
-            /* for key in Key::iter() { */
-            /*     if let Some(value) = value { */
-            /*         log::trace!("Fetched {:?}='{}' from source {}", key, value, source); */
-            /*         environment.output.insert(key, value); */
-            /*     } */
-            /* } */
         }
     }
-
-    /* for var in &*var::VARS { */
-    /*     log::debug!("Looking for {} ...", &var.1); */
-    /*     let val = fetch_any_key_or_alt(environment, var.1)?; */
-    /*     match val { */
-    /*         Some(val) => { */
-    /*             if let settings::Verbosity::Info = environment.settings.verbosity { */
-    /*                 log::info!("Value found for {}: '{}'", &var.1, val); */
-    /*             } */
-    /*             match environment.settings.to_set { */
-    /*                 settings::VarsToSet::All => var.1.set_all(&mut *environment.vars, &val), */
-    /*                 settings::VarsToSet::Primary => var.1.set_main(&mut *environment.vars, &val), */
-    /*             }?; */
-    /*         } */
-    /*         None => { */
-    /*             log::warn!("No value found for {}", &var.1); */
-    /*         } */
-    /*     } */
-    /* } */
-
-    // environment.vars.finalize();
 
     log::trace!("Done.");
 
