@@ -58,7 +58,7 @@ impl<'t> Environment<'t> {
     pub fn repo(&mut self) -> Option<&git::Repo> {
         if self.repo.is_none() {
             // self.repo : git::Repo = git::Repo::try_from(self.settings.repo_path).ok();
-            self.repo = git::Repo::try_from(self.settings.repo_path).ok();
+            self.repo = git::Repo::try_from(self.settings.repo_path.as_deref()).ok();
         }
         // match &self.repo {
         //     Some(repo) => Some(repo),

@@ -11,7 +11,7 @@
 // #[derive(Debug)]
 // #[derive(TypedBuilder)]
 use clap::lazy_static::lazy_static;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, EnumString, EnumVariantNames, IntoStaticStr};
 
@@ -191,7 +191,7 @@ pub enum StorageMode {
 
 pub struct Settings /*<S: ::std::hash::BuildHasher>*/ {
     // pub repo_path: Option<Box<Path>>,
-    pub repo_path: Option<&'static Path>,
+    pub repo_path: Option<PathBuf>,
     pub to_set: VarsToSet,
     pub overwrite: Overwrite,
     pub date_format: String,

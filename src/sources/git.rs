@@ -68,6 +68,7 @@ fn name(environment: &mut Environment) -> BoxResult<Option<String>> {
     let repo_path = environment
         .settings
         .repo_path
+        .as_ref()
         // .map_or(Ok(None), |r| r.map(Some));
         .ok_or("No repo path provided")?;
     let dir_name = dir_name(repo_path)?;

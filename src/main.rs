@@ -345,10 +345,10 @@ fn verbosity(args: &ArgMatches) -> BoxResult<(Verbosity, Verbosity)> {
     Ok((std, common))
 }
 
-fn repo_path<'a>(args: &'a ArgMatches) -> &'a Path {
-    let repo_path: Option<&'static str> = args.value_of("project-root");
+fn repo_path<'a>(args: &'a ArgMatches) -> PathBuf {
+    let repo_path: Option<&str> = args.value_of("project-root");
     let repo_path_str = repo_path.unwrap_or(".");
-    let repo_path = Path::new(repo_path_str);
+    let repo_path = PathBuf::from(repo_path_str);
     log::debug!("Using repo path '{:?}'.", repo_path);
     repo_path
 }
@@ -469,7 +469,7 @@ fn main() -> BoxResult<()> {
     let overwrite = settings::Overwrite::from_str(args.value_of("overwrite").unwrap())?;
     log::debug!("Overwriting output variable values? -> {:?}", overwrite);
 
-    let sources = sources(&args, repo_path);
+    let sources = sources(&args, &repo_path);
 
     let sinks = sinks(&args)?;
 
