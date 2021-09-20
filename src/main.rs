@@ -46,7 +46,8 @@ fn is_git_repo_root(repo_path: Option<&Path>) -> bool {
 
 fn arg_project_root() -> Arg<'static> {
     Arg::new("variable")
-        .about("The root of the project, mainly used for SCM (e.g. git) information gathering.")
+        .about("The root dir of the project")
+        .long_about("The root directory of the project, mainly used for SCM (e.g. git) information gathering.")
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("DIR")
@@ -60,7 +61,8 @@ fn arg_project_root() -> Arg<'static> {
 
 fn arg_variable() -> Arg<'static> {
     Arg::new("variable")
-        .about("A variable key-value pair to be used as input")
+        .about("A key-value pair to be used as input")
+        .long_about("A key-value pair (aka a variable) to be used as input, as it it was specified as an environment variable. Value provided with this take precedense over environment variables - they overwrite them. See -I,--variable-file for supplying a lot of such pairs at once.")
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("KEY=VALUE")
@@ -74,7 +76,8 @@ fn arg_variable() -> Arg<'static> {
 
 fn arg_variables_file() -> Arg<'static> {
     Arg::new("variables-file")
-        .about("A file containing KEY=VALUE pairs, one per line (BASH style). Empty lines, and those startign wiht \"#\" or \"//\" are ignored.")
+        .about("A file containing KEY=VALUE pairs")
+        .long_about("A file containing KEY=VALUE pairs, one per line (BASH style). Empty lines, and those startign with \"#\" or \"//\" are ignored. See -D,--variable for specifying one pair at a time.")
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("FILE")
@@ -88,7 +91,8 @@ fn arg_variables_file() -> Arg<'static> {
 
 fn arg_no_env_in() -> Arg<'static> {
     Arg::new("no-env-in")
-        .about("Disable the use of environment variables as input")
+        .about("Do not read environment variables")
+        .long_about("Disable the use of environment variables as input")
         .takes_value(false)
         .short('x')
         .long("no-env-in")
@@ -108,7 +112,8 @@ fn arg_env_out() -> Arg<'static> {
 
 fn arg_out_file() -> Arg<'static> {
     Arg::new("out-file")
-        .about("Writes the variables out thi this file, one KEY-VALUE pair per line (BASH style).")
+        .about("Write variables into this file")
+        .long_about("Write evaluated values into a file, one KEY-VALUE pair per line (BASH syntax). Note that \"-\" has no special meaning here; it does not mean stdout, but rather the file \"./-\".")
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("FILE")
@@ -121,7 +126,8 @@ fn arg_out_file() -> Arg<'static> {
 
 fn arg_verbose() -> Arg<'static> {
     Arg::new("verbose")
-        .about("More verbose output (useful for debugging)")
+        .about("More verbose log output")
+        .long_about("More verbose log output; useful for debugging. See -L,--log-level for more fine-graine control.")
         .takes_value(false)
         .short('v')
         .long("verbose")
@@ -131,7 +137,7 @@ fn arg_verbose() -> Arg<'static> {
 
 fn arg_log_level() -> Arg<'static> {
     Arg::new("log-level")
-        .about("Set the log-level to use")
+        .about("Set the log-level")
         .takes_value(false)
         .possible_values(settings::Verbosity::VARIANTS)
         .short('v')
@@ -143,7 +149,8 @@ fn arg_log_level() -> Arg<'static> {
 
 fn arg_quiet() -> Arg<'static> {
     Arg::new("quiet")
-        .about("Supresses all log-output to stdout, and only shows errors on stderr (see --log-level to also disable those). This does not affect the log level for the log-file.")
+        .about("No logging to stdout (only stderr)")
+        .long_about("Supresses all log-output to stdout, and only shows errors on stderr (see -L,--log-level to also disable those). This does not affect the log level for the log-file.")
         .takes_value(false)
         .short('q')
         .long("quiet")
@@ -154,7 +161,8 @@ fn arg_quiet() -> Arg<'static> {
 
 fn arg_fail() -> Arg<'static> {
     Arg::new("fail-on-missing-values")
-        .about("Fail if no value is available for any of the required properties (see --all,--require,--require-not)")
+        .about("Fail if a required value is missing")
+        .long_about("Fail if no value is available for any of the required properties (see --all,--require,--require-not)")
         .takes_value(false)
         .short('f')
         .long("fail")
@@ -164,7 +172,8 @@ fn arg_fail() -> Arg<'static> {
 
 fn arg_require_all() -> Arg<'static> {
     Arg::new("require-all")
-        .about("Fail if any property failed to resovle to a value (see --fail,--require,--require-not)")
+        .about("Marks all properties as required")
+        .long_about("Marks all properties as required. See --fail,--require,--require-not.")
         .takes_value(false)
         .about("Write evaluated values into a file (using BASH syntax). Note: \"-\" has no special meaning here; it does not mean stdout, but rather the file \"./-\".")
         .long("all")
@@ -176,7 +185,8 @@ fn arg_require_all() -> Arg<'static> {
 
 fn arg_require() -> Arg<'static> {
     Arg::new("require")
-        .about("A key of a variable whose value is required. For example PROJECT_NAME (see --list for all possible keys). If at least one such option is present, the default required values list is cleared (see --fail,--all,--require-not)")
+        .about("Mark a propery as required")
+        .long_about(r#"Mark a propery as required. You may use the property name (e.g. "Name") or the variable key (e.g. "PROJECT_NAME"); See --list for all possible keys. If at least one such option is present, the default required values list is cleared (see --fail,--all,--require-not)."#)
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("KEY")
@@ -192,7 +202,8 @@ fn arg_require() -> Arg<'static> {
 
 fn arg_require_not() -> Arg<'static> {
     Arg::new("require-not")
-        .about("A key of a variable whose value is *not* required. For example PROJECT_NAME (see --list for all possible keys). Can be used either on the base of the default requried list or all (see --fail,--all,--require)")
+        .about("Mark a property as not required")
+        .long_about("A key of a variable whose value is *not* required. For example PROJECT_NAME (see --list for all possible keys). Can be used either on the base of the default requried list or all (see --fail,--all,--require)")
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("KEY")
@@ -217,7 +228,8 @@ fn arg_require_not() -> Arg<'static> {
 
 fn arg_dry() -> Arg<'static> {
     Arg::new("dry")
-        .about("Set Whether to skip the actual setting of environment variables.")
+        .about("Do not write any files or set any environment variables")
+        .long_about("Set Whether to skip the actual setting of environment variables.")
         .takes_value(false)
         .short('d')
         .long("dry")
@@ -227,7 +239,7 @@ fn arg_dry() -> Arg<'static> {
 
 fn arg_overwrite() -> Arg<'static> {
     Arg::new("overwrite")
-        .about("Whether to overwrite already set value in the output.")
+        .about("Whether to overwrite already set values in the output.")
         .takes_value(true)
         .possible_values(settings::Overwrite::VARIANTS) //iter().map(|ovr| &*format!("{:?}", ovr)).collect())
         // .short('O')
@@ -240,7 +252,8 @@ fn arg_overwrite() -> Arg<'static> {
 
 fn arg_list() -> Arg<'static> {
     Arg::new("list")
-        .about("Prints a list of all the environment variables that are potentially set by this tool onto stdout and exits.")
+        .about("Show all properties and their keys")
+        .long_about("Prints a list of all the environment variables that are potentially set by this tool onto stdout and exits.")
         .takes_value(false)
         .short('l')
         .long("list")
@@ -250,7 +263,8 @@ fn arg_list() -> Arg<'static> {
 
 fn arg_log_file() -> Arg<'static> {
     Arg::new("log-file")
-        .about("Writes a detailed log to the specifed file.")
+        .about("Write log output to a file")
+        .long_about("Writes a detailed log to the specifed file.")
         .takes_value(true)
         .forbid_empty_values(true)
         .value_hint(ValueHint::FilePath)
@@ -263,7 +277,8 @@ fn arg_log_file() -> Arg<'static> {
 
 fn arg_date_format() -> Arg<'static> {
     Arg::new("date-format")
-        .about("Date format string for generated (vs supplied) dates. For details, see https://docs.rs/chrono/latest/chrono/format/strftime/index.html")
+        .about("Date format for generated dates")
+        .long_about("Date format string for generated (vs supplied) dates. For details, see https://docs.rs/chrono/latest/chrono/format/strftime/index.html")
         .takes_value(true)
         .forbid_empty_values(true)
         .value_hint(ValueHint::Other)
