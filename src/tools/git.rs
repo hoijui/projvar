@@ -277,7 +277,6 @@ impl TryFrom<Option<&str>> for Repo {
 }
 
 impl TryFrom<Option<&Path>> for Repo {
-    // type Error = Box<&'static str>;
     type Error = git2::Error;
     fn try_from(repo_root: Option<&Path>) -> Result<Self, Self::Error> {
         let repo_root = repo_root.unwrap_or_else(|| Path::new("."));
