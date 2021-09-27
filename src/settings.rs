@@ -203,3 +203,21 @@ pub struct Settings /*<S: ::std::hash::BuildHasher>*/ {
     pub storage: StorageMode,
     pub verbosity: (Verbosity, Verbosity),
 }
+
+impl Settings {
+    fn stub() -> Settings {
+        Settings {
+            repo_path: None,
+            to_set: VarsToSet::All,
+            overwrite: Overwrite::All,
+            date_format: crate::tools::git::DATE_FORMAT.to_string(),
+            fail_on: FailOn::AnyMissingValue,
+            storage: StorageMode::Dry,
+            verbosity: (Verbosity::None, Verbosity::None),
+        }
+    }
+}
+
+lazy_static! {
+    pub static ref STUB: Settings = Settings::stub();
+}

@@ -6,7 +6,7 @@
 // use std::io;
 // use std::io::BufRead;
 // use std::io::Write;
-use crate::settings::Settings;
+use crate::settings::{Settings, STUB};
 // use crate::sinks::VarSink;
 // use crate::sources::VarSource;
 use crate::tools::git;
@@ -53,6 +53,11 @@ impl<'t> Environment<'t> {
             // sources,
             // sinks,
         }
+    }
+
+    #[must_use]
+    pub fn stub() -> Environment<'static> {
+        Self::new(&STUB)
     }
 
     pub fn repo(&mut self) -> Option<&git::Repo> {
