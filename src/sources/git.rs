@@ -145,7 +145,7 @@ fn build_hosting_url(environment: &mut Environment) -> BoxResult<Option<String>>
 }
 
 /// This uses an alternative method to fetch certain specific variable keys values.
-/// Altenraitve meaning here:
+/// Alternative meaning here:
 /// Not directly fetching it from any environment variable.
 impl super::VarSource for VarSource {
     fn is_usable(&self, environment: &mut Environment) -> bool {
