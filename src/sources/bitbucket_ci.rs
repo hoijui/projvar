@@ -24,7 +24,7 @@ impl super::VarSource for VarSource {
             Key::RepoWebUrl => {
                 // BITBUCKET_REPO_FULL_NAME = The full name of the repository
                 // (everything that comes after http://bitbucket.org/).
-                var(environment, "BITBUCKET_PROJECT_KEY")
+                var(environment, "BITBUCKET_REPO_FULL_NAME")
                     .map(|project_slug| format!("http://bitbucket.org/{}", project_slug))
             }
             Key::RepoFrozenWebUrl => super::try_construct_frozen(self, environment)?,
