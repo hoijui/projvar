@@ -465,13 +465,13 @@ fn required_keys(args: &ArgMatches) -> BoxResult<HashSet<Key>> {
     };
     if let Some(requires) = args.values_of(A_L_REQUIRE) {
         for require in requires {
-            let key = Key::from_str(require)?;
+            let key = Key::from_name_or_var_key(require)?;
             required_keys.insert(key);
         }
     }
     if let Some(require_nots) = args.values_of(A_L_REQUIRE_NOT) {
         for require_not in require_nots {
-            let key = Key::from_str(require_not)?;
+            let key = Key::from_name_or_var_key(require_not)?;
             required_keys.remove(&key);
         }
     }

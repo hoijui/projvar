@@ -11,9 +11,12 @@ use std::{
     error::Error,
     fmt::Display,
     io::BufRead,
+    iter::Iterator,
 };
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, EnumString, IntoStaticStr};
+
+use std::str::FromStr;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 
@@ -70,6 +73,54 @@ pub enum Key {
     BuildHostingUrl,
     BuildNumber,
     Ci,
+}
+
+/// Converts a "CamelCase" string into an "UPPER_SNAKE_CASE" one.
+///
+/// for example:
+///
+/// ```
+/// //# fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # use projvar::var::camel_to_upper_snake_case;
+/// assert_eq!(
+///     camel_to_upper_snake_case("someLowerCaseStartingTest"),
+///     "SOME_LOWER_CASE_STARTING_TEST"
+/// );
+/// assert_eq!(
+///     camel_to_upper_snake_case("SomeUpperCaseStartingTest"),
+///     "SOME_UPPER_CASE_STARTING_TEST"
+/// );
+/// // NOTE From here on, we start seeing the limitation of this simple algorithm
+/// assert_eq!(
+///     camel_to_upper_snake_case("somethingWith123ANumber"),
+///     "SOMETHING_WITH123_A_NUMBER"
+/// );
+/// assert_eq!(
+///     camel_to_upper_snake_case("somethingWith123aNumber"),
+///     "SOMETHING_WITH123A_NUMBER"
+/// );
+/// //# Ok(())
+/// //# }
+/// ```
+pub fn camel_to_upper_snake_case(id: &str) -> String {
+    lazy_static! {
+        static ref R_UPPER_SEL: Regex = Regex::new(r"(?P<after>[A-Z])").unwrap();
+    }
+    let res = R_UPPER_SEL.replace_all(id, "_$after").to_uppercase();
+    res.strip_prefix('_').unwrap_or(&res).to_string()
+}
+
+impl Key {
+    /// Tries to create a `Key` from a string identifier.
+    /// This might be the exact name of the `Key` (like "Name"),
+    /// or the associated variable key (like "PROJECT_NAME").
+    ///
+    /// # Errors
+    ///
+    /// If the given identifier could not be mapped to any `Key` variant.
+    pub fn from_name_or_var_key(id: &str) -> BoxResult<Key> {
+        Ok(Self::from_str(id).or(Self::from_str(&camel_to_upper_snake_case(id)))?)
+    }
 }
 
 // pub fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
