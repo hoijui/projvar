@@ -2,27 +2,10 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// use std::process::Command;
 use crate::environment::Environment;
-// use crate::settings;
-// use crate::storage;
-// use chrono::DateTime;
-// use chrono::Local;
-// use chrono::NaiveDateTime;
-// use chrono::Utc;
-// use clap::lazy_static::lazy_static;
-// use git2::{self, Repository};
-// use regex::Regex;
 use crate::tools::git;
-// use self::VarSource;
-// use super::VarSource;
-// use crate::props::version;
 use crate::var::Key;
-// use std::collections::HashMap;
-// use std::convert::TryFrom;
-// use std::env;
 use std::error::Error;
-// use std::fmt::Display;
 use std::fmt;
 use std::path::Path;
 
