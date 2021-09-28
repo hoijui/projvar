@@ -375,7 +375,7 @@ fn arg_matcher() -> App<'static> {
 /// The first one is for stdout&stderr,
 /// the second one for log-file(s).
 fn verbosity(args: &ArgMatches) -> BoxResult<(Verbosity, Verbosity)> {
-    let common = if let Some(specified) = args.value_of("log-level") {
+    let common = if let Some(specified) = args.value_of(A_L_LOG_LEVEL) {
         Verbosity::from_str(specified)?
     } else {
         // Set the default base level
@@ -384,11 +384,11 @@ fn verbosity(args: &ArgMatches) -> BoxResult<(Verbosity, Verbosity)> {
         } else {
             Verbosity::Info
         };
-        let num_verbose = args.occurrences_of("verbose").try_into()?;
+        let num_verbose = args.occurrences_of(A_L_VERBOSE).try_into()?;
         level.up_max(num_verbose)
     };
 
-    let std = if args.is_present("quiet") {
+    let std = if args.is_present(A_L_QUIET) {
         Verbosity::None
     } else {
         common
@@ -398,7 +398,7 @@ fn verbosity(args: &ArgMatches) -> BoxResult<(Verbosity, Verbosity)> {
 }
 
 fn repo_path<'a>(args: &'a ArgMatches) -> PathBuf {
-    let repo_path: Option<&str> = args.value_of("project-root");
+    let repo_path: Option<&str> = args.value_of(A_L_PROJECT_ROOT);
     let repo_path_str = repo_path.unwrap_or(".");
     let repo_path = PathBuf::from(repo_path_str);
     log::debug!("Using repo path '{:?}'.", repo_path);
@@ -406,7 +406,7 @@ fn repo_path<'a>(args: &'a ArgMatches) -> PathBuf {
 }
 
 fn date_format(args: &ArgMatches) -> &str {
-    let date_format = match args.value_of("date-format") {
+    let date_format = match args.value_of(A_L_DATE_FORMAT) {
         Some(date_format) => date_format,
         None => tools::git::DATE_FORMAT,
     };
@@ -432,17 +432,17 @@ fn sources(_args: &ArgMatches, repo_path: &Path) -> Vec<Box<dyn VarSource>> {
 
 fn sinks(args: &ArgMatches) -> BoxResult<Vec<Box<dyn VarSink>>> {
     let mut sinks: Vec<Box<dyn VarSink>> = vec![];
-    if args.is_present("environment-out") {
+    if args.is_present(A_L_ENV_OUT) {
         sinks.push(Box::new(sinks::env::VarSink {}));
     }
-    if let Some(out_files) = args.values_of("out-file") {
+    if let Some(out_files) = args.values_of(A_S_FILE_OUT) {
         for out_file in out_files {
             sinks.push(Box::new(sinks::file::VarSink {
                 file: PathBuf::from_str(out_file)?,
             }));
         }
     }
-    if args.is_present("dry") {
+    if args.is_present(A_L_DRY) {
         sinks.clear();
     }
     for sink in &sinks {
@@ -452,7 +452,7 @@ fn sinks(args: &ArgMatches) -> BoxResult<Vec<Box<dyn VarSink>>> {
 }
 
 fn required_keys(args: &ArgMatches) -> BoxResult<HashSet<Key>> {
-    let require_all: bool = args.is_present("require-all");
+    let require_all: bool = args.is_present(A_L_REQUIRE_ALL);
     let mut required_keys = if require_all {
         // EnumSet::<Key>::all()
         // HashSet::<Key>::allj()
@@ -462,13 +462,13 @@ fn required_keys(args: &ArgMatches) -> BoxResult<HashSet<Key>> {
     } else {
         var::default_keys().clone()
     };
-    if let Some(requires) = args.values_of("require") {
+    if let Some(requires) = args.values_of(A_L_REQUIRE) {
         for require in requires {
             let key = Key::from_str(require)?;
             required_keys.insert(key);
         }
     }
-    if let Some(require_nots) = args.values_of("require-not") {
+    if let Some(require_nots) = args.values_of(A_L_REQUIRE_NOT) {
         for require_not in require_nots {
             let key = Key::from_str(require_not)?;
             required_keys.remove(&key);
@@ -488,11 +488,11 @@ fn main() -> BoxResult<()> {
 
     let verbosity = verbosity(&args)?;
 
-    let log_file = args.value_of("log-file").map(Path::new);
+    let log_file = args.value_of(A_L_LOG_FILE).map(Path::new);
     logger::init(log_file, verbosity);
     // logger::init2(log_file)?;
 
-    if args.is_present("list") {
+    if args.is_present(A_L_LIST) {
         var::list_keys(verbosity.1 >= Verbosity::Info);
         return Ok(());
     }
@@ -502,14 +502,14 @@ fn main() -> BoxResult<()> {
     let repo_path = repo_path(&args);
     let date_format = date_format(&args);
 
-    let overwrite = settings::Overwrite::from_str(args.value_of("overwrite").unwrap())?;
+    let overwrite = settings::Overwrite::from_str(args.value_of(A_L_OVERWRITE).unwrap())?;
     log::debug!("Overwriting output variable values? -> {:?}", overwrite);
 
     let sources = sources(&args, &repo_path);
 
     let sinks = sinks(&args)?;
 
-    let fail_on_missing: bool = args.is_present("fail-on-missing-values");
+    let fail_on_missing: bool = args.is_present(A_L_FAIL_ON_MISSING_VALUE);
     let required_keys = required_keys(&args)?;
 
     let settings = Settings {
@@ -525,12 +525,12 @@ fn main() -> BoxResult<()> {
     log::trace!("Created Environment.");
 
     // fetch environment variables
-    if !args.is_present("no-env-in") {
+    if !args.is_present(A_L_NO_ENV_IN) {
         log::trace!("Fetching variables from the environment ...");
         repvar::tools::append_env(&mut environment.vars);
     }
     // fetch variable files
-    if let Some(var_files) = args.values_of("variables-file") {
+    if let Some(var_files) = args.values_of(A_L_VARIABLES_FILE) {
         for var_file in var_files {
             if var_file == "-" {
                 log::trace!("Fetching variables from stdin ...");
@@ -544,7 +544,7 @@ fn main() -> BoxResult<()> {
         }
     }
     // insert CLI supplied variables values
-    if let Some(variables) = args.values_of("variable") {
+    if let Some(variables) = args.values_of(A_L_VARIABLE) {
         for var in variables {
             log::trace!("Adding variable from CLI: '{}' ...", var);
             let (key, value) = var::parse_key_value_str(var)?;
