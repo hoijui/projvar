@@ -6,7 +6,7 @@ extern crate clap;
 extern crate enum_map;
 extern crate log;
 
-// use clap::lazy_static::lazy_static;
+use clap::lazy_static::lazy_static;
 use clap::{
     crate_authors, crate_description, crate_license, crate_name, crate_version, App, AppSettings,
     Arg, ArgMatches, ValueHint,
@@ -42,23 +42,60 @@ fn is_git_repo_root(repo_path: Option<&Path>) -> bool {
     tools::git::Repo::try_from(repo_path).is_ok()
 }
 
+const A_S_PROJECT_ROOT: char = 'C';
+const A_L_PROJECT_ROOT: &str = "project-root";
+const A_S_VARIABLE: char = 'D';
+const A_L_VARIABLE: &str = "variable";
+const A_S_VARIABLES_FILE: char = 'I';
+const A_L_VARIABLES_FILE: &str = "variables-file";
+const A_S_NO_ENV_IN: char = 'x';
+const A_L_NO_ENV_IN: &str = "no-env-in";
+const A_S_ENV_OUT: char = 'e';
+const A_L_ENV_OUT: &str = "env-out";
+const A_S_FILE_OUT: char = 'f';
+const A_L_FILE_OUT: &str = "file-out";
+const A_S_VERBOSE: char = 'v';
+const A_L_VERBOSE: &str = "verbose";
+const A_S_LOG_LEVEL: char = 'F';
+const A_L_LOG_LEVEL: &str = "log-level";
+const A_S_QUIET: char = 'q';
+const A_L_QUIET: &str = "quiet";
+const A_S_FAIL_ON_MISSING_VALUE: char = 'f';
+const A_L_FAIL_ON_MISSING_VALUE: &str = "fail";
+const A_S_REQUIRE_ALL: char = 'a';
+const A_L_REQUIRE_ALL: &str = "all";
+const A_S_REQUIRE: char = 'R';
+const A_L_REQUIRE: &str = "require";
+const A_S_REQUIRE_NOT: char = 'N';
+const A_L_REQUIRE_NOT: &str = "require-not";
+const A_S_DRY: char = 'd';
+const A_L_DRY: &str = "dry";
+const A_S_OVERWRITE: char = 'o';
+const A_L_OVERWRITE: &str = "overwrite";
+const A_S_LIST: char = 'l';
+const A_L_LIST: &str = "list";
+const A_S_LOG_FILE: char = 'L';
+const A_L_LOG_FILE: &str = "log-file";
+const A_S_DATE_FORMAT: char = 'T';
+const A_L_DATE_FORMAT: &str = "date-format";
+
 fn arg_project_root() -> Arg<'static> {
-    Arg::new("variable")
+    Arg::new(A_L_PROJECT_ROOT)
         .about("The root dir of the project")
         .long_about("The root directory of the project, mainly used for SCM (e.g. git) information gathering.")
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("DIR")
         .value_hint(ValueHint::DirPath)
-        .short('C')
-        .long("project-root")
+        .short(A_S_PROJECT_ROOT)
+        .long(A_L_PROJECT_ROOT)
         .multiple_occurrences(false)
         .required(false)
         .default_value(".")
 }
 
 fn arg_variable() -> Arg<'static> {
-    Arg::new("variable")
+    Arg::new(A_L_VARIABLE)
         .about("A key-value pair to be used as input")
         .long_about("A key-value pair (aka a variable) to be used as input, as it it was specified as an environment variable. Value provided with this take precedense over environment variables - they overwrite them. See -I,--variable-file for supplying a lot of such pairs at once.")
         .takes_value(true)
@@ -66,151 +103,152 @@ fn arg_variable() -> Arg<'static> {
         .value_name("KEY=VALUE")
         .value_hint(ValueHint::Other)
         .validator(var::is_key_value_str_valid)
-        .short('D')
-        .long("variable")
+        .short(A_S_VARIABLE)
+        .long(A_L_VARIABLE)
         .multiple_occurrences(true)
         .required(false)
 }
 
 fn arg_variables_file() -> Arg<'static> {
-    Arg::new("variables-file")
+    Arg::new(A_L_VARIABLES_FILE)
         .about("A file containing KEY=VALUE pairs")
         .long_about("A file containing KEY=VALUE pairs, one per line (BASH style). Empty lines, and those startign with \"#\" or \"//\" are ignored. See -D,--variable for specifying one pair at a time.")
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("FILE")
         .value_hint(ValueHint::FilePath)
-        .short('I')
-        .long("variables-file")
+        .short(A_S_VARIABLES_FILE)
+        .long(A_L_VARIABLES_FILE)
         .multiple_occurrences(true)
         .required(false)
         .default_missing_value("-")
 }
 
 fn arg_no_env_in() -> Arg<'static> {
-    Arg::new("no-env-in")
+    Arg::new(A_L_NO_ENV_IN)
         .about("Do not read environment variables")
         .long_about("Disable the use of environment variables as input")
         .takes_value(false)
-        .short('x')
-        .long("no-env-in")
+        .short(A_S_NO_ENV_IN)
+        .long(A_L_NO_ENV_IN)
         .multiple_occurrences(false)
         .required(false)
 }
 
 fn arg_env_out() -> Arg<'static> {
-    Arg::new("environment-out")
+    Arg::new(A_L_ENV_OUT)
         .about("Write resulting values directy into the environment") // TODO Check: is that even possible? As in, the values remaining in the environment after the ned of the process?
         .takes_value(false)
-        .short('e')
-        .long("env-out")
+        .short(A_S_ENV_OUT)
+        .long(A_L_ENV_OUT)
         .multiple_occurrences(false)
         .required(false)
 }
 
 fn arg_out_file() -> Arg<'static> {
-    Arg::new("out-file")
+    Arg::new(A_L_FILE_OUT)
         .about("Write variables into this file")
         .long_about("Write evaluated values into a file, one KEY-VALUE pair per line (BASH syntax). Note that \"-\" has no special meaning here; it does not mean stdout, but rather the file \"./-\".")
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("FILE")
         .value_hint(ValueHint::FilePath)
-        .short('F')
-        .long("out-file")
+        .short(A_S_FILE_OUT)
+        .long(A_L_FILE_OUT)
         .multiple_occurrences(true)
         .required(false)
 }
 
 fn arg_verbose() -> Arg<'static> {
-    Arg::new("verbose")
+    Arg::new(A_L_VERBOSE)
         .about("More verbose log output")
         .long_about("More verbose log output; useful for debugging. See -L,--log-level for more fine-graine control.")
         .takes_value(false)
-        .short('v')
-        .long("verbose")
+        .short(A_S_VERBOSE)
+        .long(A_L_VERBOSE)
         .multiple_occurrences(true)
         .required(false)
 }
 
 fn arg_log_level() -> Arg<'static> {
-    Arg::new("log-level")
+    Arg::new(A_L_LOG_LEVEL)
         .about("Set the log-level")
         .takes_value(false)
         .possible_values(settings::Verbosity::VARIANTS)
-        .short('L')
-        .long("log-level")
+        .short(A_S_LOG_LEVEL)
+        .long(A_L_LOG_LEVEL)
         .multiple_occurrences(true)
         .required(false)
-        .conflicts_with("verbose")
+        .conflicts_with(A_L_VERBOSE)
 }
 
 fn arg_quiet() -> Arg<'static> {
-    Arg::new("quiet")
+    Arg::new(A_L_QUIET)
         .about("No logging to stdout (only stderr)")
         .long_about("Supresses all log-output to stdout, and only shows errors on stderr (see -L,--log-level to also disable those). This does not affect the log level for the log-file.")
         .takes_value(false)
-        .short('q')
-        .long("quiet")
+        .short(A_S_QUIET)
+        .long(A_L_QUIET)
         .multiple_occurrences(true)
         .required(false)
-        .conflicts_with("verbose")
+        .conflicts_with(A_L_VERBOSE)
 }
 
 fn arg_fail() -> Arg<'static> {
-    Arg::new("fail-on-missing-values")
+    Arg::new(A_L_FAIL_ON_MISSING_VALUE)
         .about("Fail if a required value is missing")
         .long_about("Fail if no value is available for any of the required properties (see --all,--require,--require-not)")
         .takes_value(false)
-        .short('f')
-        .long("fail")
+        .short(A_S_FAIL_ON_MISSING_VALUE)
+        .long(A_L_FAIL_ON_MISSING_VALUE)
         .multiple_occurrences(false)
         .required(false)
 }
 
 fn arg_require_all() -> Arg<'static> {
-    Arg::new("require-all")
+    Arg::new(A_L_REQUIRE_ALL)
         .about("Marks all properties as required")
         .long_about("Marks all properties as required. See --fail,--require,--require-not.")
         .takes_value(false)
-        .long("all")
+        .short(A_S_REQUIRE_ALL)
+        .long(A_L_REQUIRE_ALL)
         .multiple_occurrences(false)
         .required(false)
-        .requires("fail-on-missing-values")
-        .conflicts_with("require")
+        .requires(A_L_FAIL_ON_MISSING_VALUE)
+        .conflicts_with(A_L_REQUIRE)
 }
 
 fn arg_require() -> Arg<'static> {
-    Arg::new("require")
+    Arg::new(A_L_REQUIRE)
         .about("Mark a propery as required")
         .long_about(r#"Mark a propery as required. You may use the property name (e.g. "Name") or the variable key (e.g. "PROJECT_NAME"); See --list for all possible keys. If at least one such option is present, the default required values list is cleared (see --fail,--all,--require-not)."#)
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("KEY")
         .value_hint(ValueHint::Other)
-        .short('R')
-        .long("require")
+        .short(A_S_REQUIRE)
+        .long(A_L_REQUIRE)
         .multiple_occurrences(true)
         .required(false)
-        .requires("fail-on-missing-values")
-        .conflicts_with("require-not")
-        .conflicts_with("require-all")
+        .requires(A_L_FAIL_ON_MISSING_VALUE)
+        .conflicts_with(A_L_REQUIRE_NOT)
+        .conflicts_with(A_L_REQUIRE_ALL)
 }
 
 fn arg_require_not() -> Arg<'static> {
-    Arg::new("require-not")
+    Arg::new(A_L_REQUIRE_NOT)
         .about("Mark a property as not required")
         .long_about("A key of a variable whose value is *not* required. For example PROJECT_NAME (see --list for all possible keys). Can be used either on the base of the default requried list or all (see --fail,--all,--require)")
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("KEY")
         .value_hint(ValueHint::Other)
-        .short('N')
-        .long("require-not")
+        .short(A_S_REQUIRE_NOT)
+        .long(A_L_REQUIRE_NOT)
         .multiple_occurrences(true)
         .required(false)
-        .requires("fail-on-missing-values")
-        .conflicts_with("require")
+        .requires(A_L_FAIL_ON_MISSING_VALUE)
+        .conflicts_with(A_L_REQUIRE)
 }
 
 // fn arg_set_all() -> Arg<'static> {
@@ -224,97 +262,113 @@ fn arg_require_not() -> Arg<'static> {
 // }
 
 fn arg_dry() -> Arg<'static> {
-    Arg::new("dry")
+    Arg::new(A_L_DRY)
         .about("Do not write any files or set any environment variables")
         .long_about("Set Whether to skip the actual setting of environment variables.")
         .takes_value(false)
-        .short('d')
-        .long("dry")
+        .short(A_S_DRY)
+        .long(A_L_DRY)
         .multiple_occurrences(false)
         .required(false)
 }
 
 fn arg_overwrite() -> Arg<'static> {
-    Arg::new("overwrite")
+    Arg::new(A_L_OVERWRITE)
         .about("Whether to overwrite already set values in the output.")
         .takes_value(true)
         .possible_values(settings::Overwrite::VARIANTS) //iter().map(|ovr| &*format!("{:?}", ovr)).collect())
-        // .short('O')
-        .long("overwrite")
+        .short(A_S_OVERWRITE)
+        .long(A_L_OVERWRITE)
         .multiple_occurrences(false)
         .default_value(settings::Overwrite::All.into())
         .required(false)
-        .conflicts_with("dry")
+        .conflicts_with(A_L_DRY)
 }
 
 fn arg_list() -> Arg<'static> {
-    Arg::new("list")
+    Arg::new(A_L_LIST)
         .about("Show all properties and their keys")
         .long_about("Prints a list of all the environment variables that are potentially set by this tool onto stdout and exits.")
         .takes_value(false)
-        .short('l')
-        .long("list")
+        .short(A_S_LIST)
+        .long(A_L_LIST)
         .multiple_occurrences(false)
         .required(false)
 }
 
 fn arg_log_file() -> Arg<'static> {
-    Arg::new("log-file")
+    lazy_static! {
+        static ref LOG_FILE_NAME: String = format!("{}.log.txt", crate_name!());
+    }
+    Arg::new(A_L_LOG_FILE)
         .about("Write log output to a file")
         .long_about("Writes a detailed log to the specifed file.")
         .takes_value(true)
         .forbid_empty_values(true)
         .value_hint(ValueHint::FilePath)
-        .short('L')
-        .long("log-file")
+        .short(A_S_LOG_FILE)
+        .long(A_L_LOG_FILE)
         .multiple_occurrences(false)
         .required(false)
-        .default_missing_value("projvar.log.txt")
+        .default_missing_value(&LOG_FILE_NAME)
 }
 
 fn arg_date_format() -> Arg<'static> {
-    Arg::new("date-format")
+    Arg::new(A_L_DATE_FORMAT)
         .about("Date format for generated dates")
         .long_about("Date format string for generated (vs supplied) dates. For details, see https://docs.rs/chrono/latest/chrono/format/strftime/index.html")
         .takes_value(true)
         .forbid_empty_values(true)
         .value_hint(ValueHint::Other)
-        .short('T')
-        .long("date-format")
+        .short(A_S_DATE_FORMAT)
+        .long(A_L_DATE_FORMAT)
         .multiple_occurrences(false)
         .default_value(tools::git::DATE_FORMAT)
         .required(false)
 }
 
+lazy_static! {
+    static ref ARGS: [Arg<'static>; 18] =
+    [
+        arg_project_root(),
+        arg_variable(),
+        arg_variables_file(),
+        arg_no_env_in(),
+        arg_env_out(),
+        arg_out_file(),
+        arg_verbose(),
+        arg_log_level(),
+        arg_quiet(),
+        arg_fail(),
+        arg_require_all(),
+        arg_require(),
+        arg_require_not(),
+        // .arg(arg_set_all(),
+        arg_dry(),
+        arg_overwrite(),
+        arg_list(),
+        arg_log_file(),
+        arg_date_format(),
+    ];
+}
+
 fn arg_matcher() -> App<'static> {
     // App::new("Project Variables")
-    App::new(crate_name!())
-        // .about("Ensures that certain specific, project and build related environment variables are set.")
+    let app = App::new(crate_name!())
         .about(crate_description!())
         .version(crate_version!())
         .author(crate_authors!())
         .license(crate_license!())
         .setting(AppSettings::ColoredHelp)
         .setting(AppSettings::UnifiedHelpMessage)
-        .arg(arg_project_root())
-        .arg(arg_variable())
-        .arg(arg_variables_file())
-        .arg(arg_no_env_in())
-        .arg(arg_env_out())
-        .arg(arg_out_file())
-        .arg(arg_verbose())
-        .arg(arg_log_level())
-        .arg(arg_quiet())
-        .arg(arg_fail())
-        .arg(arg_require_all())
-        .arg(arg_require())
-        .arg(arg_require_not())
-        // .arg(arg_set_all())
-        .arg(arg_dry())
-        .arg(arg_overwrite())
-        .arg(arg_list())
-        .arg(arg_log_file())
-        .arg(arg_date_format())
+        .bin_name("osh")
+        .args(ARGS.into_iter());
+    // This makes sure that we have no duplicate short- or long-flags,
+    // as App would not store duplicates, while the slice does.
+    // NOTE: We add 2 for "--help" and "--version",
+    // whihc are generate dautomatically.
+    assert_eq!(app.get_arguments().count(), ARGS.len() + 2);
+    app
 }
 
 /// Returns the logging verbosities to be used.
