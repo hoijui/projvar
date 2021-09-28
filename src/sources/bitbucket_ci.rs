@@ -42,6 +42,7 @@ impl super::VarSource for VarSource {
             }
             Key::BuildIdent => var(environment, "BITBUCKET_COMMIT"),
             Key::BuildNumber => var(environment, "BITBUCKET_BUILD_NUMBER"),
+            Key::RepoIssuesUrl => super::try_construct_issues_url(self, environment)?,
             Key::BuildHostingUrl
             | Key::BuildOs
             | Key::VersionDate

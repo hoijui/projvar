@@ -91,3 +91,29 @@ pub fn try_construct_frozen<S: VarSource>(
         },
     )
 }
+
+/// Tries to construct the issues URL
+/// from the repo web URL property of a variable source.
+///
+/// # Errors
+///
+/// If an attempt to try fetching any required property returned an error.
+//
+// Real world issues URLs:
+// * https://github.com/OPEN-NEXT/LOSH-Krawler/issues
+// * https://gitlab.com/openflexure/openflexure-microscope/-/issues // NOTE That this uses an additional "-/", but leaving it out also works!
+// * https://gitlab.opensourceecology.de/hoijui/osh-tool/-/issues
+// * https://gitlab.opensourceecology.de/groups/verein/projekte/losh/-/issues
+// * https://bitbucket.org/Aouatef/master_arbeit/issues
+pub fn try_construct_issues_url<S: VarSource>(
+    var_source: &S,
+    environment: &mut Environment,
+) -> BoxResult<Option<String>> {
+    let base_repo_web_url = var_source.retrieve(environment, Key::RepoWebUrl)?;
+
+    Ok(if let Some(base_repo_web_url) = base_repo_web_url {
+        Some(format!("{}/issues", base_repo_web_url))
+    } else {
+        None
+    })
+}

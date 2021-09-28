@@ -5,6 +5,7 @@
 extern crate clap;
 extern crate enum_map;
 extern crate log;
+extern crate url;
 
 pub mod environment;
 pub mod settings;

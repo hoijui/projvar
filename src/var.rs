@@ -57,6 +57,7 @@ pub enum Key {
     RepoWebUrl,
     RepoFrozenWebUrl,
     RepoCloneUrl,
+    RepoIssuesUrl,
     Name,
     VersionDate,
     BuildDate,
@@ -186,6 +187,7 @@ pub const KEY_LICENSE: &str = "PROJECT_LICENSE";
 pub const KEY_REPO_WEB_URL: &str = "PROJECT_REPO_WEB_URL";
 pub const KEY_REPO_FROZEN_WEB_URL: &str = "BUILD_REPO_FROZEN_WEB_URL";
 pub const KEY_REPO_CLONE_URL: &str = "PROJECT_REPO_CLONE_URL";
+pub const KEY_REPO_ISSUES_URL: &str = "PROJECT_REPO_ISSUES_URL";
 pub const KEY_NAME: &str = "PROJECT_NAME";
 pub const KEY_VERSION_DATE: &str = "PROJECT_VERSION_DATE";
 pub const KEY_BUILD_DATE: &str = "BUILD_DATE";
@@ -265,6 +267,12 @@ const VAR_REPO_CLONE_URL: Variable = Variable {
         "CI_REPOSITORY_URL",
         "BITBUCKET_GIT_SSH_ORIGIN",
     ],
+};
+const VAR_REPO_ISSUES_URL: Variable = Variable {
+    key: KEY_REPO_ISSUES_URL,
+    description: "The Repo issues URL.",
+    default_required: true,
+    alt_keys: &[], // TODO ... or maybe not, as we do not use this at all anymore
 };
 const VAR_NAME: Variable = Variable {
     key: KEY_NAME,
@@ -391,6 +399,7 @@ fn create(key: &Key) -> &'static Variable {
         Key::RepoWebUrl => &VAR_REPO_WEB_URL,
         Key::RepoFrozenWebUrl => &VAR_REPO_FROZEN_WEB_URL,
         Key::RepoCloneUrl => &VAR_REPO_CLONE_URL,
+        Key::RepoIssuesUrl => &VAR_REPO_ISSUES_URL,
         Key::Name => &VAR_NAME,
         Key::VersionDate => &VAR_VERSION_DATE,
         Key::BuildDate => &VAR_BUILD_DATE,

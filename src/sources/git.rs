@@ -110,6 +110,19 @@ fn clone_url(environment: &mut Environment) -> BoxResult<Option<String>> {
     })
 }
 
+fn issues_url(environment: &mut Environment) -> BoxResult<Option<String>> {
+    Ok(match environment.repo() {
+        Some(repo) => {
+            Some(repo.issues_url()?)
+            // repo.remote_clone_url().or_else(|err| {
+            //     log::warn!("Failed fetching git repo clone URL - {}", err);
+            //     None
+            // })
+        }
+        None => None,
+    })
+}
+
 fn version_date(environment: &mut Environment) -> BoxResult<Option<String>> {
     let date_format = &environment.settings.date_format;
     Ok(match environment.repo() {
@@ -162,6 +175,7 @@ impl super::VarSource for VarSource {
             Key::BuildBranch => branch(environment)?,
             Key::BuildTag => tag(environment)?,
             Key::RepoCloneUrl => clone_url(environment)?,
+            Key::RepoIssuesUrl => issues_url(environment)?,
             Key::VersionDate => version_date(environment)?,
             Key::BuildHostingUrl => build_hosting_url(environment)?,
             Key::BuildIdent => sha(environment)?,

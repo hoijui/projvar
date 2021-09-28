@@ -27,6 +27,7 @@ impl super::VarSource for VarSource {
             Key::BuildIdent => var(environment, "TRAVIS_COMMIT"),
             Key::BuildNumber => var(environment, "TRAVIS_BUILD_NUMBER"),
             Key::Name => super::proj_name_from_slug(environment.vars.get("TRAVIS_REPO_SLUG"))?, // usually: TRAVIS_REPO_SLUG="user/project"
+            Key::RepoIssuesUrl => None,
             Key::RepoWebUrl
             | Key::Ci
             | Key::RepoCloneUrl

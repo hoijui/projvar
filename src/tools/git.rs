@@ -14,6 +14,8 @@ use std::fmt;
 use std::path::Path;
 use std::path::PathBuf;
 use std::str;
+use url::Host;
+use url::Url;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 
@@ -232,6 +234,61 @@ pub fn web_to_build_hosting_url(web_url: &str) -> BoxResult<String> {
             web_url))))
     } else {
         Ok(build_hosting_url.into_owned())
+    }
+}
+
+/// Converts a common git repo web-host URL
+/// into the URL of where to find hosted issues.
+///
+/// NOTE: This will likely only work for github.com and gitlab.com!
+///
+/// for example:
+///
+/// ```
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # use projvar::tools::git::web_to_build_hosting_url;
+/// assert_eq!(
+///     web_to_issues_hosting_url("https://github.com/hoijui/kicad-text-injector/")?,
+///     "https://github.com/hoijui/kicad-text-injector/issues",
+/// );
+/// assert_eq!(
+///     web_to_issues_hosting_url("https://gitlab.com/hoijui/kicad-text-injector")?,
+///     "https://gitlab.com/hoijui/kicad-text-injector/-/issues"
+/// );
+/// # Ok(())
+/// # }
+/// ```
+///
+/// # Errors
+///
+/// Failed fetching/generating the Web URL.
+///
+/// Failed generating the issues URL,
+/// likely because the remote is neither "github.com" nor "gitlab.com".
+pub fn web_to_issues_hosting_url(web_url_str: &str) -> BoxResult<String> {
+    lazy_static! {
+        static ref R_FINAL_SLASH: Regex = Regex::new(
+            // r"(?P<protocol>[0-9a-zA-Z_-]+)://((?P<protocol_user>[0-9a-zA-Z_-]+)@)?(?P<server>[0-9a-zA-Z_-]+)\.com/(?P<user>[^/]+)/(?P<project>[^/]+)/?"
+            r"/$"
+        ).unwrap();
+    }
+    let web_url_str = R_FINAL_SLASH.replace(web_url_str, "").into_owned();
+    let web_url = Url::parse(&web_url_str)?;
+    let issues_url = format!(
+        "{}{}/issues",
+        web_url_str,
+        if let Some(Host::Domain("github.com")) = web_url.host() {
+            ""
+        } else {
+            "/-"
+        }
+    );
+    if issues_url == web_url_str {
+        Err(Box::new(UrlConversionError::new(&format!(
+            "Not a supported hosting platform for converting repo web hosting URL to issues URL: '{}'",
+            web_url))))
+    } else {
+        Ok(issues_url)
     }
 }
 
@@ -530,6 +587,26 @@ impl Repo {
     pub fn build_hosting_url(&self) -> BoxResult<String> {
         let web_url = self.remote_web_url()?;
         web_to_build_hosting_url(&web_url)
+    }
+
+    ///  Returns a generated issues hosting URL.
+    ///
+    /// NOTE: This will likely only work for github.com and gitlab.com!
+    ///
+    /// for example:
+    ///
+    /// <https://gitlab.com/OSEGermany/OHS-3105/-/issues/>
+    /// <https://github.com/hoijui/escher/issues/>
+    ///
+    /// # Errors
+    ///
+    /// Failed fetching/generating the Web URL.
+    ///
+    /// Failed generating the ssues URL,
+    /// likely because the remote is neither "github.com" nor "gitlab.com".
+    pub fn issues_url(&self) -> BoxResult<String> {
+        let web_url = self.remote_web_url()?;
+        web_to_issues_hosting_url(&web_url)
     }
 
     /// Returns the version of the current state of the repo.

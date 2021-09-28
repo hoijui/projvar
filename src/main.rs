@@ -5,6 +5,7 @@
 extern crate clap;
 extern crate enum_map;
 extern crate log;
+extern crate url;
 
 use clap::lazy_static::lazy_static;
 use clap::{
