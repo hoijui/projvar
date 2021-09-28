@@ -516,6 +516,7 @@ fn main() -> BoxResult<()> {
 
     let settings = Settings {
         repo_path: Some(repo_path),
+        required_keys,
         date_format: date_format.to_owned(),
         to_set: settings::VarsToSet::Primary,
         overwrite,
