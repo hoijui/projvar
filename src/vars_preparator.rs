@@ -2,12 +2,14 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::environment::Environment;
+use crate::settings::FailOn;
 use crate::sinks::VarSink;
 use crate::sources::VarSource;
-use strum::IntoEnumIterator;
+use crate::validator;
 use crate::var::{self, Key, Variable};
+use crate::{environment::Environment, validator::ValidationError};
 use std::error::Error;
+use strum::IntoEnumIterator;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 
@@ -41,7 +43,28 @@ pub fn prepare_project_vars(
         }
     }
 
-    // TODO Add validators here
+    log::trace!("Validate each variables precense and value ...");
+    let output = environment.output.clone();
+    for ref key in Key::iter() {
+        let required = environment.settings.required_keys.contains(key);
+        match output.get(key) {
+            Some(value) => {
+                log::trace!("Validating value for key '{:?}': '{}'", key, value);
+                validator::get(key)(environment, value)?;
+            }
+            None => {
+                if required {
+                    log::warn!("Missing value for required key '{:?}'", key);
+                    match environment.settings.fail_on {
+                        FailOn::AnyMissingValue => Err(ValidationError::Missing)?, // TODO Should/could/is this handled in the validator already?
+                        FailOn::Error => (),
+                    }
+                } else {
+                    log::debug!("Missing value for optional key '{:?}'", key);
+                }
+            }
+        }
+    }
 
     log::trace!("Evaluated variables ...");
     let values: Vec<(Key, &'static Variable, String)> = {

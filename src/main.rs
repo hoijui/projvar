@@ -28,6 +28,7 @@ pub mod settings;
 pub mod sinks;
 pub mod sources;
 pub mod tools;
+mod validator;
 mod var;
 mod vars_preparator;
 
