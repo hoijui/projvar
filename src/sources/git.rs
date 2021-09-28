@@ -27,23 +27,24 @@ fn dir_name(path: &Path) -> BoxResult<String> {
 }
 
 fn version(environment: &mut Environment) -> BoxResult<Option<String>> {
-    Ok(if let Some(repo) = environment.repo() {
-        let sc_version = repo.version().or_else(|err| {
-            log::warn!("Failed to git describe (\"{}\"), using SHA instead", err);
-            // repo.sha().map_or_else(|| "No SHA available to serve as version")
-            repo.sha()
-                .and_then(|v| v.ok_or_else(|| "No SHA available to serve as version".into()))
-        })?;
+    Ok(match environment.repo() {
+        Some(repo) => {
+            let sc_version = repo.version().or_else(|err| {
+                log::warn!("Failed to git describe (\"{}\"), using SHA instead", err);
+                // repo.sha().map_or_else(|| "No SHA available to serve as version")
+                repo.sha()
+                    .and_then(|v| v.ok_or_else(|| "No SHA available to serve as version".into()))
+            })?;
 
-        if git::is_git_dirty_version(&sc_version) {
-            log::warn!(
-                "Dirty project version ('{}')! (you have uncommitted changes in your project)",
-                sc_version
-            );
+            if git::is_git_dirty_version(&sc_version) {
+                log::warn!(
+                    "Dirty project version ('{}')! (you have uncommitted changes in your project)",
+                    sc_version
+                );
+            }
+            Some(sc_version)
         }
-        Some(sc_version)
-    } else {
-        None
+        None => None,
     })
 }
 
@@ -63,68 +64,65 @@ fn name(environment: &mut Environment) -> BoxResult<Option<String>> {
 }
 
 fn repo_web_url(environment: &mut Environment) -> BoxResult<Option<String>> {
-    if let Some(repo) = environment.repo() {
-        Ok(Some(repo.remote_web_url()?))
-    } else {
-        Ok(None)
-    }
+    Ok(match environment.repo() {
+        Some(repo) => Some(repo.remote_web_url()?),
+        None => None,
+    })
 }
 
 fn branch(environment: &mut Environment) -> BoxResult<Option<String>> {
-    if let Some(repo) = environment.repo() {
-        // Ok(repo.branch().unwrap_or_else(|err| {
-        //     log::warn!("Failed fetching git branch - {}", err);
-        //     None
-        // }))
-        Ok(repo.branch()?)
-    } else {
-        Ok(None)
-    }
+    Ok(match environment.repo() {
+        Some(repo) => {
+            // Ok(repo.branch().unwrap_or_else(|err| {
+            //     log::warn!("Failed fetching git branch - {}", err);
+            //     None
+            // }))
+            repo.branch()?
+        }
+        None => None,
+    })
 }
 
 fn tag(environment: &mut Environment) -> BoxResult<Option<String>> {
-    if let Some(repo) = environment.repo() {
-        Ok(repo.tag()?)
-    } else {
-        Ok(None)
-    }
+    Ok(match environment.repo() {
+        Some(repo) => repo.tag()?,
+        None => None,
+    })
 }
 
 fn sha(environment: &mut Environment) -> BoxResult<Option<String>> {
-    if let Some(repo) = environment.repo() {
-        Ok(repo.sha()?)
-    } else {
-        Ok(None)
-    }
+    Ok(match environment.repo() {
+        Some(repo) => repo.sha()?,
+        None => None,
+    })
 }
 
 fn clone_url(environment: &mut Environment) -> BoxResult<Option<String>> {
-    if let Some(repo) = environment.repo() {
-        Ok(Some(repo.remote_clone_url()?))
-        // repo.remote_clone_url().or_else(|err| {
-        //     log::warn!("Failed fetching git repo clone URL - {}", err);
-        //     None
-        // })
-    } else {
-        Ok(None)
-    }
+    Ok(match environment.repo() {
+        Some(repo) => {
+            Some(repo.remote_clone_url()?)
+            // repo.remote_clone_url().or_else(|err| {
+            //     log::warn!("Failed fetching git repo clone URL - {}", err);
+            //     None
+            // })
+        }
+        None => None,
+    })
 }
 
 fn version_date(environment: &mut Environment) -> BoxResult<Option<String>> {
     let date_format = &environment.settings.date_format;
-    if let Some(repo) = environment.repo() {
-        Ok(Some(repo.commit_date(date_format)?))
-    } else {
-        Ok(None)
-    }
+    Ok(match environment.repo() {
+        Some(repo) => Some(repo.commit_date(date_format)?),
+        None => None,
+    })
 }
 
 fn build_hosting_url(environment: &mut Environment) -> BoxResult<Option<String>> {
-    if let Some(repo) = environment.repo() {
-        Ok(Some(repo.build_hosting_url()?))
-    } else {
-        Ok(None)
-    }
+    Ok(match environment.repo() {
+        Some(repo) => Some(repo.build_hosting_url()?),
+        None => None,
+    })
 }
 
 /// This uses an alternative method to fetch certain specific variable keys values.
