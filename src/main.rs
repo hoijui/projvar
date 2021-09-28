@@ -483,7 +483,7 @@ fn required_keys(args: &ArgMatches) -> BoxResult<HashSet<Key>> {
             required_keys.insert(key);
         }
     }
-    if let Some(require_nots) = args.values_of("require") {
+    if let Some(require_nots) = args.values_of("require-not") {
         for require_not in require_nots {
             let key = Key::from_str(require_not)?;
             required_keys.remove(&key);
