@@ -64,13 +64,15 @@ pub fn proj_name_from_slug(slug: Option<&String>) -> BoxResult<Option<String>> {
 /// # Errors
 ///
 /// If an attempt to try fetching any required property returned an error.
-// https://gitlab.com/OSEGermany/okhmanifest
-// https://gitlab.com/OSEGermany/okhmanifest/-/commit/9e1df32c42a85253af95ea2dc9311128bd8f775a
-// https://gitlab.com/OSEGermany/okhmanifest/-/tree/oldCombinedDeprecated
-// https://gitlab.com/OSEGermany/OHS-3105/-/tree/din-3105-0.10.0
-// https://gitlab.com/OSEGermany/OHS-3105/-/tree/din-spec-3105-0.10.0-179-g60c46fc
-// https://github.com/hoijui/repvar
-// https://github.com/hoijui/repvar/tree/4939bd538643bfb445167ea72b825e605f120318
+//
+// Real world frozen web URLs:
+// * https://gitlab.com/OSEGermany/okhmanifest
+// * https://gitlab.com/OSEGermany/okhmanifest/-/commit/9e1df32c42a85253af95ea2dc9311128bd8f775a
+// * https://gitlab.com/OSEGermany/okhmanifest/-/tree/oldCombinedDeprecated
+// * https://gitlab.com/OSEGermany/OHS-3105/-/tree/din-3105-0.10.0
+// * https://gitlab.com/OSEGermany/OHS-3105/-/tree/din-spec-3105-0.10.0-179-g60c46fc
+// * https://github.com/hoijui/repvar
+// * https://github.com/hoijui/repvar/tree/4939bd538643bfb445167ea72b825e605f120318
 pub fn try_construct_frozen<S: VarSource>(
     var_source: &S,
     environment: &mut Environment,
