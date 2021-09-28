@@ -131,10 +131,10 @@ pub fn parse_key_value_str(key_value: &str) -> BoxResult<(&str, &str)> {
     let mut splitter = key_value.splitn(2, '=');
     let key = splitter
         .next()
-        .ok_or("Failed to parse key; key-value paris have to be of the form \"key=value\"")?;
+        .ok_or("Failed to parse key; key-value pairs have to be of the form \"key=value\"")?;
     let value = splitter
         .next()
-        .ok_or("Failed to parse value; key-value paris have to be of the form \"key=value\"")?;
+        .ok_or("Failed to parse value; key-value pairs have to be of the form \"key=value\"")?;
     Ok((key, value))
 }
 
