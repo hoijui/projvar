@@ -10,7 +10,6 @@ pub mod environment;
 pub mod settings;
 pub mod sinks;
 pub mod sources;
-// pub mod storage;
 pub mod tools;
 pub mod var;
 pub mod vars_preparator;

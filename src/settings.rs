@@ -183,12 +183,6 @@ impl From<bool> for FailOn {
     }
 }
 
-pub enum StorageMode {
-    Environment,
-    ToFile(PathBuf),
-    Dry,
-}
-
 pub struct Settings /*<S: ::std::hash::BuildHasher>*/ {
     // pub repo_path: Option<Box<Path>>,
     pub repo_path: Option<PathBuf>,
@@ -199,8 +193,6 @@ pub struct Settings /*<S: ::std::hash::BuildHasher>*/ {
     // vars: Box<HashMap<String, String, S>>,
     // #[builder(default = false)]
     // fail_on_missing: bool,
-    // #[builder(default = false)]
-    pub storage: StorageMode,
     pub verbosity: (Verbosity, Verbosity),
 }
 
@@ -212,7 +204,6 @@ impl Settings {
             overwrite: Overwrite::All,
             date_format: crate::tools::git::DATE_FORMAT.to_string(),
             fail_on: FailOn::AnyMissingValue,
-            storage: StorageMode::Dry,
             verbosity: (Verbosity::None, Verbosity::None),
         }
     }

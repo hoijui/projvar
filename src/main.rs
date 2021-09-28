@@ -414,21 +414,6 @@ fn date_format(args: &ArgMatches) -> &str {
     date_format
 }
 
-fn storage_mode(args: &ArgMatches) -> settings::StorageMode {
-    let storage = if args.is_present("dry") {
-        settings::StorageMode::Dry
-    } else if args.is_present("output") {
-        settings::StorageMode::ToFile(
-            args.value_of("output")
-                .map(|s| Path::new(s).to_owned())
-                .unwrap(),
-        )
-    } else {
-        settings::StorageMode::Environment
-    };
-    storage
-}
-
 fn sources(_args: &ArgMatches, repo_path: &Path) -> Vec<Box<dyn VarSource>> {
     let mut sources: Vec<Box<dyn VarSource>> = vec![];
     if is_git_repo_root(Some(repo_path)) {
@@ -516,7 +501,6 @@ fn main() -> BoxResult<()> {
 
     let repo_path = repo_path(&args);
     let date_format = date_format(&args);
-    let storage = storage_mode(&args);
 
     let overwrite = settings::Overwrite::from_str(args.value_of("overwrite").unwrap())?;
     log::debug!("Overwriting output variable values? -> {:?}", overwrite);
@@ -531,11 +515,9 @@ fn main() -> BoxResult<()> {
     let settings = Settings {
         repo_path: Some(repo_path),
         date_format: date_format.to_owned(),
-        // to_set: settings::VarsToSet::from(set_all),
         to_set: settings::VarsToSet::Primary,
         overwrite,
         fail_on: settings::FailOn::from(fail_on_missing),
-        storage,
         verbosity,
     };
     log::trace!("Created Settings.");
