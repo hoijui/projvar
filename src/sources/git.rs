@@ -2,29 +2,18 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use clap::lazy_static::lazy_static;
+use regex::Regex;
+
 use crate::environment::Environment;
 use crate::tools::git;
 use crate::var::Key;
 use std::error::Error;
 use std::fmt;
-use std::path::Path;
 
 pub struct VarSource;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
-
-/// Returns the name of the given path (same as `basename` on UNIX systems)
-fn dir_name(path: &Path) -> BoxResult<String> {
-    Ok(path
-        .canonicalize()?
-        // .parent()
-        // .ok_or_else(|| git2::Error::from_str("Unable to get containing directory's name"))?
-        .file_name()
-        .ok_or_else(|| git2::Error::from_str("File ends in \"..\""))?
-        .to_str()
-        .ok_or_else(|| git2::Error::from_str("File name is not UTF-8 compatible"))?
-        .to_owned())
-}
 
 fn version(environment: &mut Environment) -> BoxResult<Option<String>> {
     Ok(match environment.repo() {
@@ -49,17 +38,20 @@ fn version(environment: &mut Environment) -> BoxResult<Option<String>> {
 }
 
 fn name(environment: &mut Environment) -> BoxResult<Option<String>> {
-    let repo_path = environment
-        .settings
-        .repo_path
-        .as_ref()
-        // .map_or(Ok(None), |r| r.map(Some));
-        .ok_or("No repo path provided")?;
-    let dir_name = dir_name(repo_path)?;
-    Ok(match dir_name.as_str() {
-        // Filter out some common names that are not likely to be the projects name
-        "src" | "target" | "build" | "master" | "main" => None,
-        _other => Some(dir_name),
+    lazy_static! {
+        static ref R_REMOTE_NAME_SELECTOR: Regex = Regex::new(r"^.*/(?P<name>[^/]+)$").unwrap();
+    }
+
+    Ok(match environment.repo() {
+        Some(repo) => match repo.remote_tracking_branch() {
+            Ok(remote_tracking_branch) => Some(
+                R_REMOTE_NAME_SELECTOR
+                    .replace(&remote_tracking_branch, "$name")
+                    .into_owned(),
+            ),
+            Err(err) => Err(err)?,
+        },
+        None => None,
     })
 }
 

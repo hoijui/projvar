@@ -420,6 +420,7 @@ fn sources(_args: &ArgMatches, repo_path: &Path) -> Vec<Box<dyn VarSource>> {
     if is_git_repo_root(Some(repo_path)) {
         sources.push(Box::new(sources::git::VarSource {}));
     }
+    sources.push(Box::new(sources::fs::VarSource {}));
     sources.push(Box::new(sources::bitbucket_ci::VarSource {}));
     sources.push(Box::new(sources::github_ci::VarSource {}));
     sources.push(Box::new(sources::gitlab_ci::VarSource {}));
