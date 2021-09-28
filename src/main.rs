@@ -564,7 +564,7 @@ fn main() -> BoxResult<()> {
     // insert CLI supplied variables values
     if let Some(variables) = args.values_of("variable") {
         for var in variables {
-            log::trace!("Adding variables from CLI '{}' ...", var);
+            log::trace!("Adding variable from CLI: '{}' ...", var);
             let (key, value) = var::parse_key_value_str(var)?;
             environment.vars.insert(key.to_owned(), value.to_owned());
         }
