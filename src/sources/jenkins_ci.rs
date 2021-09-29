@@ -26,8 +26,8 @@ impl super::VarSource for VarSource {
             Key::BuildIdent => var(environment, "PULL_BASE_SHA"),
             Key::Version => var(environment, "VERSION"),
             Key::BuildNumber => var(environment, "BUILD_NUMBER"),
-            Key::RepoIssuesUrl => None,
-            Key::RepoWebUrl
+            Key::RepoIssuesUrl
+            | Key::RepoWebUrl
             | Key::Ci
             | Key::BuildTag
             | Key::RepoCloneUrl

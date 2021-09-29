@@ -42,8 +42,7 @@ where
     // Where do the leading hashes stop?
     let last_hash = first_line
         .char_indices()
-        .skip_while(|&(_, c)| c == '#')
-        .next()
+        .find(|&(_, c)| c != '#')
         .map_or(0, |(idx, _)| idx);
 
     // Trim the leading hashes and any whitespace
@@ -86,30 +85,30 @@ fn name(environment: &mut Environment) -> BoxResult<Option<String>> {
     })
 }
 
-fn build_date(environment: &mut Environment) -> BoxResult<Option<String>> {
+fn build_date(environment: &mut Environment) -> String {
     let now = Local::now();
-    Ok(Some(
-        now.format(&environment.settings.date_format).to_string(),
-    ))
+    now.format(&environment.settings.date_format).to_string()
 }
 
-fn build_os(_environment: &mut Environment) -> BoxResult<Option<String>> {
+fn build_os(_environment: &mut Environment) -> String {
     // See here for possible values:
     // <https://doc.rust-lang.org/std/env/consts/constant.OS.html>
     // Most common values: "linux", "macos", "windows"
-    Ok(Some(env::consts::OS.to_owned())) // TODO Maybe move to a new source "env.rs"?
+    env::consts::OS.to_owned() // TODO Maybe move to a new source "env.rs"?
 }
-fn build_os_family(_environment: &mut Environment) -> BoxResult<Option<String>> {
+
+fn build_os_family(_environment: &mut Environment) -> String {
     // Possible values: "unix", "windows"
     // <https://doc.rust-lang.org/std/env/consts/constant.FAMILY.html>
     // format!("{}", env::consts::FAMILY)
-    Ok(Some(env::consts::FAMILY.to_owned())) // TODO Maybe move to a new source "env.rs"?
+    env::consts::FAMILY.to_owned() // TODO Maybe move to a new source "env.rs"?
 }
-fn build_arch(_environment: &mut Environment) -> BoxResult<Option<String>> {
+
+fn build_arch(_environment: &mut Environment) -> String {
     // See here for possible values:
     // <https://doc.rust-lang.org/std/env/consts/constant.ARCH.html>
     // Most common values: "x86", "x86_64"
-    Ok(Some(env::consts::ARCH.to_owned())) // TODO Maybe move to a new source "env.rs"?
+    env::consts::ARCH.to_owned() // TODO Maybe move to a new source "env.rs"?
 }
 
 /// This uses an alternative method to fetch certain specific variable keys values.
@@ -122,13 +121,12 @@ impl super::VarSource for VarSource {
 
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
         Ok(match key {
-            Key::Version => version(environment)?,
+            Key::Version | Key::BuildIdent => version(environment)?,
             Key::Name => name(environment)?,
-            Key::BuildIdent => version(environment)?,
-            Key::BuildDate => build_date(environment)?,
-            Key::BuildOs => build_os(environment)?,
-            Key::BuildOsFamily => build_os_family(environment)?,
-            Key::BuildArch => build_arch(environment)?,
+            Key::BuildDate => Some(build_date(environment)),
+            Key::BuildOs => Some(build_os(environment)),
+            Key::BuildOsFamily => Some(build_os_family(environment)),
+            Key::BuildArch => Some(build_arch(environment)),
             Key::RepoWebUrl
             | Key::RepoFrozenWebUrl
             | Key::RepoIssuesUrl

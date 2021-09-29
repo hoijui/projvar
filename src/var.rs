@@ -75,7 +75,7 @@ pub enum Key {
     Ci,
 }
 
-/// Converts a "CamelCase" string into an "UPPER_SNAKE_CASE" one.
+/// Converts a `"CamelCase"` string into an `"UPPER_SNAKE_CASE"` one.
 ///
 /// for example:
 ///
@@ -102,6 +102,7 @@ pub enum Key {
 /// //# Ok(())
 /// //# }
 /// ```
+#[must_use]
 pub fn camel_to_upper_snake_case(id: &str) -> String {
     lazy_static! {
         static ref R_UPPER_SEL: Regex = Regex::new(r"(?P<after>[A-Z])").unwrap();
@@ -113,13 +114,13 @@ pub fn camel_to_upper_snake_case(id: &str) -> String {
 impl Key {
     /// Tries to create a `Key` from a string identifier.
     /// This might be the exact name of the `Key` (like "Name"),
-    /// or the associated variable key (like "PROJECT_NAME").
+    /// or the associated variable key (like `"PROJECT_NAME"`).
     ///
     /// # Errors
     ///
     /// If the given identifier could not be mapped to any `Key` variant.
     pub fn from_name_or_var_key(id: &str) -> BoxResult<Key> {
-        Ok(Self::from_str(id).or(Self::from_str(&camel_to_upper_snake_case(id)))?)
+        Ok(Self::from_str(id).or_else(|_| Self::from_str(&camel_to_upper_snake_case(id)))?)
     }
 }
 

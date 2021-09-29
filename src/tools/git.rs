@@ -246,7 +246,7 @@ pub fn web_to_build_hosting_url(web_url: &str) -> BoxResult<String> {
 ///
 /// ```
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # use projvar::tools::git::web_to_build_hosting_url;
+/// # use projvar::tools::git::web_to_issues_hosting_url;
 /// assert_eq!(
 ///     web_to_issues_hosting_url("https://github.com/hoijui/kicad-text-injector/")?,
 ///     "https://github.com/hoijui/kicad-text-injector/issues",

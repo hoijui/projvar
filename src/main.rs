@@ -364,7 +364,7 @@ fn arg_matcher() -> App<'static> {
         .setting(AppSettings::ColoredHelp)
         .setting(AppSettings::UnifiedHelpMessage)
         .bin_name("osh")
-        .args(ARGS.into_iter());
+        .args(ARGS.iter());
     // This makes sure that we have no duplicate short- or long-flags,
     // as App would not store duplicates, while the slice does.
     // NOTE: We add 2 for "--help" and "--version",
@@ -399,7 +399,7 @@ fn verbosity(args: &ArgMatches) -> BoxResult<(Verbosity, Verbosity)> {
     Ok((std, common))
 }
 
-fn repo_path<'a>(args: &'a ArgMatches) -> PathBuf {
+fn repo_path(args: &ArgMatches) -> PathBuf {
     let repo_path: Option<&str> = args.value_of(A_L_PROJECT_ROOT);
     let repo_path_str = repo_path.unwrap_or(".");
     let repo_path = PathBuf::from(repo_path_str);

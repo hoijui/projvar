@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use crate::environment::Environment;
 use crate::settings::FailOn;
 use crate::sinks::VarSink;
 use crate::sources::VarSource;
 use crate::validator;
 use crate::var::{self, Key, Variable};
-use crate::{environment::Environment, validator::ValidationError};
 use std::error::Error;
 use strum::IntoEnumIterator;
 
@@ -56,7 +56,7 @@ pub fn prepare_project_vars(
                 if required {
                     log::warn!("Missing value for required key '{:?}'", key);
                     match environment.settings.fail_on {
-                        FailOn::AnyMissingValue => Err(ValidationError::Missing)?, // TODO Should/could/is this handled in the validator already?
+                        FailOn::AnyMissingValue => return Err(validator::Error::Missing.into()), // TODO Should/could/is this be handled in the validator already?
                         FailOn::Error => (),
                     }
                 } else {

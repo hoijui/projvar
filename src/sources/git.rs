@@ -49,7 +49,7 @@ fn name(environment: &mut Environment) -> BoxResult<Option<String>> {
                     .replace(&remote_tracking_branch, "$name")
                     .into_owned(),
             ),
-            Err(err) => Err(err)?,
+            Err(err) => return Err(err),
         },
         None => None,
     })

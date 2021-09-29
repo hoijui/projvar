@@ -10,8 +10,8 @@ use regex::Regex;
 use thiserror::Error;
 use url::{Host, Url};
 
-pub type Validator =
-    fn(&mut Environment, &str) -> Result<Option<ValidationWarning>, ValidationError>;
+pub type Result = std::result::Result<Option<Warning>, Error>;
+pub type Validator = fn(&mut Environment, &str) -> Result;
 
 // See these resources for implement our own, custom errors
 // accoridng to rust best practises for errors (and error handling):
@@ -22,7 +22,7 @@ pub type Validator =
 
 /// This enumerates all possible errors returned by this module.
 #[derive(Error, Debug)]
-pub enum ValidationWarning {
+pub enum Warning {
     /// A non-required properties value could not be evaluated;
     /// no source returned a (valid) value for it.
     #[error("No value found for a property")]
@@ -35,7 +35,7 @@ pub enum ValidationWarning {
 
 /// This enumerates all possible errors returned by this module.
 #[derive(Error, Debug)]
-pub enum ValidationError {
+pub enum Error {
     /// Represents an empty source. For example, an empty text file being given
     /// as input to `count_words()`.
     // #[error("Source contains no data")]
@@ -64,41 +64,40 @@ pub enum ValidationError {
 
     /// Represents all other cases of `std::io::Error`.
     #[error(transparent)]
-    IOError(#[from] std::io::Error),
+    IO(#[from] std::io::Error),
 }
 
-pub fn validate_version(
-    _environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_version(_environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         // The official SemVer regex as of September 2021, taken from
         // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
         // TODO Think of what to do if we have a "v" prefix, as in "v1.2.3" -> best: remove it, but where.. a kind of pre-validator function?
+        static ref R_SEM_VERS_RELEASE: Regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)$").unwrap();
         static ref R_SEM_VERS: Regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$").unwrap();
         static ref R_GIT_VERS: Regex = Regex::new(r"^((g[0-9a-f]{7})|((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)))(-(0|[1-9]\d*)-(g[0-9a-f]{7}))?((-dirty(-broken)?)|-broken(-dirty)?)?$").unwrap();
-        static ref R_GIT_SHA: Regex = Regex::new(r"^[0-9a-f]{7,40}$").unwrap();
+        static ref R_GIT_SHA: Regex = Regex::new(r"^g[0-9a-f]{7,40}$").unwrap();
         static ref R_UNKNOWN_VERS: Regex = Regex::new(r"^($|#|//)").unwrap();
     }
-    if R_SEM_VERS.is_match(value) {
+    // log::info!("Validating version: '{}' ...", value);
+    if R_SEM_VERS_RELEASE.is_match(value) {
         Ok(None)
-    } else if R_GIT_VERS.is_match(value) {
-        Ok(Some(ValidationWarning::SuboptimalValue {
+    } else if R_SEM_VERS.is_match(value) || R_GIT_VERS.is_match(value) {
+        Ok(Some(Warning::SuboptimalValue {
             msg: "This version is technically good, but not a release-version (i.e., does not look so nice)".to_owned(),
             value: value.to_owned(),
         }))
     } else if R_GIT_SHA.is_match(value) {
-        Ok(Some(ValidationWarning::SuboptimalValue {
+        Ok(Some(Warning::SuboptimalValue {
             msg:
                 "This version is technically ok, but not a release-version, and not human-readable"
                     .to_owned(),
             value: value.to_owned(),
         }))
     } else if R_UNKNOWN_VERS.is_match(value) {
-        // Ok(Some(ValidationError::Missing))
-        Err(ValidationError::Missing)
+        // Ok(Some(Error::Missing))
+        Err(Error::Missing)
     } else {
-        Err(ValidationError::BadValue {
+        Err(Error::BadValue {
             msg: "Not a valid version".to_owned(),
             value: value.to_owned(),
         })
@@ -106,19 +105,18 @@ pub fn validate_version(
 }
 
 lazy_static! {
-    static ref SPDX_IDENTS: Vec<&'static str> = ["CC0-1.0", "GPL-3.0-or-later"].to_vec(); // TODO HACK ...
+    static ref SPDX_IDENTS: Vec<&'static str> = ["CC0-1.0", "GPL-3.0-or-later", "GPL-3.0", "GPL-2.0-or-later", "GPL-2.0", "AGPL-3.0-or-later", "AGPL-3.0"].to_vec(); // TODO HACK ...
     // TODO use an SPDX repo as submodule that contains the list of supported license idenfiers and compare against them
     // TODO see: https://github.com/spdx/license-list-XML/issues/1335
 }
 
-pub fn validate_license(
-    _environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
-    if SPDX_IDENTS.contains(&value) {
+fn validate_license(_environment: &mut Environment, value: &str) -> Result {
+    if value.is_empty() {
+        Err(Error::Missing)
+    } else if SPDX_IDENTS.contains(&value) {
         Ok(None)
     } else {
-        Ok(Some(ValidationWarning::SuboptimalValue {
+        Ok(Some(Warning::SuboptimalValue {
             msg: "Not a recognized SPDX license identifier".to_owned(),
             value: value.to_owned(),
         }))
@@ -129,15 +127,16 @@ fn check_public_url(
     _environment: &mut Environment,
     value: &str,
     allow_ssh: bool,
-) -> Result<Url, ValidationError> {
+) -> std::result::Result<Url, Error> {
     match Url::parse(value) {
-        Err(_err) => Err(ValidationError::BadValue {
+        Err(_err) => Err(Error::BadValue {
             msg: "Not a valid URL".to_owned(),
             value: value.to_owned(),
         }),
         Ok(url) => {
-            if !["http", "https"].contains(&url.scheme()) && !(allow_ssh && url.scheme() == "ssh") {
-                Err(ValidationError::AlmostUsableValue {
+            if !(["http", "https"].contains(&url.scheme()) || (allow_ssh && url.scheme() == "ssh"))
+            {
+                Err(Error::AlmostUsableValue {
                     msg: format!(
                         "Should use one of these as protocol(scheme): [http, https{}]",
                         if allow_ssh { ", ssh" } else { "" }
@@ -145,7 +144,7 @@ fn check_public_url(
                     value: value.to_owned(),
                 })
             } else if url.username() != "" {
-                Err(ValidationError::AlmostUsableValue {
+                Err(Error::AlmostUsableValue {
                     msg: format!(
                         "Should be anonymous access, but specifies a user-name: {}",
                         url.username()
@@ -153,12 +152,12 @@ fn check_public_url(
                     value: value.to_owned(),
                 })
             } else if let Some(_pw) = url.password() {
-                Err(ValidationError::AlmostUsableValue {
+                Err(Error::AlmostUsableValue {
                     msg: "Should be anonymous access, but contains a password".to_owned(),
                     value: value.to_owned(),
                 })
             } else if let Some(query) = url.query() {
-                Err(ValidationError::AlmostUsableValue {
+                Err(Error::AlmostUsableValue {
                     msg: format!(
                         "Should be a simple URL, but uses query arguments: {}",
                         query
@@ -166,7 +165,7 @@ fn check_public_url(
                     value: value.to_owned(),
                 })
             } else if let Some(fragment) = url.fragment() {
-                Err(ValidationError::AlmostUsableValue {
+                Err(Error::AlmostUsableValue {
                     msg: format!("Should be a simple URL, but uses a fragment: {}", fragment),
                     value: value.to_owned(),
                 })
@@ -177,22 +176,19 @@ fn check_public_url(
     }
 }
 
-pub fn validate_repo_web_url(
-    environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
     let url = check_public_url(environment, value, false)?;
     if url.host() == Some(Host::Domain("github.com"))
         && url
             .path_segments()
-            .ok_or_else(|| ValidationError::AlmostUsableValue {
+            .ok_or_else(|| Error::AlmostUsableValue {
                 msg: "Missing a path for GitHub.com".to_owned(),
                 value: value.to_owned(),
             })?
             .count()
             != 2
     {
-        Err(ValidationError::AlmostUsableValue {
+        Err(Error::AlmostUsableValue {
             msg: format!(
                 r#"On GitHub.com, the path part of the web URL of a repo should be of the form "user/repo", but it is "{}""#,
                 url.path()
@@ -202,14 +198,14 @@ pub fn validate_repo_web_url(
     } else if url.host() == Some(Host::Domain("gitlab.com"))
         && url
             .path_segments()
-            .ok_or_else(|| ValidationError::AlmostUsableValue {
+            .ok_or_else(|| Error::AlmostUsableValue {
                 msg: "Missing a path for GitLab.com".to_owned(),
                 value: value.to_owned(),
             })?
             .count()
             < 2
     {
-        Err(ValidationError::AlmostUsableValue {
+        Err(Error::AlmostUsableValue {
             msg: format!(
                 r#"On GitLab.com, the path part of the web URL of a repo should be of the form "user/repo" or "user/.../repo", but it is "{}""#,
                 url.path()
@@ -221,10 +217,7 @@ pub fn validate_repo_web_url(
     }
 }
 
-pub fn validate_repo_frozen_web_url(
-    environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_repo_frozen_web_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         // TODO Check if really both of these providers support the '-' part in ".../user/repo/-/tree/34f8e45".
         static ref R_GIT_HUB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/(-/)?(tree)/(?P<commit>[^/]+)$").unwrap();
@@ -233,7 +226,7 @@ pub fn validate_repo_frozen_web_url(
 
     let url = check_public_url(environment, value, false)?;
     if url.host() == Some(Host::Domain("github.com")) && !R_GIT_HUB_PATH.is_match(url.path()) {
-        Err(ValidationError::AlmostUsableValue {
+        Err(Error::AlmostUsableValue {
             msg: format!(
                 r#"For GitHub.com, this path part of the frozen web URL is invalid: "{}"; it should match "{}""#,
                 url.path(),
@@ -243,7 +236,7 @@ pub fn validate_repo_frozen_web_url(
         })
     } else if url.host() == Some(Host::Domain("gitlab.com")) && !R_GIT_LAB_PATH.is_match(url.path())
     {
-        Err(ValidationError::AlmostUsableValue {
+        Err(Error::AlmostUsableValue {
             msg: format!(
                 r#"For GitLab.com, this path part of the frozen web URL is invalid: "{}"; it should match "{}""#,
                 url.path(),
@@ -256,10 +249,7 @@ pub fn validate_repo_frozen_web_url(
     }
 }
 
-pub fn validate_repo_clone_url(
-    environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_repo_clone_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         // NOTE We only accept the user "git", as it stands for anonymous access
         static ref R_SSH_CLONE_TO_URL: Regex = Regex::new(r"^(?P<user>git@)?(?P<host>[^/:]+)((:|/)(?P<path>.+))?$").unwrap();
@@ -273,14 +263,15 @@ pub fn validate_repo_clone_url(
                 Ok(url) => url,
                 // If also the ssh_value failed to parse,
                 // return the error concerning the failed parsing of the original value.
-                Err(_err_ssh) => Err(err_orig)?, // Err(_err_ssh) => Err(_err_ssh)?
+                Err(_err_ssh) => return Err(err_orig), // Err(_err_ssh) => return Err(_err_ssh),
             }
         }
     };
+    #[allow(clippy::case_sensitive_file_extension_comparisons)]
     if url.host() == Some(Host::Domain("github.com"))
         && url
             .path_segments()
-            .ok_or_else(|| ValidationError::AlmostUsableValue {
+            .ok_or_else(|| Error::AlmostUsableValue {
                 msg: "Missing a path for GitHub.com".to_owned(),
                 value: value.to_owned(),
             })?
@@ -288,7 +279,7 @@ pub fn validate_repo_clone_url(
             != 2
         && !url.path().ends_with(".git")
     {
-        Err(ValidationError::AlmostUsableValue {
+        Err(Error::AlmostUsableValue {
             msg: format!(
                 r#"On GitHub.com, the path part of the web URL of a repo should be of the form "user/repo", but it is "{}""#,
                 url.path()
@@ -298,7 +289,7 @@ pub fn validate_repo_clone_url(
     } else if url.host() == Some(Host::Domain("gitlab.com"))
         && url
             .path_segments()
-            .ok_or_else(|| ValidationError::AlmostUsableValue {
+            .ok_or_else(|| Error::AlmostUsableValue {
                 msg: "Missing a path for GitLab.com".to_owned(),
                 value: value.to_owned(),
             })?
@@ -306,7 +297,7 @@ pub fn validate_repo_clone_url(
             < 2
         && !url.path().ends_with(".git")
     {
-        Err(ValidationError::AlmostUsableValue {
+        Err(Error::AlmostUsableValue {
             msg: format!(
                 r#"On GitLab.com, the path part of the web URL of a repo should be of the form "user/repo" or "user/.../repo", but it is "{}""#,
                 url.path()
@@ -318,10 +309,7 @@ pub fn validate_repo_clone_url(
     }
 }
 
-pub fn validate_repo_issues_url(
-    environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_repo_issues_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         // TODO Check if really both of these providers support the '-' part in ".../user/repo/-/issues".
         static ref R_GIT_HUB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/(-/)?(issues)$").unwrap();
@@ -330,7 +318,7 @@ pub fn validate_repo_issues_url(
 
     let url = check_public_url(environment, value, false)?;
     if url.host() == Some(Host::Domain("github.com")) && !R_GIT_HUB_PATH.is_match(url.path()) {
-        Err(ValidationError::AlmostUsableValue {
+        Err(Error::AlmostUsableValue {
             msg: format!(
                 r#"For GitHub.com, this path part of the issues URL is invalid: "{}"; it should match "{}""#,
                 url.path(),
@@ -340,7 +328,7 @@ pub fn validate_repo_issues_url(
         })
     } else if url.host() == Some(Host::Domain("gitlab.com")) && !R_GIT_LAB_PATH.is_match(url.path())
     {
-        Err(ValidationError::AlmostUsableValue {
+        Err(Error::AlmostUsableValue {
             msg: format!(
                 r#"For GitLab.com, this path part of the issues URL is invalid: "{}"; it should match "{}""#,
                 url.path(),
@@ -353,10 +341,7 @@ pub fn validate_repo_issues_url(
     }
 }
 
-pub fn validate_build_hosting_url(
-    environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_build_hosting_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         static ref R_GIT_HUB_HOST: Regex = Regex::new(r"^(?P<user>[^/.]+)\.github\.io$").unwrap();
         static ref R_GIT_LAB_HOST: Regex = Regex::new(r"^(?P<user>[^/.]+)\.gitlab\.io$").unwrap();
@@ -366,7 +351,7 @@ pub fn validate_build_hosting_url(
     if let Some(host) = url.host() {
         let host_str = host.to_string();
         if host_str.ends_with(".github.io") && !R_GIT_HUB_HOST.is_match(&host_str) {
-            Err(ValidationError::AlmostUsableValue {
+            Err(Error::AlmostUsableValue {
                 msg: format!(
                     r#"For GitHub.com, this host for the build hosting URL is invalid: "{}"; it should match "{}""#,
                     host,
@@ -375,7 +360,7 @@ pub fn validate_build_hosting_url(
                 value: value.to_owned(),
             })
         } else if host_str.ends_with(".gitlab.io") && !R_GIT_LAB_HOST.is_match(&host_str) {
-            Err(ValidationError::AlmostUsableValue {
+            Err(Error::AlmostUsableValue {
                 msg: format!(
                     r#"For GitLab.com, this path part of the frozen web URL is invalid: "{}"; it should match "{}""#,
                     host,
@@ -387,19 +372,16 @@ pub fn validate_build_hosting_url(
             Ok(None)
         }
     } else {
-        Err(ValidationError::BadValue {
+        Err(Error::BadValue {
             msg: "No host; seems not to be a commonly accessible URL".to_owned(),
             value: value.to_owned(),
         })
     }
 }
 
-pub fn validate_name(
-    _environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_name(_environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
-        Err(ValidationError::BadValue {
+        Err(Error::BadValue {
             msg: "Project name can not be empty".to_owned(),
             value: value.to_owned(),
         })
@@ -408,12 +390,9 @@ pub fn validate_name(
     }
 }
 
-pub fn validate_version_date(
-    environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_version_date(environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
-        Err(ValidationError::BadValue {
+        Err(Error::BadValue {
             msg: "Date can not be empty".to_owned(),
             value: value.to_owned(),
         })
@@ -421,7 +400,7 @@ pub fn validate_version_date(
         && DateTime::parse_from_str(value, &environment.settings.date_format).is_err()
     {
         // log::error!("XXX {}", NaiveDateTime::parse_from_str(value, &environment.settings.date_format).unwrap_err());
-        Err(ValidationError::BadValue {
+        Err(Error::BadValue {
             msg: format!(
                 r#"Not a date according to the date-format "{}""#,
                 environment.settings.date_format
@@ -433,19 +412,13 @@ pub fn validate_version_date(
     }
 }
 
-pub fn validate_build_date(
-    environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_build_date(environment: &mut Environment, value: &str) -> Result {
     validate_version_date(environment, value)
 }
 
-pub fn validate_build_branch(
-    _environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_build_branch(_environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
-        Err(ValidationError::BadValue {
+        Err(Error::BadValue {
             msg: "Branch can not be empty".to_owned(),
             value: value.to_owned(),
         })
@@ -454,12 +427,9 @@ pub fn validate_build_branch(
     }
 }
 
-pub fn validate_build_tag(
-    _environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_build_tag(_environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
-        Err(ValidationError::BadValue {
+        Err(Error::BadValue {
             msg: "Tag can not be empty".to_owned(),
             value: value.to_owned(),
         })
@@ -468,12 +438,9 @@ pub fn validate_build_tag(
     }
 }
 
-pub fn validate_build_ident(
-    _environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_build_ident(_environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
-        Err(ValidationError::BadValue {
+        Err(Error::BadValue {
             msg: "Build identifier can not be empty".to_owned(),
             value: value.to_owned(),
         })
@@ -482,12 +449,9 @@ pub fn validate_build_ident(
     }
 }
 
-pub fn validate_build_os(
-    _environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_build_os(_environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
-        Err(ValidationError::BadValue {
+        Err(Error::BadValue {
             msg: "Build OS can not be empty".to_owned(),
             value: value.to_owned(),
         })
@@ -498,12 +462,9 @@ pub fn validate_build_os(
 
 const VALID_OS_FAMILIES: &[&str] = &["linux", "unix", "bsd", "osx", "windows"]; // TODO
 
-pub fn validate_build_os_family(
-    _environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_build_os_family(_environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
-        Err(ValidationError::BadValue {
+        Err(Error::BadValue {
             msg: "Build OS Family can not be empty".to_owned(),
             value: value.to_owned(),
         })
@@ -511,11 +472,11 @@ pub fn validate_build_os_family(
         Ok(None)
     } else {
         // todo!();
-        // Err(ValidationError::SuboptimalValue {
+        // Err(Error::SuboptimalValue {
         //     msg: "TODO".to_owned(), // TODO
         //     value: value.to_owned(),
         // })
-        Err(ValidationError::BadValue {
+        Err(Error::BadValue {
             msg: format!(
                 "Only these values are valid: {}",
                 VALID_OS_FAMILIES.join(", ")
@@ -527,42 +488,36 @@ pub fn validate_build_os_family(
 
 const VALID_ARCHS: &[&str] = &["x86", "x86_64", "arm", "arm64"]; // TODO
 
-pub fn validate_build_arch(
-    _environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_build_arch(_environment: &mut Environment, value: &str) -> Result {
     if VALID_ARCHS.contains(&value) {
         Ok(None)
     } else if value.is_empty() {
-        Err(ValidationError::BadValue {
+        Err(Error::BadValue {
             msg: "Build arch can not be empty".to_owned(),
             value: value.to_owned(),
         })
     } else {
         // todo!();
-        // Err(ValidationError::SuboptimalValue {
+        // Err(Error::SuboptimalValue {
         //     msg: "TODO".to_owned(), // TODO
         //     value: value.to_owned(),
         // })
-        Err(ValidationError::BadValue {
+        Err(Error::BadValue {
             msg: format!("Only these values are valid: {}", VALID_ARCHS.join(", ")),
             value: value.to_owned(),
         })
     }
 }
 
-pub fn validate_build_number(
-    _environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_build_number(_environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
-        Err(ValidationError::BadValue {
+        Err(Error::BadValue {
             msg: "Build number can not be empty".to_owned(),
             value: value.to_owned(),
         })
     } else {
         match value.parse::<i32>() {
-            Err(_err) => Ok(Some(ValidationWarning::SuboptimalValue {
+            Err(_err) => Ok(Some(Warning::SuboptimalValue {
                 msg: "It is generally recommended and assumed that the build number is an integer (a positive, whole number)".to_owned(),
                 value: value.to_owned(),
              })),
@@ -571,19 +526,16 @@ pub fn validate_build_number(
     }
 }
 
-pub fn validate_ci(
-    _environment: &mut Environment,
-    value: &str,
-) -> Result<Option<ValidationWarning>, ValidationError> {
+fn validate_ci(_environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
-        Err(ValidationError::BadValue {
+        Err(Error::BadValue {
             msg: "CI can not be empty".to_owned(),
             value: value.to_owned(),
         })
     } else {
         match value {
             "true" => Ok(None),
-            &_ => Ok(Some(ValidationWarning::SuboptimalValue {
+            &_ => Ok(Some(Warning::SuboptimalValue {
                 msg: r#"CI should either be unset or set to "true""#.to_owned(),
                 value: value.to_owned(),
             })),
@@ -623,7 +575,11 @@ mod tests {
     use super::*;
 
     lazy_static! {
-        static ref VE_ALMOST_USABLE_VALUE: ValidationError = ValidationError::AlmostUsableValue {
+        static ref VE_ALMOST_USABLE_VALUE: Error = Error::AlmostUsableValue {
+            msg: String::default(),
+            value: String::default()
+        };
+        static ref VW_SUBOPTIMAL_VALUE: Warning = Warning::SuboptimalValue {
             msg: String::default(),
             value: String::default()
         };
@@ -644,69 +600,121 @@ mod tests {
     //     Ok(())
     // }
 
+    fn is_optimal(res: Result) -> bool {
+        variant_eq(&res.unwrap(), &None)
+    }
+
+    fn is_almost_usable(res: Result) -> bool {
+        variant_eq(&res.unwrap_err(), &VE_ALMOST_USABLE_VALUE)
+    }
+
+    fn is_suboptimal(res: Result) -> bool {
+        if let Some(err) = res.unwrap() {
+            variant_eq(&err, &VW_SUBOPTIMAL_VALUE)
+        } else {
+            false
+        }
+    }
+
     #[test]
     fn test_validate_version() {
         let mut environment = Environment::stub();
-        assert!(validate_version(&mut environment, "gad8f844").is_ok());
-        assert!(validate_version(&mut environment, "gad8f844-dirty").is_ok());
-        assert!(validate_version(&mut environment, "gad8f844-broken").is_ok());
-        assert!(validate_version(&mut environment, "gad8f844-dirty-broken").is_ok());
-        assert!(validate_version(&mut environment, "gad8f844-broken-dirty").is_ok());
-        assert!(validate_version(&mut environment, "0.1.19-12-gad8f844").is_ok());
-        assert!(validate_version(&mut environment, "0.1.19-12-gad8f844-dirty").is_ok());
-        assert!(validate_version(&mut environment, "0.1.19-12-gad8f844-broken").is_ok());
-        assert!(validate_version(&mut environment, "0.1.19-12-gad8f844-dirty-broken").is_ok());
-        assert!(validate_version(&mut environment, "0.1.19-12-gad8f844-broken-dirty").is_ok());
-        assert!(validate_version(&mut environment, "0.1.19").is_ok());
-        assert!(validate_version(&mut environment, "0.1.19-dirty").is_ok());
-        assert!(validate_version(&mut environment, "0.1.19-broken").is_ok());
-        assert!(validate_version(&mut environment, "0.1.19-dirty-broken").is_ok());
-        assert!(validate_version(&mut environment, "0.1.19-broken-dirty").is_ok());
-        todo!(); // TODO Add some bad cases too; Producing various different errors
+        assert!(is_suboptimal(validate_version(
+            &mut environment,
+            "gad8f844"
+        )));
+        assert!(is_suboptimal(validate_version(
+            &mut environment,
+            "gad8f844-dirty"
+        )));
+        assert!(is_suboptimal(validate_version(
+            &mut environment,
+            "gad8f844-broken"
+        )));
+        assert!(is_suboptimal(validate_version(
+            &mut environment,
+            "gad8f844-dirty-broken"
+        )));
+        assert!(is_suboptimal(validate_version(
+            &mut environment,
+            "gad8f844-broken-dirty"
+        )));
+        assert!(is_suboptimal(validate_version(
+            &mut environment,
+            "0.1.19-12-gad8f844"
+        )));
+        assert!(is_suboptimal(validate_version(
+            &mut environment,
+            "0.1.19-12-gad8f844-dirty"
+        )));
+        assert!(is_suboptimal(validate_version(
+            &mut environment,
+            "0.1.19-12-gad8f844-broken"
+        )));
+        assert!(is_suboptimal(validate_version(
+            &mut environment,
+            "0.1.19-12-gad8f844-dirty-broken"
+        )));
+        assert!(is_suboptimal(validate_version(
+            &mut environment,
+            "0.1.19-12-gad8f844-broken-dirty"
+        )));
+        assert!(is_optimal(validate_version(&mut environment, "0.1.19")));
+        assert!(is_suboptimal(validate_version(
+            &mut environment,
+            "0.1.19-dirty"
+        )));
+        assert!(is_suboptimal(validate_version(
+            &mut environment,
+            "0.1.19-broken"
+        )));
+        assert!(is_suboptimal(validate_version(
+            &mut environment,
+            "0.1.19-dirty-broken"
+        )));
+        assert!(is_suboptimal(validate_version(
+            &mut environment,
+            "0.1.19-broken-dirty"
+        )));
+        assert!(validate_version(&mut environment, "").is_err()); // TODO Rather check the details of the Err value!
+        assert!(validate_version(&mut environment, "gabcdefg").is_err()); // TODO Rather check the details of the Ok value!
+        assert!(validate_version(&mut environment, "abcdeff").is_err()); // TODO Rather check the details of the Ok value!
+                                                                         // todo!(); // TODO Add some bad cases too; Producing various different errors
     }
 
     #[test]
     fn test_validate_license() {
         let mut environment = Environment::stub();
-        assert!(validate_version(&mut environment, "GPL-3.0").is_ok());
-        assert!(validate_version(&mut environment, "GPL-3.0-or-later").is_ok());
-        assert!(validate_version(&mut environment, "GPL-2.0").is_ok());
-        assert!(validate_version(&mut environment, "GPL-2.0-or-later").is_ok());
-        assert!(validate_version(&mut environment, "AGPL-3.0").is_ok());
-        assert!(validate_version(&mut environment, "AGPL-3.0-or-later").is_ok());
-        assert!(validate_version(&mut environment, "CC0-1.0").is_ok());
-        assert!(variant_eq(
-            &validate_version(&mut environment, "CC0-2.0").unwrap_err(),
-            &VE_ALMOST_USABLE_VALUE
-        ));
-        assert!(variant_eq(
-            &validate_version(&mut environment, "CC0").unwrap_err(),
-            &VE_ALMOST_USABLE_VALUE
-        ));
-        assert!(variant_eq(
-            &validate_version(&mut environment, "GPL").unwrap_err(),
-            &VE_ALMOST_USABLE_VALUE
-        ));
-        assert!(variant_eq(
-            &validate_version(&mut environment, "AGPL").unwrap_err(),
-            &VE_ALMOST_USABLE_VALUE
-        ));
-        assert!(variant_eq(
-            &validate_version(&mut environment, "GPL").unwrap_err(),
-            &VE_ALMOST_USABLE_VALUE
-        ));
-        assert!(variant_eq(
-            &validate_version(&mut environment, "GPL").unwrap_err(),
-            &VE_ALMOST_USABLE_VALUE
-        ));
-        // let result = validate_version(&mut environment, "GPL");
-        // assert!(is_error_type!(result, ValidationError::AlmostUsableValue));
-
-        todo!(); // TODO Add some more bad cases; Producing different errors
+        assert!(is_optimal(validate_license(&mut environment, "GPL-3.0")));
+        assert!(is_optimal(validate_license(
+            &mut environment,
+            "GPL-3.0-or-later"
+        )));
+        assert!(is_optimal(validate_license(&mut environment, "GPL-2.0")));
+        assert!(is_optimal(validate_license(
+            &mut environment,
+            "GPL-2.0-or-later"
+        )));
+        assert!(is_optimal(validate_license(&mut environment, "AGPL-3.0")));
+        assert!(is_optimal(validate_license(
+            &mut environment,
+            "AGPL-3.0-or-later"
+        )));
+        assert!(is_optimal(validate_license(&mut environment, "CC0-1.0")));
+        assert!(is_suboptimal(validate_license(&mut environment, "CC0-2.0")));
+        assert!(is_suboptimal(validate_license(&mut environment, "CC02.0")));
+        assert!(is_suboptimal(validate_license(&mut environment, "GPL")));
+        assert!(is_suboptimal(validate_license(&mut environment, "AGPL")));
+        assert!(is_suboptimal(validate_license(
+            &mut environment,
+            "Some Unknown License"
+        )));
+        assert!(validate_license(&mut environment, "").is_err()); // TODO Rather check the details of the Err value!
+                                                                  // todo!(); // TODO Add some more bad cases; Producing different errors
     }
 
     #[test]
-    fn test_validate_repo_frozen_web_url() -> Result<(), ValidationError> {
+    fn test_validate_repo_frozen_web_url() -> std::result::Result<(), Error> {
         let mut environment = Environment::stub();
         // assert!(validate_repo_frozen_web_url(&mut environment, "https://github.com/hoijui/projvar/tree/525b3c9b8962dd02aab6ea867eebdee3719a6634")?.is_ok());
         validate_repo_frozen_web_url(
