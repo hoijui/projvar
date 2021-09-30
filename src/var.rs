@@ -58,7 +58,7 @@ pub enum Key {
     Version,
     License,
     RepoWebUrl,
-    RepoFrozenWebUrl,
+    RepoVersionedWebUrl,
     RepoCloneUrl,
     RepoIssuesUrl,
     Name,
@@ -237,7 +237,7 @@ pub fn list_keys(alt_keys: bool) {
 pub const KEY_VERSION: &str = "PROJECT_VERSION";
 pub const KEY_LICENSE: &str = "PROJECT_LICENSE";
 pub const KEY_REPO_WEB_URL: &str = "PROJECT_REPO_WEB_URL";
-pub const KEY_REPO_FROZEN_WEB_URL: &str = "BUILD_REPO_FROZEN_WEB_URL";
+pub const KEY_REPO_VERSIONED_WEB_URL: &str = "BUILD_REPO_VERSIONED_WEB_URL";
 pub const KEY_REPO_CLONE_URL: &str = "PROJECT_REPO_CLONE_URL";
 pub const KEY_REPO_ISSUES_URL: &str = "PROJECT_REPO_ISSUES_URL";
 pub const KEY_NAME: &str = "PROJECT_NAME";
@@ -303,11 +303,11 @@ const VAR_REPO_WEB_URL: Variable = Variable {
         "BITBUCKET_GIT_HTTP_ORIGIN",
     ],
 };
-const VAR_REPO_FROZEN_WEB_URL: Variable = Variable {
-    key: KEY_REPO_FROZEN_WEB_URL,
+const VAR_REPO_VERSIONED_WEB_URL: Variable = Variable {
+    key: KEY_REPO_VERSIONED_WEB_URL,
     description: "The Repo web UI URL, pointing to the specific version of this build.",
     default_required: false,
-    alt_keys: &["FROZEN_WEB_URL", "COMMIT_URL"],
+    alt_keys: &["VERSIONED_WEB_URL", "COMMIT_URL"],
 };
 const VAR_REPO_CLONE_URL: Variable = Variable {
     key: KEY_REPO_CLONE_URL,
@@ -449,7 +449,7 @@ fn create(key: &Key) -> &'static Variable {
         Key::Version => &VAR_VERSION,
         Key::License => &VAR_LICENSE,
         Key::RepoWebUrl => &VAR_REPO_WEB_URL,
-        Key::RepoFrozenWebUrl => &VAR_REPO_FROZEN_WEB_URL,
+        Key::RepoVersionedWebUrl => &VAR_REPO_VERSIONED_WEB_URL,
         Key::RepoCloneUrl => &VAR_REPO_CLONE_URL,
         Key::RepoIssuesUrl => &VAR_REPO_ISSUES_URL,
         Key::Name => &VAR_NAME,

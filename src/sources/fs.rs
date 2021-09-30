@@ -128,7 +128,7 @@ impl super::VarSource for VarSource {
             Key::BuildOsFamily => Some(build_os_family(environment)),
             Key::BuildArch => Some(build_arch(environment)),
             Key::RepoWebUrl
-            | Key::RepoFrozenWebUrl
+            | Key::RepoVersionedWebUrl
             | Key::RepoIssuesUrl
             | Key::BuildBranch
             | Key::BuildTag

@@ -61,14 +61,14 @@ pub fn proj_name_from_slug(slug: Option<&String>) -> BoxResult<Option<String>> {
     })
 }
 
-/// Tries to construct the frozen web URL
+/// Tries to construct the versioned web URL
 /// from other properties of a variable source.
 ///
 /// # Errors
 ///
 /// If an attempt to try fetching any required property returned an error.
 //
-// Real world frozen web URLs:
+// Real world versioned web URLs:
 // * https://gitlab.com/OSEGermany/okhmanifest
 // * https://gitlab.com/OSEGermany/okhmanifest/-/commit/9e1df32c42a85253af95ea2dc9311128bd8f775a
 // * https://gitlab.com/OSEGermany/okhmanifest/-/tree/oldCombinedDeprecated
@@ -76,7 +76,7 @@ pub fn proj_name_from_slug(slug: Option<&String>) -> BoxResult<Option<String>> {
 // * https://gitlab.com/OSEGermany/OHS-3105/-/tree/din-spec-3105-0.10.0-179-g60c46fc
 // * https://github.com/hoijui/repvar
 // * https://github.com/hoijui/repvar/tree/4939bd538643bfb445167ea72b825e605f120318
-pub fn try_construct_frozen<S: VarSource>(
+pub fn try_construct_versioned<S: VarSource>(
     var_source: &S,
     environment: &mut Environment,
 ) -> BoxResult<Option<String>> {

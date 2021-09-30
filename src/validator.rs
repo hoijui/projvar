@@ -217,7 +217,7 @@ fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
     }
 }
 
-fn validate_repo_frozen_web_url(environment: &mut Environment, value: &str) -> Result {
+fn validate_repo_versioned_web_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         // TODO Check if really both of these providers support the '-' part in ".../user/repo/-/tree/34f8e45".
         static ref R_GIT_HUB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/(-/)?(tree)/(?P<commit>[^/]+)$").unwrap();
@@ -228,7 +228,7 @@ fn validate_repo_frozen_web_url(environment: &mut Environment, value: &str) -> R
     if url.host() == Some(Host::Domain("github.com")) && !R_GIT_HUB_PATH.is_match(url.path()) {
         Err(Error::AlmostUsableValue {
             msg: format!(
-                r#"For GitHub.com, this path part of the frozen web URL is invalid: "{}"; it should match "{}""#,
+                r#"For GitHub.com, this path part of the versioned web URL is invalid: "{}"; it should match "{}""#,
                 url.path(),
                 R_GIT_HUB_PATH.as_str()
             ),
@@ -238,7 +238,7 @@ fn validate_repo_frozen_web_url(environment: &mut Environment, value: &str) -> R
     {
         Err(Error::AlmostUsableValue {
             msg: format!(
-                r#"For GitLab.com, this path part of the frozen web URL is invalid: "{}"; it should match "{}""#,
+                r#"For GitLab.com, this path part of the versioned web URL is invalid: "{}"; it should match "{}""#,
                 url.path(),
                 R_GIT_LAB_PATH.as_str()
             ),
@@ -362,7 +362,7 @@ fn validate_build_hosting_url(environment: &mut Environment, value: &str) -> Res
         } else if host_str.ends_with(".gitlab.io") && !R_GIT_LAB_HOST.is_match(&host_str) {
             Err(Error::AlmostUsableValue {
                 msg: format!(
-                    r#"For GitLab.com, this path part of the frozen web URL is invalid: "{}"; it should match "{}""#,
+                    r#"For GitLab.com, this path part of the versioned web URL is invalid: "{}"; it should match "{}""#,
                     host,
                     R_GIT_LAB_HOST.as_str()
                 ),
@@ -550,7 +550,7 @@ pub fn get(key: &Key) -> Validator {
         Key::Version => validate_version,
         Key::License => validate_license,
         Key::RepoWebUrl => validate_repo_web_url,
-        Key::RepoFrozenWebUrl => validate_repo_frozen_web_url,
+        Key::RepoVersionedWebUrl => validate_repo_versioned_web_url,
         Key::RepoCloneUrl => validate_repo_clone_url,
         Key::RepoIssuesUrl => validate_repo_issues_url,
         Key::Name => validate_name,
@@ -714,10 +714,10 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_repo_frozen_web_url() -> std::result::Result<(), Error> {
+    fn test_validate_repo_versioned_web_url() -> std::result::Result<(), Error> {
         let mut environment = Environment::stub();
-        // assert!(validate_repo_frozen_web_url(&mut environment, "https://github.com/hoijui/projvar/tree/525b3c9b8962dd02aab6ea867eebdee3719a6634")?.is_ok());
-        validate_repo_frozen_web_url(
+        // assert!(validate_repo_versioned_web_url(&mut environment, "https://github.com/hoijui/projvar/tree/525b3c9b8962dd02aab6ea867eebdee3719a6634")?.is_ok());
+        validate_repo_versioned_web_url(
             &mut environment,
             "https://github.com/hoijui/projvar/tree/525b3c9b8962dd02aab6ea867eebdee3719a6634",
         )?;

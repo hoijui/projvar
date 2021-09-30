@@ -20,7 +20,7 @@ impl super::VarSource for VarSource {
 
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
         Ok(match key {
-            Key::RepoFrozenWebUrl => super::try_construct_frozen(self, environment)?,
+            Key::RepoVersionedWebUrl => super::try_construct_versioned(self, environment)?,
             Key::BuildBranch => var(environment, "TRAVIS_BRANCH"),
             Key::BuildTag => var(environment, "TRAVIS_TAG"),
             Key::BuildOs => var(environment, "TRAVIS_OS_NAME"),

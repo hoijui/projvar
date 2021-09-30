@@ -143,7 +143,7 @@ impl super::VarSource for VarSource {
             Key::Version => version(environment)?,
             Key::Name => name(environment)?,
             Key::RepoWebUrl => repo_web_url(environment)?,
-            Key::RepoFrozenWebUrl => {
+            Key::RepoVersionedWebUrl => {
                 let base_repo_web_url = self.retrieve(environment, Key::RepoWebUrl)?;
                 let version = self.retrieve(environment, Key::Version)?;
                 let commit_sha = self.retrieve(environment, Key::BuildIdent)?;
