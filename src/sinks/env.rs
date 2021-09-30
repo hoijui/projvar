@@ -35,18 +35,9 @@ impl super::VarSink for VarSink {
         values: &[(Key, &Variable, String)],
     ) -> BoxResult<()> {
         for (_key, var, value) in values {
-            if environment.settings.to_set.main() {
-                let key = var.key;
-                if environment.settings.overwrite.main() || env::var(&key).is_err() {
-                    env::set_var(&key, &value);
-                }
-            }
-            if environment.settings.to_set.alt() {
-                for alt_key in var.alt_keys {
-                    if environment.settings.overwrite.alt() || env::var(&alt_key).is_err() {
-                        env::set_var(&alt_key, &value);
-                    }
-                }
+            let key = var.key;
+            if environment.settings.overwrite.main() || env::var(&key).is_err() {
+                env::set_var(&key, &value);
             }
         }
         Ok(())

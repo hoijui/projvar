@@ -108,38 +108,6 @@ impl From<bool> for Verbosity {
     }
 }
 
-pub enum VarsToSet {
-    Primary,
-    All,
-}
-
-impl VarsToSet {
-    #[must_use]
-    pub fn main(&self) -> bool {
-        match self {
-            VarsToSet::All | VarsToSet::Primary => true,
-        }
-    }
-
-    #[must_use]
-    pub fn alt(&self) -> bool {
-        match self {
-            VarsToSet::All => true,
-            VarsToSet::Primary => false,
-        }
-    }
-}
-
-impl From<bool> for VarsToSet {
-    fn from(verbose: bool) -> Self {
-        if verbose {
-            VarsToSet::All
-        } else {
-            VarsToSet::Primary
-        }
-    }
-}
-
 #[derive(Debug, EnumString, EnumVariantNames, IntoStaticStr)]
 pub enum Overwrite {
     All,
@@ -189,7 +157,6 @@ pub struct Settings /*<S: ::std::hash::BuildHasher>*/ {
     // pub repo_path: Option<Box<Path>>,
     pub repo_path: Option<PathBuf>,
     pub required_keys: HashSet<Key>,
-    pub to_set: VarsToSet,
     pub overwrite: Overwrite,
     pub date_format: String,
     pub fail_on: FailOn,
@@ -204,7 +171,6 @@ impl Settings {
         Settings {
             repo_path: None,
             required_keys: HashSet::new(),
-            to_set: VarsToSet::All,
             overwrite: Overwrite::All,
             date_format: crate::tools::git::DATE_FORMAT.to_string(),
             fail_on: FailOn::AnyMissingValue,

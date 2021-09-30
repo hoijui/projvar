@@ -27,8 +27,7 @@ pub struct Variable {
     pub key: &'static str,
     pub description: &'static str,
     pub default_required: bool,
-    // pub alt_keys: Vec<&'static str>,
-    pub alt_keys: &'static [&'static str],
+    // pub alt_keys: &'static [&'static str], // This data was once present for all variables; see the commit that commented out this line with `git blame`
 }
 
 impl Display for Variable {
@@ -203,34 +202,13 @@ pub fn is_key_value_str_valid(key_value: &str) -> Result<(), String> {
         .map_err(|_err| String::from("Not a valid key=value pair"))
 }
 
-pub fn list_keys(alt_keys: bool) {
-    if alt_keys {
-        log::info!(
-            "| {} | {} | {} | {} |",
-            "D",
-            "Key",
-            "Alternative Keys",
-            "Description"
-        );
-        log::info!("| - | --- | -------- | ------------ |");
-    } else {
-        log::info!("| {} | {} | {} |", "D", "Key", "Description");
-        log::info!("| - | --- | ------------ |");
-    }
+pub fn list_keys() {
+    log::info!("| {} | {} | {} |", "D", "Key", "Description");
+    log::info!("| - | --- | ------------ |");
     for key in Key::iter() {
         let var = get(key);
         let def = if var.default_required { "X" } else { " " };
-        if alt_keys {
-            log::info!(
-                "| {} | {} | {} | {} |",
-                def,
-                var.key,
-                var.alt_keys.join(" "),
-                var.description
-            );
-        } else {
-            log::info!("| {} | {} | {} |", def, var.key, var.description);
-        }
+        log::info!("| {} | {} | {} |", def, var.key, var.description);
     }
 }
 
@@ -283,151 +261,89 @@ const VAR_VERSION: Variable = Variable {
     key: KEY_VERSION,
     description: "The project version.",
     default_required: true,
-    alt_keys: &["VERSION", "CI_COMMIT_SHORT_SHA"],
 };
 const VAR_LICENSE: Variable = Variable {
     key: KEY_LICENSE,
     description: "Main License of the sources.",
     default_required: true,
-    alt_keys: &["LICENSE"],
 };
 const VAR_REPO_WEB_URL: Variable = Variable {
     key: KEY_REPO_WEB_URL,
     description: "The Repo web UI URL.",
     default_required: true,
-    alt_keys: &[
-        "REPO_WEB_URL",
-        "REPO",
-        "CI_PROJECT_URL",
-        "BITBUCKET_GIT_HTTP_ORIGIN",
-    ],
 };
 const VAR_REPO_VERSIONED_WEB_URL: Variable = Variable {
     key: KEY_REPO_VERSIONED_WEB_URL,
     description: "The Repo web UI URL, pointing to the specific version of this build.",
     default_required: false,
-    alt_keys: &["VERSIONED_WEB_URL", "COMMIT_URL"],
 };
 const VAR_REPO_CLONE_URL: Variable = Variable {
     key: KEY_REPO_CLONE_URL,
     description: "The Repo clone URL.",
     default_required: true,
-    alt_keys: &[
-        "REPO_CLONE_URL",
-        "CLONE_URL",
-        "CI_REPOSITORY_URL",
-        "BITBUCKET_GIT_SSH_ORIGIN",
-    ],
 };
 const VAR_REPO_ISSUES_URL: Variable = Variable {
     key: KEY_REPO_ISSUES_URL,
     description: "The Repo issues URL.",
     default_required: true,
-    alt_keys: &[], // TODO ... or maybe not, as we do not use this at all anymore
 };
 const VAR_NAME: Variable = Variable {
     key: KEY_NAME,
     description: "The name of the project.",
     default_required: true,
-    alt_keys: &[
-        "NAME",
-        "CI_PROJECT_NAME",
-        "APP_NAME",
-        "BITBUCKET_PROJECT_KEY",
-    ],
 };
 const VAR_VERSION_DATE: Variable = Variable {
     key: KEY_VERSION_DATE,
     description: "Date this version was committed to source control. ['%Y-%m-%d']",
     default_required: true,
-    alt_keys: &[
-        "VERSION_DATE",
-        "DATE",
-        "COMMIT_DATE",
-        "PROJECT_COMMIT_DATE",
-        "CI_COMMIT_TIMESTAMP",
-    ],
 };
 const VAR_BUILD_DATE: Variable = Variable {
     key: KEY_BUILD_DATE,
     description: "Date of this build. ['%Y-%m-%d']",
     default_required: false,
-    alt_keys: &[],
 };
 const VAR_BUILD_BRANCH: Variable = Variable {
     key: KEY_BUILD_BRANCH,
     description: "The development branch name.",
     default_required: false,
-    alt_keys: &[
-        "BRANCH",
-        "GITHUB_REF",
-        "CI_COMMIT_BRANCH",
-        "BRANCH_NAME",
-        "BITBUCKET_BRANCH",
-        "TRAVIS_BRANCH",
-    ],
 };
 const VAR_BUILD_TAG: Variable = Variable {
     key: KEY_BUILD_TAG,
     description: "The tag of a commit that kicked off the build. This value is only available on tags. Not available for builds against branches.",
     default_required: false,
-    alt_keys: &[
-        "TAG",
-        "GITHUB_REF",
-        "CI_COMMIT_TAG",
-        "BITBUCKET_TAG",
-        "TRAVIS_TAG",
-    ],
 };
 const VAR_BUILD_OS: Variable = Variable {
     key: KEY_BUILD_OS,
     description:
         "Operating system we are building on. (common values: 'linux', 'macos', 'windows')",
     default_required: false,
-    alt_keys: &[
-        "OS",
-        "RUNNER_OS",
-        "CI_RUNNER_EXECUTABLE_ARCH",
-        "TRAVIS_OS_NAME",
-    ],
 };
 const VAR_BUILD_OS_FAMILY: Variable = Variable {
     key: KEY_BUILD_OS_FAMILY,
     description:
         "Operating system family we are building on. (should be either 'unix' or 'windows')",
     default_required: false,
-    alt_keys: &["OS_FAMILY", "FAMILY"],
 };
 const VAR_BUILD_ARCH: Variable = Variable {
     key: KEY_BUILD_ARCH,
     description:
         "Computer hardware architecture we are building on. (common values: 'x86', 'x86_64')",
     default_required: false,
-    alt_keys: &["ARCH"],
 };
 const VAR_BUILD_HOSTING_URL: Variable = Variable {
     key: KEY_BUILD_HOSTING_URL,
     description: "Web URL under which the generated output will be available.",
     default_required: false,
-    alt_keys: &["HOSTING_URL", "CI_PAGES_URL"],
 };
 const VAR_BUILD_NUMBER: Variable = Variable {
     key: KEY_BUILD_NUMBER,
     description: "The build number (1, 2, 3) starts at 1 for each repo and branch.",
     default_required: false,
-    alt_keys: &[
-        "NUMBER",
-        "ID",
-        "BUILD_ID",
-        "BITBUCKET_BUILD_NUMBER",
-        "TRAVIS_BUILD_NUMBER",
-    ],
 };
 const VAR_CI: Variable = Variable {
     key: KEY_CI,
     description: "'true' if running on a CI/build-bot.",
     default_required: false,
-    alt_keys: &[],
 };
 
 fn create(key: &Key) -> &'static Variable {

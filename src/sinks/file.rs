@@ -38,19 +38,9 @@ impl super::VarSink for VarSink {
         let file = File::create(self.file.as_path())?;
         let mut file = LineWriter::new(file);
         for (_key, var, value) in values {
-            if environment.settings.to_set.main() {
-                let key = var.key;
-                if environment.settings.overwrite.main() || previous_vars.contains_key(key) {
-                    file.write_fmt(format_args!("{}={}\n", key, value))?;
-                }
-            }
-            if environment.settings.to_set.alt() {
-                for alt_key in var.alt_keys {
-                    if environment.settings.overwrite.alt() || previous_vars.contains_key(*alt_key)
-                    {
-                        file.write_fmt(format_args!("{}={}\n", alt_key, value))?;
-                    }
-                }
+            let key = var.key;
+            if environment.settings.overwrite.main() || previous_vars.contains_key(key) {
+                file.write_fmt(format_args!("{}={}\n", key, value))?;
             }
         }
         Ok(())

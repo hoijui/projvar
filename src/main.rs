@@ -253,16 +253,6 @@ fn arg_require_not() -> Arg<'static> {
         .conflicts_with(A_L_REQUIRE)
 }
 
-// fn arg_set_all() -> Arg<'static> {
-//     Arg::new("set-all")
-//         .about("Set all associated keys of all variables (e.g. GITHUB_REF, CI_COMMIT_BRANCH, ...), not just the primary one for each (e.g. BUILD_BRANCH).")
-//         .takes_value(false)
-//         .short('a')
-//         .long("set-all")
-//         .multiple_occurrences(false)
-//         .required(false)
-// }
-
 fn arg_dry() -> Arg<'static> {
     Arg::new(A_L_DRY)
         .about("Do not write any files or set any environment variables")
@@ -330,8 +320,7 @@ fn arg_date_format() -> Arg<'static> {
 }
 
 lazy_static! {
-    static ref ARGS: [Arg<'static>; 18] =
-    [
+    static ref ARGS: [Arg<'static>; 18] = [
         arg_project_root(),
         arg_variable(),
         arg_variables_file(),
@@ -345,7 +334,6 @@ lazy_static! {
         arg_require_all(),
         arg_require(),
         arg_require_not(),
-        // .arg(arg_set_all(),
         arg_dry(),
         arg_overwrite(),
         arg_list(),
@@ -496,11 +484,9 @@ fn main() -> BoxResult<()> {
     // logger::init2(log_file)?;
 
     if args.is_present(A_L_LIST) {
-        var::list_keys(verbosity.1 >= Verbosity::Info);
+        var::list_keys();
         return Ok(());
     }
-
-    // let set_all: bool = args.is_present("set-all");
 
     let repo_path = repo_path(&args);
     let date_format = date_format(&args);
@@ -519,7 +505,6 @@ fn main() -> BoxResult<()> {
         repo_path: Some(repo_path),
         required_keys,
         date_format: date_format.to_owned(),
-        to_set: settings::VarsToSet::Primary,
         overwrite,
         fail_on: settings::FailOn::from(fail_on_missing),
         verbosity,
