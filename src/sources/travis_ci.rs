@@ -24,7 +24,7 @@ impl super::VarSource for VarSource {
             Key::BuildBranch => var(environment, "TRAVIS_BRANCH"),
             Key::BuildTag => var(environment, "TRAVIS_TAG"),
             Key::BuildOs => var(environment, "TRAVIS_OS_NAME"),
-            Key::BuildIdent => var(environment, "TRAVIS_COMMIT"),
+            Key::Version => var(environment, "TRAVIS_COMMIT"),
             Key::BuildNumber => var(environment, "TRAVIS_BUILD_NUMBER"),
             Key::Name => super::proj_name_from_slug(environment.vars.get("TRAVIS_REPO_SLUG"))?, // usually: TRAVIS_REPO_SLUG="user/project"
             Key::RepoIssuesUrl
@@ -33,7 +33,6 @@ impl super::VarSource for VarSource {
             | Key::RepoCloneUrl
             | Key::BuildHostingUrl
             | Key::VersionDate
-            | Key::Version
             | Key::BuildDate
             | Key::BuildOsFamily
             | Key::BuildArch

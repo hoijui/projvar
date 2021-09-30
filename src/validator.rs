@@ -438,17 +438,6 @@ fn validate_build_tag(_environment: &mut Environment, value: &str) -> Result {
     }
 }
 
-fn validate_build_ident(_environment: &mut Environment, value: &str) -> Result {
-    if value.is_empty() {
-        Err(Error::BadValue {
-            msg: "Build identifier can not be empty".to_owned(),
-            value: value.to_owned(),
-        })
-    } else {
-        Ok(None)
-    }
-}
-
 fn validate_build_os(_environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
         Err(Error::BadValue {
@@ -558,7 +547,6 @@ pub fn get(key: &Key) -> Validator {
         Key::BuildDate => validate_build_date,
         Key::BuildBranch => validate_build_branch,
         Key::BuildTag => validate_build_tag,
-        Key::BuildIdent => validate_build_ident,
         Key::BuildOs => validate_build_os,
         Key::BuildOsFamily => validate_build_os_family,
         Key::BuildArch => validate_build_arch,

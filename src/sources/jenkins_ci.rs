@@ -23,8 +23,7 @@ impl super::VarSource for VarSource {
             Key::Name => var(environment, "APP_NAME"),
             Key::RepoVersionedWebUrl => super::try_construct_versioned(self, environment)?,
             Key::BuildBranch => var(environment, "BRANCH_NAME"),
-            Key::BuildIdent => var(environment, "PULL_BASE_SHA"),
-            Key::Version => var(environment, "VERSION"),
+            Key::Version => var(environment, "VERSION"), // Alternatively (but makes no sense to use): var(environment, "PULL_BASE_SHA")
             Key::BuildNumber => var(environment, "BUILD_NUMBER"),
             Key::RepoIssuesUrl
             | Key::RepoWebUrl

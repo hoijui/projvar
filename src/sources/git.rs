@@ -20,7 +20,6 @@ fn version(environment: &mut Environment) -> BoxResult<Option<String>> {
         Some(repo) => {
             let sc_version = repo.version().or_else(|err| {
                 log::warn!("Failed to git describe (\"{}\"), using SHA instead", err);
-                // repo.sha().map_or_else(|| "No SHA available to serve as version")
                 repo.sha()
                     .and_then(|v| v.ok_or_else(|| "No SHA available to serve as version".into()))
             })?;
@@ -146,7 +145,7 @@ impl super::VarSource for VarSource {
             Key::RepoVersionedWebUrl => {
                 let base_repo_web_url = self.retrieve(environment, Key::RepoWebUrl)?;
                 let version = self.retrieve(environment, Key::Version)?;
-                let commit_sha = self.retrieve(environment, Key::BuildIdent)?;
+                let commit_sha = sha(environment)?;
 
                 if let (Some(base_repo_web_url), Some(version_or_sha)) =
                     (base_repo_web_url, version.or(commit_sha))
@@ -170,7 +169,6 @@ impl super::VarSource for VarSource {
             Key::RepoIssuesUrl => issues_url(environment)?,
             Key::VersionDate => version_date(environment)?,
             Key::BuildHostingUrl => build_hosting_url(environment)?,
-            Key::BuildIdent => sha(environment)?,
             Key::BuildDate
             | Key::Ci
             | Key::BuildOs

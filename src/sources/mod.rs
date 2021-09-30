@@ -82,13 +82,10 @@ pub fn try_construct_versioned<S: VarSource>(
 ) -> BoxResult<Option<String>> {
     let base_repo_web_url = var_source.retrieve(environment, Key::RepoWebUrl)?;
     let version = var_source.retrieve(environment, Key::Version)?;
-    let commit_sha = var_source.retrieve(environment, Key::BuildIdent)?;
 
     Ok(
-        if let (Some(base_repo_web_url), Some(version_or_sha)) =
-            (base_repo_web_url, version.or(commit_sha))
-        {
-            Some(format!("{}/tree/{}", base_repo_web_url, version_or_sha))
+        if let (Some(base_repo_web_url), Some(version)) = (base_repo_web_url, version) {
+            Some(format!("{}/tree/{}", base_repo_web_url, version))
         } else {
             None
         },

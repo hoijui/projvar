@@ -103,9 +103,8 @@ impl super::VarSource for VarSource {
             }
             Key::RepoIssuesUrl => super::try_construct_issues_url(self, environment)?,
             Key::BuildOs => var(environment, "RUNNER_OS"), // TODO Not sure if this makes sense ... have to check in practise!
-            Key::BuildIdent => var(environment, "GITHUB_SHA"),
-            Key::Version
-            | Key::BuildDate
+            Key::Version => var(environment, "GITHUB_SHA"),
+            Key::BuildDate
             | Key::VersionDate
             | Key::BuildOsFamily
             | Key::BuildArch

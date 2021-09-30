@@ -40,13 +40,12 @@ impl super::VarSource for VarSource {
                 var(environment, "BITBUCKET_GIT_HTTP_ORIGIN")
                     .or_else(|| var(environment, "BITBUCKET_GIT_SSH_ORIGIN"))
             }
-            Key::BuildIdent => var(environment, "BITBUCKET_COMMIT"),
+            Key::Version => var(environment, "BITBUCKET_COMMIT"),
             Key::BuildNumber => var(environment, "BITBUCKET_BUILD_NUMBER"),
             Key::RepoIssuesUrl => super::try_construct_issues_url(self, environment)?,
             Key::BuildHostingUrl
             | Key::BuildOs
             | Key::VersionDate
-            | Key::Version
             | Key::BuildDate
             | Key::BuildOsFamily
             | Key::BuildArch

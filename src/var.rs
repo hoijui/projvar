@@ -66,7 +66,7 @@ pub enum Key {
     BuildDate,
     BuildBranch,
     BuildTag,
-    BuildIdent, // TODO This name is very bad, as it makes one think of BUILD_NUMBER; choose a different one!
+    // BuildIdent, // TODO This name is very bad, as it makes one think of BUILD_NUMBER; choose a different one! Maybe refunction it as well(?) -> `HumanVersion` (vs a machine-readable one like from git describe, which goes to `Version`), for example "Ubuntu 10.04 - UbsiDubsi"
     BuildOs,
     BuildOsFamily,
     BuildArch,
@@ -245,7 +245,6 @@ pub const KEY_VERSION_DATE: &str = "PROJECT_VERSION_DATE";
 pub const KEY_BUILD_DATE: &str = "BUILD_DATE";
 pub const KEY_BUILD_BRANCH: &str = "BUILD_BRANCH";
 pub const KEY_BUILD_TAG: &str = "BUILD_TAG";
-pub const KEY_BUILD_IDENT: &str = "BUILD_IDENT"; // TODO This name is very bad, as it makes one think of BUILD_NUMBER; choose a different one!
 pub const KEY_BUILD_OS: &str = "BUILD_OS";
 pub const KEY_BUILD_OS_FAMILY: &str = "BUILD_OS_FAMILY";
 pub const KEY_BUILD_ARCH: &str = "BUILD_ARCH";
@@ -380,19 +379,6 @@ const VAR_BUILD_TAG: Variable = Variable {
         "TRAVIS_TAG",
     ],
 };
-const VAR_BUILD_IDENT: Variable = Variable {
-    key: KEY_BUILD_IDENT,
-    description:
-        "Unique identifier of the state of the project that is being built (e.g. git commit SHA).",
-    default_required: true,
-    alt_keys: &[
-        "GITHUB_SHA",
-        "CI_COMMIT_SHA",
-        "PULL_BASE_SHA",
-        "BITBUCKET_COMMIT",
-        "TRAVIS_COMMIT",
-    ],
-};
 const VAR_BUILD_OS: Variable = Variable {
     key: KEY_BUILD_OS,
     description:
@@ -457,7 +443,6 @@ fn create(key: &Key) -> &'static Variable {
         Key::BuildDate => &VAR_BUILD_DATE,
         Key::BuildBranch => &VAR_BUILD_BRANCH,
         Key::BuildTag => &VAR_BUILD_TAG,
-        Key::BuildIdent => &VAR_BUILD_IDENT,
         Key::BuildOs => &VAR_BUILD_OS,
         Key::BuildOsFamily => &VAR_BUILD_OS_FAMILY,
         Key::BuildArch => &VAR_BUILD_ARCH,

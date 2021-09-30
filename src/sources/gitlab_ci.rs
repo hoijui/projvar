@@ -30,11 +30,10 @@ impl super::VarSource for VarSource {
             Key::RepoCloneUrl => var(environment, "CI_REPOSITORY_URL"),
             Key::BuildHostingUrl => var(environment, "CI_PAGES_URL"),
             Key::BuildOs => var(environment, "CI_RUNNER_EXECUTABLE_ARCH"), // TODO Not sure if this makes sense ... have to check in practise!
-            Key::BuildIdent => var(environment, "CI_COMMIT_SHORT_SHA"),
             Key::VersionDate => var(environment, "CI_COMMIT_TIMESTAMP"), // TODO This probably has to be converted/formatted
             Key::Version => self
                 .retrieve(environment, Key::BuildTag)?
-                .or(self.retrieve(environment, Key::BuildIdent)?),
+                .or_else(|| var(environment, "CI_COMMIT_SHORT_SHA")),
             Key::BuildDate
             | Key::BuildOsFamily
             | Key::BuildArch

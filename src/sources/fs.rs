@@ -121,7 +121,7 @@ impl super::VarSource for VarSource {
 
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
         Ok(match key {
-            Key::Version | Key::BuildIdent => version(environment)?,
+            Key::Version => version(environment)?,
             Key::Name => name(environment)?,
             Key::BuildDate => Some(build_date(environment)),
             Key::BuildOs => Some(build_os(environment)),
