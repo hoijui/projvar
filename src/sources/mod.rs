@@ -11,8 +11,8 @@ pub mod jenkins_ci;
 pub mod travis_ci;
 
 use std::error::Error;
-use std::fmt;
 
+use clap::lazy_static::lazy_static;
 use url::{Host, Url};
 
 use crate::environment::Environment;
@@ -20,11 +20,42 @@ use crate::var::Key;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 
-pub trait VarSource: fmt::Display {
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+pub enum Hierarchy {
+    Low,
+    Middle,
+    High,
+}
+
+lazy_static! {
+    static ref NO_PROPS: Vec::<String> = Vec::<String>::new();
+}
+
+pub trait VarSource {
     /// Indicates whether this source of variables is usable.
     /// It might not be usable if the underlying data-source (e.g. a file) does not exist,
     /// or is not reachable (e.g. a web URL).
     fn is_usable(&self, environment: &mut Environment) -> bool;
+
+    /// Used to evaluate whether we preffer this sources values
+    /// over the ones of an other.
+    /// This is used for sorting.
+    fn hierarchy(&self) -> Hierarchy;
+
+    /// The name of this type.
+    /// This is used for display and sorting.
+    fn type_name(&self) -> &'static str;
+
+    /// The properties (usually parameters to `Self::new`)
+    /// of the particular instance of an object of this trait.
+    /// This is used for display and sorting.
+    fn properties(&self) -> &Vec<String>;
+
+    /// As I failed to implement `fmt::Display` for all implementing structs
+    /// in one impl, I took this road, which works for our case.
+    fn display(&self) -> String {
+        format!("{}{:?}", self.type_name(), self.properties())
+    }
 
     /// Tries to retrieve the value of a single `key`.
     ///

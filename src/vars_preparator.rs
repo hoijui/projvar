@@ -8,6 +8,7 @@ use crate::sinks::VarSink;
 use crate::sources::VarSource;
 use crate::validator;
 use crate::var::{self, Key, Variable};
+use std::cmp::Ordering;
 use std::error::Error;
 use strum::IntoEnumIterator;
 
@@ -27,12 +28,28 @@ type BoxResult<T> = Result<T, Box<dyn Error>>;
 /// Writing to the environment fails.
 pub fn prepare_project_vars(
     environment: &mut Environment,
-    sources: Vec<Box<dyn VarSource>>,
+    mut sources: Vec<Box<dyn VarSource>>,
     sinks: Vec<Box<dyn VarSink>>,
 ) -> BoxResult<()> {
+    // sources.sort_unstable_by_key(|s| (s.hierarchy(), s.type_name(), s.properties().clone()));
+    sources.sort_unstable_by(|s1, s2| {
+        let o_hierarchy = s1.hierarchy().cmp(&s2.hierarchy());
+        if let Ordering::Equal = o_hierarchy {
+            let o_type = s1.type_name().cmp(s2.type_name());
+            if let Ordering::Equal = o_type {
+                let o_props = s1.properties().cmp(s2.properties());
+                o_props
+            } else {
+                o_type
+            }
+        } else {
+            o_hierarchy
+        }
+    });
+
     for source in sources {
         if source.is_usable(environment) {
-            log::trace!("Trying to fetch from source {} ...", source);
+            log::trace!("Trying to fetch from source {} ...", source.display());
             for key in Key::iter() {
                 let value = source.retrieve(environment, key.clone())?;
                 if let Some(value) = value {

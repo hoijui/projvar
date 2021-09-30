@@ -5,9 +5,9 @@
 use crate::environment::Environment;
 use crate::var::Key;
 use std::error::Error;
-use std::fmt;
 
 use super::var;
+use super::Hierarchy;
 
 pub struct VarSource;
 
@@ -16,6 +16,18 @@ type BoxResult<T> = Result<T, Box<dyn Error>>;
 impl super::VarSource for VarSource {
     fn is_usable(&self, _environment: &mut Environment) -> bool {
         true
+    }
+
+    fn hierarchy(&self) -> Hierarchy {
+        Hierarchy::High
+    }
+
+    fn type_name(&self) -> &'static str {
+        std::any::type_name::<VarSource>()
+    }
+
+    fn properties(&self) -> &Vec<String> {
+        &super::NO_PROPS
     }
 
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
@@ -38,11 +50,5 @@ impl super::VarSource for VarSource {
             | Key::BuildArch
             | Key::License => None,
         })
-    }
-}
-
-impl fmt::Display for VarSource {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", std::any::type_name::<Self>())
     }
 }

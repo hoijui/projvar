@@ -9,8 +9,8 @@ use crate::environment::Environment;
 use crate::tools::git;
 use crate::var::Key;
 use std::error::Error;
-use std::fmt;
 
+use super::Hierarchy;
 pub struct VarSource;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
@@ -137,6 +137,18 @@ impl super::VarSource for VarSource {
         environment.repo().is_some()
     }
 
+    fn hierarchy(&self) -> Hierarchy {
+        Hierarchy::Middle
+    }
+
+    fn type_name(&self) -> &'static str {
+        std::any::type_name::<VarSource>()
+    }
+
+    fn properties(&self) -> &Vec<String> {
+        &super::NO_PROPS
+    }
+
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
         Ok(match key {
             Key::Version => version(environment)?,
@@ -177,11 +189,5 @@ impl super::VarSource for VarSource {
             | Key::License
             | Key::BuildNumber => None,
         })
-    }
-}
-
-impl fmt::Display for VarSource {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", std::any::type_name::<VarSource>())
     }
 }
