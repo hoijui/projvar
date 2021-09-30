@@ -13,6 +13,8 @@ pub mod travis_ci;
 use std::error::Error;
 use std::fmt;
 
+use url::{Host, Url};
+
 use crate::environment::Environment;
 use crate::var::Key;
 
@@ -113,5 +115,41 @@ pub fn try_construct_issues_url<S: VarSource>(
 ) -> BoxResult<Option<String>> {
     let base_repo_web_url = var_source.retrieve(environment, Key::RepoWebUrl)?;
     Ok(base_repo_web_url.map(|base_repo_web_url| format!("{}/issues", base_repo_web_url)))
+}
 
+/// Tries to construct the raw prefix URL
+/// from the repo web URL property of a variable source.
+///
+/// # Errors
+///
+/// If an attempt to try fetching any required property returned an error.
+//
+// Real world raw prefix URLs:
+// * https://raw.githubusercontent.com/hoijui/nim-ci/master/.github/workflows/docker.yml
+// * https://gitlab.com/OSEGermany/osh-tool/-/raw/master/data/source_extension_formats.csv
+// * https://gitlab.com/OSEGermany/osh-tool/raw/master/data/source_extension_formats.csv
+// * https://bitbucket.org/Aouatef/master_arbeit/raw/ae4a42a850b359a23da2483eb8f867f21c5382d4/procExData/import.sh
+pub fn try_construct_raw_prefix_url<S: VarSource>(
+    var_source: &S,
+    environment: &mut Environment,
+) -> BoxResult<Option<String>> {
+    Ok(
+        if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
+            let mut url = Url::parse(&base_repo_web_url)?;
+            if url.host() == Some(Host::Domain("github.com")) {
+                url.set_host(Some("raw.githubusercontent.com"))?;
+                Some(url.to_string())
+            } else if url.host() == Some(Host::Domain("gitlab.com")) {
+                url.set_path(&format!("{}/-/raw", url.path()));
+                Some(url.to_string())
+            } else if url.host() == Some(Host::Domain("bitbucket.org")) {
+                url.set_path(&format!("{}/raw", url.path()));
+                Some(url.to_string())
+            } else {
+                None
+            }
+        } else {
+            None
+        },
+    )
 }
