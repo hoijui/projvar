@@ -67,7 +67,15 @@ pub enum Error {
     IO(#[from] std::io::Error),
 }
 
-fn validate_version(_environment: &mut Environment, value: &str) -> Result {
+fn missing(environment: &mut Environment, key: Key) -> Result {
+    if environment.settings.required_keys.contains(&key) {
+        Err(Error::Missing)
+    } else {
+        Ok(Some(Warning::Missing))
+    }
+}
+
+fn validate_version(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         // The official SemVer regex as of September 2021, taken from
         // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
@@ -94,8 +102,7 @@ fn validate_version(_environment: &mut Environment, value: &str) -> Result {
             value: value.to_owned(),
         }))
     } else if R_UNKNOWN_VERS.is_match(value) {
-        // Ok(Some(Error::Missing))
-        Err(Error::Missing)
+        missing(environment, Key::Version)
     } else {
         Err(Error::BadValue {
             msg: "Not a valid version".to_owned(),
@@ -110,9 +117,9 @@ lazy_static! {
     // TODO see: https://github.com/spdx/license-list-XML/issues/1335
 }
 
-fn validate_license(_environment: &mut Environment, value: &str) -> Result {
+fn validate_license(environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
-        Err(Error::Missing)
+        missing(environment, Key::License)
     } else if SPDX_IDENTS.contains(&value) {
         Ok(None)
     } else {
