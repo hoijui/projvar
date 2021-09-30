@@ -51,7 +51,7 @@ pub fn prepare_project_vars(
         if source.is_usable(environment) {
             log::trace!("Trying to fetch from source {} ...", source.display());
             for key in Key::iter() {
-                let value = source.retrieve(environment, key.clone())?;
+                let value = source.retrieve(environment, key)?;
                 if let Some(value) = value {
                     log::trace!("\tFetched {:?}='{}'", key, value);
                     environment.output.insert(key, value);
@@ -62,9 +62,9 @@ pub fn prepare_project_vars(
 
     log::trace!("Validate each variables precense and value ...");
     let output = environment.output.clone();
-    for ref key in Key::iter() {
-        let required = environment.settings.required_keys.contains(key);
-        match output.get(key) {
+    for key in Key::iter() {
+        let required = environment.settings.required_keys.contains(&key);
+        match output.get(&key) {
             Some(value) => {
                 log::trace!("Validating value for key '{:?}': '{}'", key, value);
                 validator::get(key)(environment, value)?;
@@ -89,8 +89,8 @@ pub fn prepare_project_vars(
             .output
             .iter()
             .map(|key_value| {
-                let key = key_value.0.clone();
-                let variable = var::get(key_value.0.clone());
+                let key = *key_value.0;
+                let variable = var::get(*key_value.0);
                 let value = key_value.1.clone();
                 log::trace!("\t{:?}:{}='{}'", key, variable.key, &value);
                 (key, variable, value)

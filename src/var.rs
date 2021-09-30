@@ -52,7 +52,7 @@ impl<'a> Default for &'a Variable {
 
 // #[derive(Debug, EnumString, EnumIter, IntoStaticStr, PartialEq, Eq, Hash, Copy, Clone, Enum)]
 // #[derive(Debug, EnumString, EnumIter, IntoStaticStr, Hash, Enum, EnumSetType)]
-#[derive(Debug, EnumString, EnumIter, IntoStaticStr, Hash, Enum, PartialEq, Eq, Clone)]
+#[derive(Debug, EnumString, EnumIter, IntoStaticStr, Hash, Enum, PartialEq, Eq, Clone, Copy)]
 pub enum Key {
     Version,
     License,
@@ -346,7 +346,7 @@ const VAR_CI: Variable = Variable {
     default_required: false,
 };
 
-fn create(key: &Key) -> &'static Variable {
+fn create(key: Key) -> &'static Variable {
     match key {
         Key::Version => &VAR_VERSION,
         Key::License => &VAR_LICENSE,
@@ -371,7 +371,7 @@ fn create(key: &Key) -> &'static Variable {
 fn create_vars() -> EnumMap<Key, &'static Variable> {
     Key::iter()
         .map(|key| {
-            let var = create(&key);
+            let var = create(key);
             (key, var)
         })
         .into_iter()

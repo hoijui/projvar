@@ -168,9 +168,11 @@ pub struct Settings /*<S: ::std::hash::BuildHasher>*/ {
 
 impl Settings {
     fn stub() -> Settings {
+        let mut all_keys = HashSet::<Key>::new();
+        all_keys.extend(Key::iter());
         Settings {
             repo_path: None,
-            required_keys: HashSet::new(),
+            required_keys: all_keys,
             overwrite: Overwrite::All,
             date_format: crate::tools::git::DATE_FORMAT.to_string(),
             fail_on: FailOn::AnyMissingValue,

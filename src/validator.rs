@@ -533,7 +533,7 @@ fn validate_ci(_environment: &mut Environment, value: &str) -> Result {
 }
 
 #[must_use]
-pub fn get(key: &Key) -> Validator {
+pub fn get(key: Key) -> Validator {
     // TODO This match could be written by a macro
     match key {
         Key::Version => validate_version,
