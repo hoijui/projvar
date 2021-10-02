@@ -355,6 +355,32 @@ fn validate_repo_clone_url(environment: &mut Environment, value: &str) -> Result
     )
 }
 
+/// See also `sources::try_construct_raw_prefix_url`.
+// * https://raw.githubusercontent.com/hoijui/nim-ci/master/.github/workflows/docker.yml
+// * https://gitlab.com/OSEGermany/osh-tool/-/raw/master/data/source_extension_formats.csv
+// * https://gitlab.com/OSEGermany/osh-tool/raw/master/data/source_extension_formats.csv
+// * https://bitbucket.org/Aouatef/master_arbeit/raw/ae4a42a850b359a23da2483eb8f867f21c5382d4/procExData/import.sh
+fn validate_repo_raw_versioned_prefix_url(environment: &mut Environment, value: &str) -> Result {
+    lazy_static! {
+        static ref R_GIT_HUB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/(?P<ref>[^/]+)/(?P<file_path>.+)$").unwrap();
+        static ref R_GIT_LAB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?raw/(?P<ref>[^/]+)/(?P<file_path>.+)$").unwrap();
+        static ref R_BIT_BUCKET_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/raw/(?P<ref>[^/]+)/(?P<file_path>.+)$").unwrap();
+    }
+
+    let url = check_public_url(environment, value, false)?;
+    check_url_path(
+        environment,
+        value,
+        "raw versioned prefix",
+        &url,
+        vec![
+            (&D_GIT_HUB_COM_RAW, &R_GIT_HUB_PATH),
+            (&D_GIT_LAB_COM, &R_GIT_LAB_PATH),
+            (&D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+        ],
+    )
+}
+
 fn validate_repo_issues_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         static ref R_GIT_HUB_PATH: Regex =
@@ -518,6 +544,7 @@ pub fn get(key: Key) -> Validator {
         Key::RepoWebUrl => validate_repo_web_url,
         Key::RepoVersionedWebUrl => validate_repo_versioned_web_url,
         Key::RepoCloneUrl => validate_repo_clone_url,
+        Key::RepoRawVersionedPrefixUrl => validate_repo_raw_versioned_prefix_url,
         Key::RepoIssuesUrl => validate_repo_issues_url,
         Key::Name => validate_name,
         Key::VersionDate => validate_version_date,

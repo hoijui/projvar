@@ -105,6 +105,9 @@ impl super::VarSource for VarSource {
                     None
                 }
             }
+            Key::RepoRawVersionedPrefixUrl => {
+                super::try_construct_raw_prefix_url(self, environment)?
+            }
             Key::BuildHostingUrl => {
                 let repo_web_url = self.retrieve(environment, Key::RepoWebUrl)?;
                 if let Some(repo_web_url) = repo_web_url {

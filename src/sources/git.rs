@@ -178,6 +178,9 @@ impl super::VarSource for VarSource {
             Key::BuildBranch => branch(environment)?,
             Key::BuildTag => tag(environment)?,
             Key::RepoCloneUrl => clone_url(environment)?,
+            Key::RepoRawVersionedPrefixUrl => {
+                super::try_construct_raw_prefix_url(self, environment)?
+            }
             Key::RepoIssuesUrl => issues_url(environment)?,
             Key::VersionDate => version_date(environment)?,
             Key::BuildHostingUrl => build_hosting_url(environment)?,

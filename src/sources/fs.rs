@@ -146,6 +146,7 @@ impl super::VarSource for VarSource {
             | Key::BuildBranch
             | Key::BuildTag
             | Key::RepoCloneUrl
+            | Key::RepoRawVersionedPrefixUrl
             | Key::VersionDate
             | Key::BuildHostingUrl
             | Key::Ci

@@ -59,6 +59,7 @@ pub enum Key {
     RepoWebUrl,
     RepoVersionedWebUrl,
     RepoCloneUrl,
+    RepoRawVersionedPrefixUrl,
     RepoIssuesUrl,
     Name,
     VersionDate,
@@ -217,6 +218,7 @@ pub const KEY_LICENSE: &str = "PROJECT_LICENSE";
 pub const KEY_REPO_WEB_URL: &str = "PROJECT_REPO_WEB_URL";
 pub const KEY_REPO_VERSIONED_WEB_URL: &str = "BUILD_REPO_VERSIONED_WEB_URL";
 pub const KEY_REPO_CLONE_URL: &str = "PROJECT_REPO_CLONE_URL";
+pub const KEY_REPO_RAW_VERSIONED_PREFIX_URL: &str = "PROJECT_REPO_RAW_VERSIONED_PREFIX_URL";
 pub const KEY_REPO_ISSUES_URL: &str = "PROJECT_REPO_ISSUES_URL";
 pub const KEY_NAME: &str = "PROJECT_NAME";
 pub const KEY_VERSION_DATE: &str = "PROJECT_VERSION_DATE";
@@ -280,6 +282,11 @@ const VAR_REPO_VERSIONED_WEB_URL: Variable = Variable {
 const VAR_REPO_CLONE_URL: Variable = Variable {
     key: KEY_REPO_CLONE_URL,
     description: "The repo clone URL.",
+    default_required: true,
+};
+const VAR_REPO_RAW_VERSIONED_PREFIX_URL: Variable = Variable {
+    key: KEY_REPO_RAW_VERSIONED_PREFIX_URL,
+    description: "The repo raw, to-be-versioned prefix URL. The part in []: [https://raw.githubusercontent.com/hoijui/nim-ci]/master/.github/workflows/docker.yml]",
     default_required: true,
 };
 const VAR_REPO_ISSUES_URL: Variable = Variable {
@@ -353,6 +360,7 @@ fn create(key: Key) -> &'static Variable {
         Key::RepoWebUrl => &VAR_REPO_WEB_URL,
         Key::RepoVersionedWebUrl => &VAR_REPO_VERSIONED_WEB_URL,
         Key::RepoCloneUrl => &VAR_REPO_CLONE_URL,
+        Key::RepoRawVersionedPrefixUrl => &VAR_REPO_RAW_VERSIONED_PREFIX_URL,
         Key::RepoIssuesUrl => &VAR_REPO_ISSUES_URL,
         Key::Name => &VAR_NAME,
         Key::VersionDate => &VAR_VERSION_DATE,

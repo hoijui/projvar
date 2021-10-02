@@ -40,6 +40,9 @@ impl super::VarSource for VarSource {
             Key::BuildBranch => var(environment, "CI_COMMIT_BRANCH"),
             Key::BuildTag => var(environment, "CI_COMMIT_TAG"),
             Key::RepoCloneUrl => var(environment, "CI_REPOSITORY_URL"),
+            Key::RepoRawVersionedPrefixUrl => {
+                super::try_construct_raw_prefix_url(self, environment)?
+            }
             Key::BuildHostingUrl => var(environment, "CI_PAGES_URL"),
             Key::BuildOs => var(environment, "CI_RUNNER_EXECUTABLE_ARCH"), // TODO Not sure if this makes sense ... have to check in practise!
             Key::VersionDate => var(environment, "CI_COMMIT_TIMESTAMP"), // TODO This probably has to be converted/formatted
