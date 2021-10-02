@@ -259,52 +259,52 @@ macro_rules! variable {
 
 const VAR_VERSION: Variable = Variable {
     key: KEY_VERSION,
-    description: "The project version.",
+    description: r#"The project version, for example: "1.10.3", "0.2.0-1-ga5387ac-dirty""#,
     default_required: true,
 };
 const VAR_LICENSE: Variable = Variable {
     key: KEY_LICENSE,
-    description: "Main License of the sources.",
+    description: r#"The main License identifier of the sources, prefferably from the SPDX specs, for example: "AGPL-3.0-or-later", "CC-BY-SA-4.0""#,
     default_required: true,
 };
 const VAR_REPO_WEB_URL: Variable = Variable {
     key: KEY_REPO_WEB_URL,
-    description: "The Repo web UI URL.",
+    description: "The repo web UI URL, for example: https://gitlab.com/OSEGermany/OHS-3105",
     default_required: true,
 };
 const VAR_REPO_VERSIONED_WEB_URL: Variable = Variable {
     key: KEY_REPO_VERSIONED_WEB_URL,
-    description: "The Repo web UI URL, pointing to the specific version of this build.",
+    description: "The repo web UI URL, pointing to the specific version of this build, for example: https://gitlab.com/OSEGermany/OHS-3105/-/tree/din-3105-0.10.0",
     default_required: false,
 };
 const VAR_REPO_CLONE_URL: Variable = Variable {
     key: KEY_REPO_CLONE_URL,
-    description: "The Repo clone URL.",
+    description: "The repo clone URL.",
     default_required: true,
 };
 const VAR_REPO_ISSUES_URL: Variable = Variable {
     key: KEY_REPO_ISSUES_URL,
-    description: "The Repo issues URL.",
+    description: "The repo issues URL, for example: https://gitlab.com/openflexure/openflexure-microscope/issues",
     default_required: true,
 };
 const VAR_NAME: Variable = Variable {
     key: KEY_NAME,
-    description: "The name of the project.",
+    description: "The name of the project.", // TODO Add more specific description: human- or machine readable? with or without spaces? ...
     default_required: true,
 };
 const VAR_VERSION_DATE: Variable = Variable {
     key: KEY_VERSION_DATE,
-    description: "Date this version was committed to source control. ['%Y-%m-%d']",
+    description: r#"Date this version was committed to source control, for example: "2021-12-31 23:59:59" (see --date-format)"#,
     default_required: true,
 };
 const VAR_BUILD_DATE: Variable = Variable {
     key: KEY_BUILD_DATE,
-    description: "Date of this build. ['%Y-%m-%d']",
+    description: r#"Date of this build, for example: "2021-12-31 23:59:59" (see --date-format)"#,
     default_required: false,
 };
 const VAR_BUILD_BRANCH: Variable = Variable {
     key: KEY_BUILD_BRANCH,
-    description: "The development branch name.",
+    description: r#"The development branch name, for example: "master", "develop""#,
     default_required: false,
 };
 const VAR_BUILD_TAG: Variable = Variable {
@@ -315,24 +315,24 @@ const VAR_BUILD_TAG: Variable = Variable {
 const VAR_BUILD_OS: Variable = Variable {
     key: KEY_BUILD_OS,
     description:
-        "Operating system we are building on. (common values: 'linux', 'macos', 'windows')",
+        "The operating system we are building on. (common values: 'linux', 'macos', 'windows')",
     default_required: false,
 };
 const VAR_BUILD_OS_FAMILY: Variable = Variable {
     key: KEY_BUILD_OS_FAMILY,
     description:
-        "Operating system family we are building on. (should be either 'unix' or 'windows')",
+        "The operating system family we are building on. (should be either 'unix' or 'windows')",
     default_required: false,
 };
 const VAR_BUILD_ARCH: Variable = Variable {
     key: KEY_BUILD_ARCH,
     description:
-        "Computer hardware architecture we are building on. (common values: 'x86', 'x86_64')",
+        "The computer hardware architecture we are building on. (common values: 'x86', 'x86_64')",
     default_required: false,
 };
 const VAR_BUILD_HOSTING_URL: Variable = Variable {
     key: KEY_BUILD_HOSTING_URL,
-    description: "Web URL under which the generated output will be available.",
+    description: "Web URL under which the generated output will be available, for example: https://osegermany.gitlab.io/OHS-3105",
     default_required: false,
 };
 const VAR_BUILD_NUMBER: Variable = Variable {
@@ -342,7 +342,7 @@ const VAR_BUILD_NUMBER: Variable = Variable {
 };
 const VAR_CI: Variable = Variable {
     key: KEY_CI,
-    description: "'true' if running on a CI/build-bot.",
+    description: "'true' if running on a CI/build-bot; unset otherwise.",
     default_required: false,
 };
 
