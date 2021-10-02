@@ -31,6 +31,11 @@ pub enum Warning {
     /// The evaluated value is usable, but not optimal.
     #[error("The value '{value}' is usable, but not optimal - {msg}")]
     SuboptimalValue { msg: String, value: String },
+
+    /// We have no way to check this value for validity,
+    /// but at least were not able to prove it invalid.
+    #[error("No method to check validity of value '{value}'")]
+    Unknown { value: String },
 }
 
 /// This enumerates all possible errors returned by this module.
@@ -183,40 +188,10 @@ fn check_public_url(
     }
 }
 
-fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
-    let url = check_public_url(environment, value, false)?;
-    if url.host() == Some(Host::Domain("github.com"))
-        && url
-            .path_segments()
-            .ok_or_else(|| Error::AlmostUsableValue {
-                msg: "Missing a path for GitHub.com".to_owned(),
-                value: value.to_owned(),
-            })?
-            .count()
-            != 2
-    {
-        Err(Error::AlmostUsableValue {
-            msg: format!(
-                r#"On GitHub.com, the path part of the web URL of a repo should be of the form "user/repo", but it is "{}""#,
-                url.path()
-            ),
-            value: value.to_owned(),
-        })
-    } else if url.host() == Some(Host::Domain("gitlab.com"))
-        && url
-            .path_segments()
-            .ok_or_else(|| Error::AlmostUsableValue {
-                msg: "Missing a path for GitLab.com".to_owned(),
-                value: value.to_owned(),
-            })?
-            .count()
-            < 2
-    {
-        Err(Error::AlmostUsableValue {
-            msg: format!(
-                r#"On GitLab.com, the path part of the web URL of a repo should be of the form "user/repo" or "user/.../repo", but it is "{}""#,
-                url.path()
-            ),
+fn check_empty(_environment: &mut Environment, value: &str, part_desc: &str) -> Result {
+    if value.is_empty() {
+        Err(Error::BadValue {
+            msg: format!("{} can not be empty", part_desc),
             value: value.to_owned(),
         })
     } else {
@@ -224,48 +199,141 @@ fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
     }
 }
 
+fn check_url_path(
+    _environment: &mut Environment,
+    value: &str,
+    url_desc: &str,
+    url: &Url,
+    host_reg: Vec<(&Host<&str>, &Regex)>,
+) -> Result {
+    for (host, regex) in host_reg {
+        if url.host().as_ref() == Some(host) {
+            return if regex.is_match(url.path()) {
+                Ok(None)
+            } else {
+                Err(Error::AlmostUsableValue {
+                    msg: format!(
+                        r#"For {}, this path part of the {} URL is invalid: "{}"; it should match "{}""#,
+                        host,
+                        url_desc,
+                        url.path(),
+                        regex.as_str()
+                    ),
+                    value: value.to_owned(),
+                })
+            };
+        }
+    }
+    Ok(Some(Warning::Unknown {
+        value: value.to_owned(),
+    }))
+}
+
+fn check_url_host(
+    _environment: &mut Environment,
+    value: &str,
+    url_desc: &str,
+    url: &Url,
+    host_checkers: Vec<(&'static str, &Regex)>,
+) -> Result {
+    if let Some(host) = url.host() {
+        let host_str = host.to_string();
+        for (host_suffix, host_matcher) in host_checkers {
+            if host_str.ends_with(host_suffix) {
+                return if host_matcher.is_match(url.path()) {
+                    Ok(None)
+                } else {
+                    Err(Error::AlmostUsableValue {
+                        msg: format!(
+                            r#"For {}, this host part of the {} URL is invalid: "{}"; it should match "{}""#,
+                            host_suffix,
+                            url_desc,
+                            url.path(),
+                            host_matcher.as_str()
+                        ),
+                        value: value.to_owned(),
+                    })
+                };
+            }
+        }
+    }
+    Ok(Some(Warning::Unknown {
+        value: value.to_owned(),
+    }))
+}
+
+fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
+    lazy_static! {
+        static ref R_GIT_HUB_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/?$").unwrap();
+        static ref R_GIT_LAB_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/?$").unwrap();
+        static ref R_BIT_BUCKET_PATH: Regex = (*R_GIT_HUB_PATH).clone();
+    }
+
+    let url = check_public_url(environment, value, false)?;
+    check_url_path(
+        environment,
+        value,
+        "versioned web",
+        &url,
+        vec![
+            (&D_GIT_HUB_COM, &R_GIT_HUB_PATH),
+            (&D_GIT_LAB_COM, &R_GIT_LAB_PATH),
+            (&D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+        ],
+    )
+}
+
+lazy_static! {
+    static ref D_GIT_HUB_COM: Host<&'static str> = Host::Domain("github.com");
+    static ref D_GIT_HUB_COM_RAW: Host<&'static str> = Host::Domain("raw.githubusercontent.com");
+    static ref D_GIT_LAB_COM: Host<&'static str> = Host::Domain("gitlab.com");
+    static ref D_BIT_BUCKET_ORG: Host<&'static str> = Host::Domain("bitbucket.org");
+}
+const S_GIT_HUB_IO: &str = ".github.io";
+const S_GIT_LAB_IO: &str = ".gitlab.io";
+
+// NOTE With bitbucket.org, the prefix is equal for files and dirs (see TODOs below):
+// * https://bitbucket.org/Aouatef/master_arbeit/src/fbf08115c60b58b14a3f133fc705e000da41ed46/godfather.sh
+// * https://bitbucket.org/Aouatef/master_arbeit/src/fbf08115c60b58b14a3f133fc705e000da41ed46/include/
 fn validate_repo_versioned_web_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
-        // TODO Check if really both of these providers support the '-' part in ".../user/repo/-/tree/34f8e45".
+        // TODO Check if really both of these providers support the '-' part in ".../user/repo/-/tree/34f8e45". -> NOPE, GitHub does not
+        // TODO We need to split this in to, as "tree" only works for direcotries, and "blob" only works for files; they work euqally though, otherwise.
         static ref R_GIT_HUB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/(-/)?(tree)/(?P<commit>[^/]+)$").unwrap();
         static ref R_GIT_LAB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?(tree)/(?P<commit>[^/]+)$").unwrap();
+        // TODO Add BitBucket.org
     }
 
     let url = check_public_url(environment, value, false)?;
-    if url.host() == Some(Host::Domain("github.com")) && !R_GIT_HUB_PATH.is_match(url.path()) {
-        Err(Error::AlmostUsableValue {
-            msg: format!(
-                r#"For GitHub.com, this path part of the versioned web URL is invalid: "{}"; it should match "{}""#,
-                url.path(),
-                R_GIT_HUB_PATH.as_str()
-            ),
-            value: value.to_owned(),
-        })
-    } else if url.host() == Some(Host::Domain("gitlab.com")) && !R_GIT_LAB_PATH.is_match(url.path())
-    {
-        Err(Error::AlmostUsableValue {
-            msg: format!(
-                r#"For GitLab.com, this path part of the versioned web URL is invalid: "{}"; it should match "{}""#,
-                url.path(),
-                R_GIT_LAB_PATH.as_str()
-            ),
-            value: value.to_owned(),
-        })
-    } else {
-        Ok(None)
-    }
+    check_url_path(
+        environment,
+        value,
+        "versioned web",
+        &url,
+        vec![
+            (&D_GIT_HUB_COM, &R_GIT_HUB_PATH),
+            (&D_GIT_LAB_COM, &R_GIT_LAB_PATH),
+        ],
+    )
 }
 
+// * git@bitbucket.org:Aouatef/master_arbeit.git
+// * https://hoijui@bitbucket.org/Aouatef/master_arbeit.git
 fn validate_repo_clone_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         // NOTE We only accept the user "git", as it stands for anonymous access
-        static ref R_SSH_CLONE_TO_URL: Regex = Regex::new(r"^(?P<user>git@)?(?P<host>[^/:]+)((:|/)(?P<path>.+))?$").unwrap();
+        static ref R_SSH_CLONE_URL: Regex = Regex::new(r"^(?P<user>git@)?(?P<host>[^/:]+)((:|/)(?P<path>.+))?$").unwrap();
+        static ref R_GIT_HUB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)\.git$").unwrap();
+        static ref R_GIT_LAB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)\.git$").unwrap();
+        static ref R_BIT_BUCKET_PATH: Regex = (*R_GIT_HUB_PATH).clone();
     }
 
     let url = match check_public_url(environment, value, true) {
         Ok(url) => url,
         Err(err_orig) => {
-            let ssh_value = R_SSH_CLONE_TO_URL.replace(value, "ssh://$host/$path");
+            let ssh_value = R_SSH_CLONE_URL.replace(value, "ssh://$host/$path");
             match check_public_url(environment, &ssh_value, true) {
                 Ok(url) => url,
                 // If also the ssh_value failed to parse,
@@ -274,133 +342,72 @@ fn validate_repo_clone_url(environment: &mut Environment, value: &str) -> Result
             }
         }
     };
-    #[allow(clippy::case_sensitive_file_extension_comparisons)]
-    if url.host() == Some(Host::Domain("github.com"))
-        && url
-            .path_segments()
-            .ok_or_else(|| Error::AlmostUsableValue {
-                msg: "Missing a path for GitHub.com".to_owned(),
-                value: value.to_owned(),
-            })?
-            .count()
-            != 2
-        && !url.path().ends_with(".git")
-    {
-        Err(Error::AlmostUsableValue {
-            msg: format!(
-                r#"On GitHub.com, the path part of the web URL of a repo should be of the form "user/repo", but it is "{}""#,
-                url.path()
-            ),
-            value: value.to_owned(),
-        })
-    } else if url.host() == Some(Host::Domain("gitlab.com"))
-        && url
-            .path_segments()
-            .ok_or_else(|| Error::AlmostUsableValue {
-                msg: "Missing a path for GitLab.com".to_owned(),
-                value: value.to_owned(),
-            })?
-            .count()
-            < 2
-        && !url.path().ends_with(".git")
-    {
-        Err(Error::AlmostUsableValue {
-            msg: format!(
-                r#"On GitLab.com, the path part of the web URL of a repo should be of the form "user/repo" or "user/.../repo", but it is "{}""#,
-                url.path()
-            ),
-            value: value.to_owned(),
-        })
-    } else {
-        Ok(None)
-    }
+    check_url_path(
+        environment,
+        value,
+        "repo clone",
+        &url,
+        vec![
+            (&D_GIT_HUB_COM, &R_GIT_HUB_PATH),
+            (&D_GIT_LAB_COM, &R_GIT_LAB_PATH),
+            (&D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+        ],
+    )
 }
 
 fn validate_repo_issues_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
-        // TODO Check if really both of these providers support the '-' part in ".../user/repo/-/issues".
-        static ref R_GIT_HUB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/(-/)?(issues)$").unwrap();
-        static ref R_GIT_LAB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?(issues)$").unwrap();
+        static ref R_GIT_HUB_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/issues$").unwrap();
+        static ref R_GIT_LAB_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?issues$")
+                .unwrap();
+        static ref R_BIT_BUCKET_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/issues$").unwrap();
     }
 
     let url = check_public_url(environment, value, false)?;
-    if url.host() == Some(Host::Domain("github.com")) && !R_GIT_HUB_PATH.is_match(url.path()) {
-        Err(Error::AlmostUsableValue {
-            msg: format!(
-                r#"For GitHub.com, this path part of the issues URL is invalid: "{}"; it should match "{}""#,
-                url.path(),
-                R_GIT_HUB_PATH.as_str()
-            ),
-            value: value.to_owned(),
-        })
-    } else if url.host() == Some(Host::Domain("gitlab.com")) && !R_GIT_LAB_PATH.is_match(url.path())
-    {
-        Err(Error::AlmostUsableValue {
-            msg: format!(
-                r#"For GitLab.com, this path part of the issues URL is invalid: "{}"; it should match "{}""#,
-                url.path(),
-                R_GIT_LAB_PATH.as_str()
-            ),
-            value: value.to_owned(),
-        })
-    } else {
-        Ok(None)
-    }
+    check_url_path(
+        environment,
+        value,
+        "issues",
+        &url,
+        vec![
+            (&D_GIT_HUB_COM, &R_GIT_HUB_PATH),
+            (&D_GIT_LAB_COM, &R_GIT_LAB_PATH),
+            (&D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+        ],
+    )
 }
 
 fn validate_build_hosting_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         static ref R_GIT_HUB_HOST: Regex = Regex::new(r"^(?P<user>[^/.]+)\.github\.io$").unwrap();
         static ref R_GIT_LAB_HOST: Regex = Regex::new(r"^(?P<user>[^/.]+)\.gitlab\.io$").unwrap();
+        // NOTE BitBucket does not have this feature, it only supports one "page" repo per user, not per repo
     }
 
     let url = check_public_url(environment, value, false)?;
-    if let Some(host) = url.host() {
-        let host_str = host.to_string();
-        if host_str.ends_with(".github.io") && !R_GIT_HUB_HOST.is_match(&host_str) {
-            Err(Error::AlmostUsableValue {
-                msg: format!(
-                    r#"For GitHub.com, this host for the build hosting URL is invalid: "{}"; it should match "{}""#,
-                    host,
-                    R_GIT_HUB_HOST.as_str()
-                ),
-                value: value.to_owned(),
-            })
-        } else if host_str.ends_with(".gitlab.io") && !R_GIT_LAB_HOST.is_match(&host_str) {
-            Err(Error::AlmostUsableValue {
-                msg: format!(
-                    r#"For GitLab.com, this path part of the versioned web URL is invalid: "{}"; it should match "{}""#,
-                    host,
-                    R_GIT_LAB_HOST.as_str()
-                ),
-                value: value.to_owned(),
-            })
-        } else {
-            Ok(None)
-        }
-    } else {
-        Err(Error::BadValue {
-            msg: "No host; seems not to be a commonly accessible URL".to_owned(),
-            value: value.to_owned(),
-        })
-    }
+    check_url_host(
+        environment,
+        value,
+        "build hosting",
+        &url,
+        vec![
+            (S_GIT_HUB_IO, &R_GIT_HUB_HOST),
+            (S_GIT_LAB_IO, &R_GIT_LAB_HOST),
+        ],
+    )
 }
 
-fn validate_name(_environment: &mut Environment, value: &str) -> Result {
-    if value.is_empty() {
-        Err(Error::BadValue {
-            msg: "Project name can not be empty".to_owned(),
-            value: value.to_owned(),
-        })
-    } else {
-        Ok(None)
-    }
+fn validate_name(environment: &mut Environment, value: &str) -> Result {
+    check_empty(environment, value, "Project name")
 }
 
-fn validate_version_date(environment: &mut Environment, value: &str) -> Result {
+fn check_date(environment: &mut Environment, value: &str, date_desc: &str) -> Result {
     if value.is_empty() {
         Err(Error::BadValue {
-            msg: "Date can not be empty".to_owned(),
+            msg: format!("{} date can not be empty", date_desc),
             value: value.to_owned(),
         })
     } else if NaiveDateTime::parse_from_str(value, &environment.settings.date_format).is_err()
@@ -409,8 +416,8 @@ fn validate_version_date(environment: &mut Environment, value: &str) -> Result {
         // log::error!("XXX {}", NaiveDateTime::parse_from_str(value, &environment.settings.date_format).unwrap_err());
         Err(Error::BadValue {
             msg: format!(
-                r#"Not a date according to the date-format "{}""#,
-                environment.settings.date_format
+                r#"Not a {} date according to the date-format "{}""#,
+                date_desc, environment.settings.date_format
             ),
             value: value.to_owned(),
         })
@@ -419,52 +426,31 @@ fn validate_version_date(environment: &mut Environment, value: &str) -> Result {
     }
 }
 
+fn validate_version_date(environment: &mut Environment, value: &str) -> Result {
+    check_date(environment, value, "version")
+}
+
 fn validate_build_date(environment: &mut Environment, value: &str) -> Result {
-    validate_version_date(environment, value)
+    check_date(environment, value, "build")
 }
 
-fn validate_build_branch(_environment: &mut Environment, value: &str) -> Result {
-    if value.is_empty() {
-        Err(Error::BadValue {
-            msg: "Branch can not be empty".to_owned(),
-            value: value.to_owned(),
-        })
-    } else {
-        Ok(None)
-    }
+fn validate_build_branch(environment: &mut Environment, value: &str) -> Result {
+    check_empty(environment, value, "Branch")
 }
 
-fn validate_build_tag(_environment: &mut Environment, value: &str) -> Result {
-    if value.is_empty() {
-        Err(Error::BadValue {
-            msg: "Tag can not be empty".to_owned(),
-            value: value.to_owned(),
-        })
-    } else {
-        Ok(None)
-    }
+fn validate_build_tag(environment: &mut Environment, value: &str) -> Result {
+    check_empty(environment, value, "Tag")
 }
 
-fn validate_build_os(_environment: &mut Environment, value: &str) -> Result {
-    if value.is_empty() {
-        Err(Error::BadValue {
-            msg: "Build OS can not be empty".to_owned(),
-            value: value.to_owned(),
-        })
-    } else {
-        Ok(None)
-    }
+fn validate_build_os(environment: &mut Environment, value: &str) -> Result {
+    check_empty(environment, value, "Build OS")
 }
 
 const VALID_OS_FAMILIES: &[&str] = &["linux", "unix", "bsd", "osx", "windows"]; // TODO
 
-fn validate_build_os_family(_environment: &mut Environment, value: &str) -> Result {
-    if value.is_empty() {
-        Err(Error::BadValue {
-            msg: "Build OS Family can not be empty".to_owned(),
-            value: value.to_owned(),
-        })
-    } else if VALID_OS_FAMILIES.contains(&value) {
+fn validate_build_os_family(environment: &mut Environment, value: &str) -> Result {
+    check_empty(environment, value, "Build OS Family")?;
+    if VALID_OS_FAMILIES.contains(&value) {
         Ok(None)
     } else {
         // todo!();
@@ -484,14 +470,10 @@ fn validate_build_os_family(_environment: &mut Environment, value: &str) -> Resu
 
 const VALID_ARCHS: &[&str] = &["x86", "x86_64", "arm", "arm64"]; // TODO
 
-fn validate_build_arch(_environment: &mut Environment, value: &str) -> Result {
+fn validate_build_arch(environment: &mut Environment, value: &str) -> Result {
+    check_empty(environment, value, "Build arch")?;
     if VALID_ARCHS.contains(&value) {
         Ok(None)
-    } else if value.is_empty() {
-        Err(Error::BadValue {
-            msg: "Build arch can not be empty".to_owned(),
-            value: value.to_owned(),
-        })
     } else {
         // todo!();
         // Err(Error::SuboptimalValue {
@@ -505,37 +487,25 @@ fn validate_build_arch(_environment: &mut Environment, value: &str) -> Result {
     }
 }
 
-fn validate_build_number(_environment: &mut Environment, value: &str) -> Result {
-    if value.is_empty() {
-        Err(Error::BadValue {
-            msg: "Build number can not be empty".to_owned(),
+fn validate_build_number(environment: &mut Environment, value: &str) -> Result {
+    check_empty(environment, value, "Build number")?;
+    match value.parse::<i32>() {
+        Err(_err) => Ok(Some(Warning::SuboptimalValue {
+            msg: "It is generally recommended and assumed that the build number is an integer (a positive, whole number)".to_owned(),
             value: value.to_owned(),
-        })
-    } else {
-        match value.parse::<i32>() {
-            Err(_err) => Ok(Some(Warning::SuboptimalValue {
-                msg: "It is generally recommended and assumed that the build number is an integer (a positive, whole number)".to_owned(),
-                value: value.to_owned(),
-             })),
-            Ok(_int_value) => Ok(None)
-        }
+            })),
+        Ok(_int_value) => Ok(None)
     }
 }
 
-fn validate_ci(_environment: &mut Environment, value: &str) -> Result {
-    if value.is_empty() {
-        Err(Error::BadValue {
-            msg: "CI can not be empty".to_owned(),
+fn validate_ci(environment: &mut Environment, value: &str) -> Result {
+    check_empty(environment, value, "CI")?;
+    match value {
+        "true" => Ok(None),
+        &_ => Ok(Some(Warning::SuboptimalValue {
+            msg: r#"CI should either be unset or set to "true""#.to_owned(),
             value: value.to_owned(),
-        })
-    } else {
-        match value {
-            "true" => Ok(None),
-            &_ => Ok(Some(Warning::SuboptimalValue {
-                msg: r#"CI should either be unset or set to "true""#.to_owned(),
-                value: value.to_owned(),
-            })),
-        }
+        })),
     }
 }
 
