@@ -21,6 +21,10 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: true
+      - name: REUSE - Fetch tool and BoM
+        uses: fsfe/reuse-action@v1
+        with:
+          args: spdx
       - name: Get the Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
