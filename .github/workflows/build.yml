@@ -25,6 +25,8 @@ jobs:
         uses: fsfe/reuse-action@v1
         with:
           args: spdx
+      - name: REUSE - Add the tools bin dir to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
       - name: Get the Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
