@@ -400,6 +400,33 @@ fn validate_repo_versioned_dir_prefix_url(environment: &mut Environment, value: 
     )
 }
 
+/// See also `sources::try_construct_commit_prefix_url`.
+fn validate_repo_commit_prefix_url(environment: &mut Environment, value: &str) -> Result {
+    lazy_static! {
+        static ref R_GIT_HUB_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/commit/(?P<sha>[0-9a-f]{1,40}+)$").unwrap();
+        static ref R_GIT_LAB_PATH: Regex = Regex::new(
+            r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?commit/(?P<sha>[0-9a-f]{1,40}+)$"
+        )
+        .unwrap();
+        static ref R_BIT_BUCKET_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/commits/(?P<ref>[^/]+)$").unwrap();
+    }
+
+    let url = check_public_url(environment, value, false)?;
+    check_url_path(
+        environment,
+        value,
+        "commit prefix",
+        &url,
+        vec![
+            (&constants::D_GIT_HUB_COM, &R_GIT_HUB_PATH),
+            (&constants::D_GIT_LAB_COM, &R_GIT_LAB_PATH),
+            (&constants::D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+        ],
+    )
+}
+
 fn validate_repo_issues_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         static ref R_GIT_HUB_PATH: Regex =
@@ -564,6 +591,7 @@ pub fn get(key: Key) -> Validator {
         Key::RepoRawVersionedPrefixUrl => validate_repo_raw_versioned_prefix_url,
         Key::RepoVersionedFilePrefixUrl => validate_repo_versioned_file_prefix_url,
         Key::RepoVersionedDirPrefixUrl => validate_repo_versioned_dir_prefix_url,
+        Key::RepoCommitPrefixUrl => validate_repo_commit_prefix_url,
         Key::RepoIssuesUrl => validate_repo_issues_url,
         Key::Name => validate_name,
         Key::VersionDate => validate_version_date,

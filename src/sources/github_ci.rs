@@ -113,6 +113,7 @@ impl super::VarSource for VarSource {
             Key::RepoVersionedDirPrefixUrl => {
                 super::try_construct_dir_prefix_url(self, environment)?
             }
+            Key::RepoCommitPrefixUrl => super::try_construct_commit_prefix_url(self, environment)?,
             Key::BuildHostingUrl => {
                 let repo_web_url = self.retrieve(environment, Key::RepoWebUrl)?;
                 if let Some(repo_web_url) = repo_web_url {

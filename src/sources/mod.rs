@@ -238,3 +238,44 @@ pub fn try_construct_dir_prefix_url<S: VarSource>(
         },
     )
 }
+
+/// Tries to construct the commit prefix URL
+/// from the repo web URL property of a variable source.
+///
+/// # Errors
+///
+/// If an attempt to try fetching any required property returned an error.
+//
+// Real world commit prefix URLs (the part in []):
+// * [https://github.com/hoijui/nim-ci/commit]/ae4a42a850b359a23da2483eb8f867f21c5382d4
+// * [https://gitlab.com/OSEGermany/osh-tool/-/commit]/ae4a42a850b359a23da2483eb8f867f21c5382d4
+// * [https://bitbucket.org/Aouatef/master_arbeit/commits]/ae4a42a850b359a23da2483eb8f867f21c5382d4
+pub fn try_construct_commit_prefix_url<S: VarSource>(
+    var_source: &S,
+    environment: &mut Environment,
+) -> BoxResult<Option<String>> {
+    Ok(
+        // TODO This code with the 3 equal else's in the end is ugly, but don't know how to improve
+        if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
+            let mut url = Url::parse(&base_repo_web_url)?;
+            if let Some(host) = url.host() {
+                if host == constants::D_GIT_HUB_COM {
+                    url.set_path(&format!("{}/commit", url.path()));
+                    Some(url.to_string())
+                } else if host == constants::D_GIT_LAB_COM {
+                    url.set_path(&format!("{}/-/commit", url.path()));
+                    Some(url.to_string())
+                } else if host == constants::D_BIT_BUCKET_ORG {
+                    url.set_path(&format!("{}/commits", url.path()));
+                    Some(url.to_string())
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        },
+    )
+}

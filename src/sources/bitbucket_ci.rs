@@ -60,6 +60,7 @@ impl super::VarSource for VarSource {
             Key::RepoVersionedDirPrefixUrl => {
                 super::try_construct_dir_prefix_url(self, environment)?
             }
+            Key::RepoCommitPrefixUrl => super::try_construct_commit_prefix_url(self, environment)?,
             Key::Version => var(environment, "BITBUCKET_COMMIT"),
             Key::BuildNumber => var(environment, "BITBUCKET_BUILD_NUMBER"),
             Key::RepoIssuesUrl => super::try_construct_issues_url(self, environment)?,

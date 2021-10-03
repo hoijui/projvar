@@ -159,6 +159,7 @@ impl super::VarSource for VarSource {
             Key::RepoVersionedDirPrefixUrl => {
                 super::try_construct_dir_prefix_url(self, environment)?
             }
+            Key::RepoCommitPrefixUrl => super::try_construct_commit_prefix_url(self, environment)?,
             Key::RepoIssuesUrl => issues_url(environment)?,
             Key::VersionDate => version_date(environment)?,
             Key::BuildHostingUrl => build_hosting_url(environment)?,

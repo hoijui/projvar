@@ -61,7 +61,7 @@ pub enum Key {
     RepoRawVersionedPrefixUrl,
     RepoVersionedFilePrefixUrl,
     RepoVersionedDirPrefixUrl,
-    // RepoCommitPrefixUrl, // TODO, for example: https://gitlab.com/OSEGermany/okhmanifest/-/commit/9e1df32c42a85253af95ea2dc9311128bd8f775a
+    RepoCommitPrefixUrl,
     RepoIssuesUrl,
     Name,
     VersionDate,
@@ -222,6 +222,7 @@ pub const KEY_REPO_CLONE_URL: &str = "PROJECT_REPO_CLONE_URL";
 pub const KEY_REPO_RAW_VERSIONED_PREFIX_URL: &str = "PROJECT_REPO_RAW_VERSIONED_PREFIX_URL";
 pub const KEY_REPO_VERSIONED_FILE_PREFIX_URL: &str = "PROJECT_REPO_VERSIONED_FILE_PREFIX_URL";
 pub const KEY_REPO_VERSIONED_DIR_PREFIX_URL: &str = "PROJECT_REPO_VERSIONED_DIR_PREFIX_URL";
+pub const KEY_REPO_COMMIT_PREFIX_URL: &str = "PROJECT_REPO_COMMIT_PREFIX_URL";
 pub const KEY_REPO_ISSUES_URL: &str = "PROJECT_REPO_ISSUES_URL";
 pub const KEY_NAME: &str = "PROJECT_NAME";
 pub const KEY_VERSION_DATE: &str = "PROJECT_VERSION_DATE";
@@ -284,17 +285,22 @@ const VAR_REPO_CLONE_URL: Variable = Variable {
 };
 const VAR_REPO_RAW_VERSIONED_PREFIX_URL: Variable = Variable {
     key: KEY_REPO_RAW_VERSIONED_PREFIX_URL,
-    description: "The repo raw prefix URL. Add version (tag, branch, sha) and file path. The part in []: [https://raw.githubusercontent.com/hoijui/nim-ci]/master/.github/workflows/docker.yml]",
+    description: "The repo raw prefix URL. Add version (tag, branch, SHA) and file path. The part in []: [https://raw.githubusercontent.com/hoijui/nim-ci]/master/.github/workflows/docker.yml]",
     default_required: true,
 };
 const VAR_REPO_VERSIONED_FILE_PREFIX_URL: Variable = Variable {
     key: KEY_REPO_VERSIONED_FILE_PREFIX_URL,
-    description: "The repo file prefix URL. Add version (tag, branch, sha) and file path. The part in []: [https://github.com/hoijui/nim-ci]/master/.github/workflows/docker.yml]",
+    description: "The repo file prefix URL. Add version (tag, branch, SHA) and file path. The part in []: [https://github.com/hoijui/nim-ci]/master/.github/workflows/docker.yml]",
     default_required: true,
 };
 const VAR_REPO_VERSIONED_DIR_PREFIX_URL: Variable = Variable {
     key: KEY_REPO_VERSIONED_DIR_PREFIX_URL,
-    description: "The repo directory prefix URL. Add version (tag, branch, sha) and directory path. The part in []: [https://github.com/hoijui/nim-ci]/master/.github/workflows/docker.yml]",
+    description: "The repo directory prefix URL. Add version (tag, branch, SHA) and directory path. The part in []: [https://github.com/hoijui/nim-ci]/master/.github/workflows/docker.yml]",
+    default_required: true,
+};
+const VAR_REPO_COMMIT_PREFIX_URL: Variable = Variable {
+    key: KEY_REPO_COMMIT_PREFIX_URL,
+    description: "The repo commit prefix URL. Add commit SHA. The part in []: [https://github.com/hoijui/nim-ci/commit]/23f84b91]",
     default_required: true,
 };
 const VAR_REPO_ISSUES_URL: Variable = Variable {
@@ -370,6 +376,7 @@ fn create(key: Key) -> &'static Variable {
         Key::RepoRawVersionedPrefixUrl => &VAR_REPO_RAW_VERSIONED_PREFIX_URL,
         Key::RepoVersionedFilePrefixUrl => &VAR_REPO_VERSIONED_FILE_PREFIX_URL,
         Key::RepoVersionedDirPrefixUrl => &VAR_REPO_VERSIONED_DIR_PREFIX_URL,
+        Key::RepoCommitPrefixUrl => &VAR_REPO_COMMIT_PREFIX_URL,
         Key::RepoIssuesUrl => &VAR_REPO_ISSUES_URL,
         Key::Name => &VAR_NAME,
         Key::VersionDate => &VAR_VERSION_DATE,
