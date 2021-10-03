@@ -234,7 +234,7 @@ fn check_url_host(
         let host_str = host.to_string();
         for (host_suffix, host_matcher) in host_checkers {
             if host_str.ends_with(host_suffix) {
-                return if host_matcher.is_match(url.path()) {
+                return if host_matcher.is_match(&host.to_string()) {
                     Ok(None)
                 } else {
                     Err(Error::AlmostUsableValue {
@@ -323,13 +323,12 @@ fn validate_repo_clone_url(environment: &mut Environment, value: &str) -> Result
 fn validate_repo_raw_versioned_prefix_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         static ref R_GIT_HUB_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/(?P<ref>[^/]+)$").unwrap();
-        static ref R_GIT_LAB_PATH: Regex = Regex::new(
-            r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?raw/(?P<ref>[^/]+)$"
-        )
-        .unwrap();
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)$").unwrap();
+        static ref R_GIT_LAB_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?raw$")
+                .unwrap();
         static ref R_BIT_BUCKET_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/raw/(?P<ref>[^/]+)$").unwrap();
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/raw$").unwrap();
     }
 
     let url = check_public_url(environment, value, false)?;
@@ -350,13 +349,12 @@ fn validate_repo_raw_versioned_prefix_url(environment: &mut Environment, value: 
 fn validate_repo_versioned_file_prefix_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         static ref R_GIT_HUB_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/blob/(?P<ref>[^/]+)$").unwrap();
-        static ref R_GIT_LAB_PATH: Regex = Regex::new(
-            r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?blob/(?P<ref>[^/]+)$"
-        )
-        .unwrap();
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/blob$").unwrap();
+        static ref R_GIT_LAB_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?blob$")
+                .unwrap();
         static ref R_BIT_BUCKET_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/src/(?P<ref>[^/]+)$").unwrap();
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/src$").unwrap();
     }
 
     let url = check_public_url(environment, value, false)?;
@@ -377,13 +375,12 @@ fn validate_repo_versioned_file_prefix_url(environment: &mut Environment, value:
 fn validate_repo_versioned_dir_prefix_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         static ref R_GIT_HUB_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/tree/(?P<ref>[^/]+)$").unwrap();
-        static ref R_GIT_LAB_PATH: Regex = Regex::new(
-            r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?tree/(?P<ref>[^/]+)$"
-        )
-        .unwrap();
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/tree$").unwrap();
+        static ref R_GIT_LAB_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?tree$")
+                .unwrap();
         static ref R_BIT_BUCKET_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/src/(?P<ref>[^/]+)$").unwrap();
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/src$").unwrap();
     }
 
     let url = check_public_url(environment, value, false)?;
@@ -404,13 +401,12 @@ fn validate_repo_versioned_dir_prefix_url(environment: &mut Environment, value: 
 fn validate_repo_commit_prefix_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         static ref R_GIT_HUB_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/commit/(?P<sha>[0-9a-f]{1,40}+)$").unwrap();
-        static ref R_GIT_LAB_PATH: Regex = Regex::new(
-            r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?commit/(?P<sha>[0-9a-f]{1,40}+)$"
-        )
-        .unwrap();
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/commit$").unwrap();
+        static ref R_GIT_LAB_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?commit$")
+                .unwrap();
         static ref R_BIT_BUCKET_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/commits/(?P<ref>[^/]+)$").unwrap();
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/commits$").unwrap();
     }
 
     let url = check_public_url(environment, value, false)?;
