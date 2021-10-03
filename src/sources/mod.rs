@@ -122,11 +122,11 @@ pub fn try_construct_issues_url<S: VarSource>(
 ///
 /// If an attempt to try fetching any required property returned an error.
 //
-// Real world raw prefix URLs:
-// * https://raw.githubusercontent.com/hoijui/nim-ci/master/.github/workflows/docker.yml
-// * https://gitlab.com/OSEGermany/osh-tool/-/raw/master/data/source_extension_formats.csv
-// * https://gitlab.com/OSEGermany/osh-tool/raw/master/data/source_extension_formats.csv
-// * https://bitbucket.org/Aouatef/master_arbeit/raw/ae4a42a850b359a23da2483eb8f867f21c5382d4/procExData/import.sh
+// Real world raw prefix URLs (the part in []):
+// * [https://raw.githubusercontent.com/hoijui/nim-ci]/master/.github/workflows/docker.yml
+// * [https://gitlab.com/OSEGermany/osh-tool/-/raw]/master/data/source_extension_formats.csv
+// * [https://gitlab.com/OSEGermany/osh-tool/raw]/master/data/source_extension_formats.csv
+// * [https://bitbucket.org/Aouatef/master_arbeit/raw]/ae4a42a850b359a23da2483eb8f867f21c5382d4/procExData/import.sh
 pub fn try_construct_raw_prefix_url<S: VarSource>(
     var_source: &S,
     environment: &mut Environment,
@@ -164,7 +164,7 @@ pub fn try_construct_raw_prefix_url<S: VarSource>(
 ///
 /// If an attempt to try fetching any required property returned an error.
 //
-// Real world raw prefix URLs:
+// Real world file prefix URLs (the part in []):
 // * [https://github.com/hoijui/nim-ci/blob]/master/.github/workflows/docker.yml
 // * [https://gitlab.com/OSEGermany/osh-tool/-/blob]/master/data/source_extension_formats.csv
 // * [https://bitbucket.org/Aouatef/master_arbeit/src]/ae4a42a850b359a23da2483eb8f867f21c5382d4/procExData/import.sh
@@ -205,7 +205,7 @@ pub fn try_construct_file_prefix_url<S: VarSource>(
 ///
 /// If an attempt to try fetching any required property returned an error.
 //
-// Real world raw prefix URLs:
+// Real world dir prefix URLs (the part in []):
 // * [https://github.com/hoijui/nim-ci/tree]/master/.github/workflows/
 // * [https://gitlab.com/OSEGermany/osh-tool/-/tree]/master/data/
 // * [https://bitbucket.org/Aouatef/master_arbeit/src]/ae4a42a850b359a23da2483eb8f867f21c5382d4/procExData/
