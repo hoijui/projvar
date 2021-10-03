@@ -754,7 +754,7 @@ mod tests {
         // assert!(validate_repo_versioned_web_url(&mut environment, "https://github.com/hoijui/projvar/tree/525b3c9b8962dd02aab6ea867eebdee3719a6634")?.is_ok());
         validate_repo_versioned_dir_prefix_url(
             &mut environment,
-            "https://github.com/hoijui/projvar/tree/525b3c9b8962dd02aab6ea867eebdee3719a6634",
+            "https://github.com/hoijui/projvar/tree",
         )?;
         Ok(())
     }
