@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::environment::Environment;
 use crate::var::Key;
+use crate::{constants, environment::Environment};
 use chrono::{DateTime, NaiveDateTime};
 use clap::lazy_static::lazy_static;
 use regex::Regex;
@@ -116,16 +116,10 @@ fn validate_version(environment: &mut Environment, value: &str) -> Result {
     }
 }
 
-lazy_static! {
-    static ref SPDX_IDENTS: Vec<&'static str> = ["CC0-1.0", "GPL-3.0-or-later", "GPL-3.0", "GPL-2.0-or-later", "GPL-2.0", "AGPL-3.0-or-later", "AGPL-3.0"].to_vec(); // TODO HACK ...
-    // TODO use an SPDX repo as submodule that contains the list of supported license idenfiers and compare against them
-    // TODO see: https://github.com/spdx/license-list-XML/issues/1335
-}
-
 fn validate_license(environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
         missing(environment, Key::License)
-    } else if SPDX_IDENTS.contains(&value) {
+    } else if constants::SPDX_IDENTS.contains(&value) {
         Ok(None)
     } else {
         Ok(Some(Warning::SuboptimalValue {
@@ -278,21 +272,12 @@ fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
         "versioned web",
         &url,
         vec![
-            (&D_GIT_HUB_COM, &R_GIT_HUB_PATH),
-            (&D_GIT_LAB_COM, &R_GIT_LAB_PATH),
-            (&D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+            (&constants::D_GIT_HUB_COM, &R_GIT_HUB_PATH),
+            (&constants::D_GIT_LAB_COM, &R_GIT_LAB_PATH),
+            (&constants::D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
         ],
     )
 }
-
-lazy_static! {
-    static ref D_GIT_HUB_COM: Host<&'static str> = Host::Domain("github.com");
-    static ref D_GIT_HUB_COM_RAW: Host<&'static str> = Host::Domain("raw.githubusercontent.com");
-    static ref D_GIT_LAB_COM: Host<&'static str> = Host::Domain("gitlab.com");
-    static ref D_BIT_BUCKET_ORG: Host<&'static str> = Host::Domain("bitbucket.org");
-}
-const S_GIT_HUB_IO: &str = ".github.io";
-const S_GIT_LAB_IO: &str = ".gitlab.io";
 
 // NOTE With bitbucket.org, the prefix is equal for files and dirs (see TODOs below):
 // * https://bitbucket.org/Aouatef/master_arbeit/src/fbf08115c60b58b14a3f133fc705e000da41ed46/godfather.sh
@@ -313,8 +298,8 @@ fn validate_repo_versioned_web_url(environment: &mut Environment, value: &str) -
         "versioned web",
         &url,
         vec![
-            (&D_GIT_HUB_COM, &R_GIT_HUB_PATH),
-            (&D_GIT_LAB_COM, &R_GIT_LAB_PATH),
+            (&constants::D_GIT_HUB_COM, &R_GIT_HUB_PATH),
+            (&constants::D_GIT_LAB_COM, &R_GIT_LAB_PATH),
         ],
     )
 }
@@ -348,9 +333,9 @@ fn validate_repo_clone_url(environment: &mut Environment, value: &str) -> Result
         "repo clone",
         &url,
         vec![
-            (&D_GIT_HUB_COM, &R_GIT_HUB_PATH),
-            (&D_GIT_LAB_COM, &R_GIT_LAB_PATH),
-            (&D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+            (&constants::D_GIT_HUB_COM, &R_GIT_HUB_PATH),
+            (&constants::D_GIT_LAB_COM, &R_GIT_LAB_PATH),
+            (&constants::D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
         ],
     )
 }
@@ -374,9 +359,53 @@ fn validate_repo_raw_versioned_prefix_url(environment: &mut Environment, value: 
         "raw versioned prefix",
         &url,
         vec![
-            (&D_GIT_HUB_COM_RAW, &R_GIT_HUB_PATH),
-            (&D_GIT_LAB_COM, &R_GIT_LAB_PATH),
-            (&D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+            (&constants::D_GIT_HUB_COM_RAW, &R_GIT_HUB_PATH),
+            (&constants::D_GIT_LAB_COM, &R_GIT_LAB_PATH),
+            (&constants::D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+        ],
+    )
+}
+
+/// See also `sources::try_construct_file_prefix_url`.
+fn validate_repo_versioned_file_prefix_url(environment: &mut Environment, value: &str) -> Result {
+    lazy_static! {
+        static ref R_GIT_HUB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/blob/(?P<ref>[^/]+)/(?P<file_path>.+)$").unwrap();
+        static ref R_GIT_LAB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?blob/(?P<ref>[^/]+)/(?P<file_path>.+)$").unwrap();
+        static ref R_BIT_BUCKET_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/src/(?P<ref>[^/]+)/(?P<file_path>.+)$").unwrap();
+    }
+
+    let url = check_public_url(environment, value, false)?;
+    check_url_path(
+        environment,
+        value,
+        "versioned file prefix",
+        &url,
+        vec![
+            (&constants::D_GIT_HUB_COM, &R_GIT_HUB_PATH),
+            (&constants::D_GIT_LAB_COM, &R_GIT_LAB_PATH),
+            (&constants::D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+        ],
+    )
+}
+
+/// See also `sources::try_construct_file_prefix_url`.
+fn validate_repo_versioned_dir_prefix_url(environment: &mut Environment, value: &str) -> Result {
+    lazy_static! {
+        static ref R_GIT_HUB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/tree/(?P<ref>[^/]+)/(?P<dir_path>.+)$").unwrap();
+        static ref R_GIT_LAB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?tree/(?P<ref>[^/]+)/(?P<dir_path>.+)$").unwrap();
+        static ref R_BIT_BUCKET_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/src/(?P<ref>[^/]+)/(?P<dir_path>.+)$").unwrap();
+    }
+
+    let url = check_public_url(environment, value, false)?;
+    check_url_path(
+        environment,
+        value,
+        "versioned dir prefix",
+        &url,
+        vec![
+            (&constants::D_GIT_HUB_COM, &R_GIT_HUB_PATH),
+            (&constants::D_GIT_LAB_COM, &R_GIT_LAB_PATH),
+            (&constants::D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
         ],
     )
 }
@@ -399,9 +428,9 @@ fn validate_repo_issues_url(environment: &mut Environment, value: &str) -> Resul
         "issues",
         &url,
         vec![
-            (&D_GIT_HUB_COM, &R_GIT_HUB_PATH),
-            (&D_GIT_LAB_COM, &R_GIT_LAB_PATH),
-            (&D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+            (&constants::D_GIT_HUB_COM, &R_GIT_HUB_PATH),
+            (&constants::D_GIT_LAB_COM, &R_GIT_LAB_PATH),
+            (&constants::D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
         ],
     )
 }
@@ -420,8 +449,8 @@ fn validate_build_hosting_url(environment: &mut Environment, value: &str) -> Res
         "build hosting",
         &url,
         vec![
-            (S_GIT_HUB_IO, &R_GIT_HUB_HOST),
-            (S_GIT_LAB_IO, &R_GIT_LAB_HOST),
+            (constants::S_GIT_HUB_IO_SUFIX, &R_GIT_HUB_HOST),
+            (constants::S_GIT_LAB_IO_SUFIX, &R_GIT_LAB_HOST),
         ],
     )
 }
@@ -469,14 +498,12 @@ fn validate_build_tag(environment: &mut Environment, value: &str) -> Result {
 }
 
 fn validate_build_os(environment: &mut Environment, value: &str) -> Result {
-    check_empty(environment, value, "Build OS")
+    check_empty(environment, value, "Build OS") // TODO Maybe add a list of known good, and mark the others as Ok(Some(Warning::Unknown))
 }
-
-const VALID_OS_FAMILIES: &[&str] = &["linux", "unix", "bsd", "osx", "windows"]; // TODO
 
 fn validate_build_os_family(environment: &mut Environment, value: &str) -> Result {
     check_empty(environment, value, "Build OS Family")?;
-    if VALID_OS_FAMILIES.contains(&value) {
+    if constants::VALID_OS_FAMILIES.contains(&value) {
         Ok(None)
     } else {
         // todo!();
@@ -487,18 +514,16 @@ fn validate_build_os_family(environment: &mut Environment, value: &str) -> Resul
         Err(Error::BadValue {
             msg: format!(
                 "Only these values are valid: {}",
-                VALID_OS_FAMILIES.join(", ")
+                constants::VALID_OS_FAMILIES.join(", ")
             ),
             value: value.to_owned(),
         })
     }
 }
 
-const VALID_ARCHS: &[&str] = &["x86", "x86_64", "arm", "arm64"]; // TODO
-
 fn validate_build_arch(environment: &mut Environment, value: &str) -> Result {
     check_empty(environment, value, "Build arch")?;
-    if VALID_ARCHS.contains(&value) {
+    if constants::VALID_ARCHS.contains(&value) {
         Ok(None)
     } else {
         // todo!();
@@ -507,7 +532,10 @@ fn validate_build_arch(environment: &mut Environment, value: &str) -> Result {
         //     value: value.to_owned(),
         // })
         Err(Error::BadValue {
-            msg: format!("Only these values are valid: {}", VALID_ARCHS.join(", ")),
+            msg: format!(
+                "Only these values are valid: {}",
+                constants::VALID_ARCHS.join(", ")
+            ),
             value: value.to_owned(),
         })
     }
@@ -545,6 +573,8 @@ pub fn get(key: Key) -> Validator {
         Key::RepoVersionedWebUrl => validate_repo_versioned_web_url,
         Key::RepoCloneUrl => validate_repo_clone_url,
         Key::RepoRawVersionedPrefixUrl => validate_repo_raw_versioned_prefix_url,
+        Key::RepoVersionedFilePrefixUrl => validate_repo_versioned_file_prefix_url,
+        Key::RepoVersionedDirPrefixUrl => validate_repo_versioned_dir_prefix_url,
         Key::RepoIssuesUrl => validate_repo_issues_url,
         Key::Name => validate_name,
         Key::VersionDate => validate_version_date,

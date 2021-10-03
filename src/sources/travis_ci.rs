@@ -44,6 +44,8 @@ impl super::VarSource for VarSource {
             | Key::Ci
             | Key::RepoCloneUrl
             | Key::RepoRawVersionedPrefixUrl
+            | Key::RepoVersionedFilePrefixUrl
+            | Key::RepoVersionedDirPrefixUrl
             | Key::BuildHostingUrl
             | Key::VersionDate
             | Key::BuildDate

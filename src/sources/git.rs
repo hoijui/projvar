@@ -181,6 +181,12 @@ impl super::VarSource for VarSource {
             Key::RepoRawVersionedPrefixUrl => {
                 super::try_construct_raw_prefix_url(self, environment)?
             }
+            Key::RepoVersionedFilePrefixUrl => {
+                super::try_construct_file_prefix_url(self, environment)?
+            }
+            Key::RepoVersionedDirPrefixUrl => {
+                super::try_construct_dir_prefix_url(self, environment)?
+            }
             Key::RepoIssuesUrl => issues_url(environment)?,
             Key::VersionDate => version_date(environment)?,
             Key::BuildHostingUrl => build_hosting_url(environment)?,

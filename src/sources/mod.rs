@@ -13,8 +13,9 @@ pub mod travis_ci;
 use std::error::Error;
 
 use clap::lazy_static::lazy_static;
-use url::{Host, Url};
+use url::Url;
 
+use crate::constants::{self, S_GIT_HUB_COM_RAW};
 use crate::environment::Environment;
 use crate::var::Key;
 
@@ -162,17 +163,104 @@ pub fn try_construct_raw_prefix_url<S: VarSource>(
     environment: &mut Environment,
 ) -> BoxResult<Option<String>> {
     Ok(
+        // TODO This code with the 3 equal else's in the end is ugly, but don't know how to improve
         if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
             let mut url = Url::parse(&base_repo_web_url)?;
-            if url.host() == Some(Host::Domain("github.com")) {
-                url.set_host(Some("raw.githubusercontent.com"))?;
-                Some(url.to_string())
-            } else if url.host() == Some(Host::Domain("gitlab.com")) {
-                url.set_path(&format!("{}/-/raw", url.path()));
-                Some(url.to_string())
-            } else if url.host() == Some(Host::Domain("bitbucket.org")) {
-                url.set_path(&format!("{}/raw", url.path()));
-                Some(url.to_string())
+            if let Some(host) = url.host() {
+                if host == constants::D_GIT_HUB_COM {
+                    url.set_host(Some(S_GIT_HUB_COM_RAW))?;
+                    Some(url.to_string())
+                } else if host == constants::D_GIT_LAB_COM {
+                    url.set_path(&format!("{}/-/raw", url.path()));
+                    Some(url.to_string())
+                } else if host == constants::D_BIT_BUCKET_ORG {
+                    url.set_path(&format!("{}/raw", url.path()));
+                    Some(url.to_string())
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        },
+    )
+}
+
+/// Tries to construct the file prefix URL
+/// from the repo web URL property of a variable source.
+///
+/// # Errors
+///
+/// If an attempt to try fetching any required property returned an error.
+//
+// Real world raw prefix URLs:
+// * [https://github.com/hoijui/nim-ci/blob]/master/.github/workflows/docker.yml
+// * [https://gitlab.com/OSEGermany/osh-tool/-/blob]/master/data/source_extension_formats.csv
+// * [https://bitbucket.org/Aouatef/master_arbeit/src]/ae4a42a850b359a23da2483eb8f867f21c5382d4/procExData/import.sh
+pub fn try_construct_file_prefix_url<S: VarSource>(
+    var_source: &S,
+    environment: &mut Environment,
+) -> BoxResult<Option<String>> {
+    Ok(
+        // TODO This code with the 3 equal else's in the end is ugly, but don't know how to improve
+        if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
+            let mut url = Url::parse(&base_repo_web_url)?;
+            if let Some(host) = url.host() {
+                if host == constants::D_GIT_HUB_COM {
+                    url.set_path(&format!("{}/blob", url.path()));
+                    Some(url.to_string())
+                } else if host == constants::D_GIT_LAB_COM {
+                    url.set_path(&format!("{}/-/blob", url.path()));
+                    Some(url.to_string())
+                } else if host == constants::D_BIT_BUCKET_ORG {
+                    url.set_path(&format!("{}/src", url.path()));
+                    Some(url.to_string())
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        },
+    )
+}
+
+/// Tries to construct the directory prefix URL
+/// from the repo web URL property of a variable source.
+///
+/// # Errors
+///
+/// If an attempt to try fetching any required property returned an error.
+//
+// Real world raw prefix URLs:
+// * [https://github.com/hoijui/nim-ci/tree]/master/.github/workflows/
+// * [https://gitlab.com/OSEGermany/osh-tool/-/tree]/master/data/
+// * [https://bitbucket.org/Aouatef/master_arbeit/src]/ae4a42a850b359a23da2483eb8f867f21c5382d4/procExData/
+pub fn try_construct_dir_prefix_url<S: VarSource>(
+    var_source: &S,
+    environment: &mut Environment,
+) -> BoxResult<Option<String>> {
+    Ok(
+        // TODO This code with the 3 equal else's in the end is ugly, but don't know how to improve
+        if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
+            let mut url = Url::parse(&base_repo_web_url)?;
+            if let Some(host) = url.host() {
+                if host == constants::D_GIT_HUB_COM {
+                    url.set_path(&format!("{}/tree", url.path()));
+                    Some(url.to_string())
+                } else if host == constants::D_GIT_LAB_COM {
+                    url.set_path(&format!("{}/-/tree", url.path()));
+                    Some(url.to_string())
+                } else if host == constants::D_BIT_BUCKET_ORG {
+                    url.set_path(&format!("{}/src", url.path()));
+                    Some(url.to_string())
+                } else {
+                    None
+                }
             } else {
                 None
             }

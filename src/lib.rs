@@ -7,6 +7,7 @@ extern crate enum_map;
 extern crate log;
 extern crate url;
 
+mod constants;
 pub mod environment;
 pub mod settings;
 pub mod sinks;

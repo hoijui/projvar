@@ -22,6 +22,7 @@ use std::str::FromStr;
 use strum::IntoEnumIterator;
 use strum::VariantNames;
 
+mod constants;
 mod environment;
 mod logger;
 pub mod settings;
