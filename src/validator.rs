@@ -279,31 +279,6 @@ fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
     )
 }
 
-// NOTE With bitbucket.org, the prefix is equal for files and dirs (see TODOs below):
-// * https://bitbucket.org/Aouatef/master_arbeit/src/fbf08115c60b58b14a3f133fc705e000da41ed46/godfather.sh
-// * https://bitbucket.org/Aouatef/master_arbeit/src/fbf08115c60b58b14a3f133fc705e000da41ed46/include/
-fn validate_repo_versioned_web_url(environment: &mut Environment, value: &str) -> Result {
-    lazy_static! {
-        // TODO Check if really both of these providers support the '-' part in ".../user/repo/-/tree/34f8e45". -> NOPE, GitHub does not
-        // TODO We need to split this in to, as "tree" only works for direcotries, and "blob" only works for files; they work euqally though, otherwise.
-        static ref R_GIT_HUB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/(-/)?(tree)/(?P<commit>[^/]+)$").unwrap();
-        static ref R_GIT_LAB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?(tree)/(?P<commit>[^/]+)$").unwrap();
-        // TODO Add BitBucket.org
-    }
-
-    let url = check_public_url(environment, value, false)?;
-    check_url_path(
-        environment,
-        value,
-        "versioned web",
-        &url,
-        vec![
-            (&constants::D_GIT_HUB_COM, &R_GIT_HUB_PATH),
-            (&constants::D_GIT_LAB_COM, &R_GIT_LAB_PATH),
-        ],
-    )
-}
-
 // * git@bitbucket.org:Aouatef/master_arbeit.git
 // * https://hoijui@bitbucket.org/Aouatef/master_arbeit.git
 fn validate_repo_clone_url(environment: &mut Environment, value: &str) -> Result {
@@ -347,9 +322,14 @@ fn validate_repo_clone_url(environment: &mut Environment, value: &str) -> Result
 // * https://bitbucket.org/Aouatef/master_arbeit/raw/ae4a42a850b359a23da2483eb8f867f21c5382d4/procExData/import.sh
 fn validate_repo_raw_versioned_prefix_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
-        static ref R_GIT_HUB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/(?P<ref>[^/]+)/(?P<file_path>.+)$").unwrap();
-        static ref R_GIT_LAB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?raw/(?P<ref>[^/]+)/(?P<file_path>.+)$").unwrap();
-        static ref R_BIT_BUCKET_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/raw/(?P<ref>[^/]+)/(?P<file_path>.+)$").unwrap();
+        static ref R_GIT_HUB_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/(?P<ref>[^/]+)$").unwrap();
+        static ref R_GIT_LAB_PATH: Regex = Regex::new(
+            r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?raw/(?P<ref>[^/]+)$"
+        )
+        .unwrap();
+        static ref R_BIT_BUCKET_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/raw/(?P<ref>[^/]+)$").unwrap();
     }
 
     let url = check_public_url(environment, value, false)?;
@@ -369,9 +349,14 @@ fn validate_repo_raw_versioned_prefix_url(environment: &mut Environment, value: 
 /// See also `sources::try_construct_file_prefix_url`.
 fn validate_repo_versioned_file_prefix_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
-        static ref R_GIT_HUB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/blob/(?P<ref>[^/]+)/(?P<file_path>.+)$").unwrap();
-        static ref R_GIT_LAB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?blob/(?P<ref>[^/]+)/(?P<file_path>.+)$").unwrap();
-        static ref R_BIT_BUCKET_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/src/(?P<ref>[^/]+)/(?P<file_path>.+)$").unwrap();
+        static ref R_GIT_HUB_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/blob/(?P<ref>[^/]+)$").unwrap();
+        static ref R_GIT_LAB_PATH: Regex = Regex::new(
+            r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?blob/(?P<ref>[^/]+)$"
+        )
+        .unwrap();
+        static ref R_BIT_BUCKET_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/src/(?P<ref>[^/]+)$").unwrap();
     }
 
     let url = check_public_url(environment, value, false)?;
@@ -391,9 +376,14 @@ fn validate_repo_versioned_file_prefix_url(environment: &mut Environment, value:
 /// See also `sources::try_construct_file_prefix_url`.
 fn validate_repo_versioned_dir_prefix_url(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
-        static ref R_GIT_HUB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/tree/(?P<ref>[^/]+)/(?P<dir_path>.+)$").unwrap();
-        static ref R_GIT_LAB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?tree/(?P<ref>[^/]+)/(?P<dir_path>.+)$").unwrap();
-        static ref R_BIT_BUCKET_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/src/(?P<ref>[^/]+)/(?P<dir_path>.+)$").unwrap();
+        static ref R_GIT_HUB_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/tree/(?P<ref>[^/]+)$").unwrap();
+        static ref R_GIT_LAB_PATH: Regex = Regex::new(
+            r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?tree/(?P<ref>[^/]+)$"
+        )
+        .unwrap();
+        static ref R_BIT_BUCKET_PATH: Regex =
+            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/src/(?P<ref>[^/]+)$").unwrap();
     }
 
     let url = check_public_url(environment, value, false)?;
@@ -570,7 +560,6 @@ pub fn get(key: Key) -> Validator {
         Key::Version => validate_version,
         Key::License => validate_license,
         Key::RepoWebUrl => validate_repo_web_url,
-        Key::RepoVersionedWebUrl => validate_repo_versioned_web_url,
         Key::RepoCloneUrl => validate_repo_clone_url,
         Key::RepoRawVersionedPrefixUrl => validate_repo_raw_versioned_prefix_url,
         Key::RepoVersionedFilePrefixUrl => validate_repo_versioned_file_prefix_url,
@@ -736,10 +725,10 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_repo_versioned_web_url() -> std::result::Result<(), Error> {
+    fn test_validate_repo_versioned_dir_prefix_url() -> std::result::Result<(), Error> {
         let mut environment = Environment::stub();
         // assert!(validate_repo_versioned_web_url(&mut environment, "https://github.com/hoijui/projvar/tree/525b3c9b8962dd02aab6ea867eebdee3719a6634")?.is_ok());
-        validate_repo_versioned_web_url(
+        validate_repo_versioned_dir_prefix_url(
             &mut environment,
             "https://github.com/hoijui/projvar/tree/525b3c9b8962dd02aab6ea867eebdee3719a6634",
         )?;

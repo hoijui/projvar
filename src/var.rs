@@ -57,11 +57,11 @@ pub enum Key {
     Version,
     License,
     RepoWebUrl,
-    RepoVersionedWebUrl, // TODO Remove this; it is replaced by RepoVersionedFilePrefixUrl & RepoVersionedDirPrefixUrl
     RepoCloneUrl,
     RepoRawVersionedPrefixUrl,
     RepoVersionedFilePrefixUrl,
     RepoVersionedDirPrefixUrl,
+    // RepoCommitPrefixUrl, // TODO, for example: https://gitlab.com/OSEGermany/okhmanifest/-/commit/9e1df32c42a85253af95ea2dc9311128bd8f775a
     RepoIssuesUrl,
     Name,
     VersionDate,
@@ -218,7 +218,6 @@ pub fn list_keys() {
 pub const KEY_VERSION: &str = "PROJECT_VERSION";
 pub const KEY_LICENSE: &str = "PROJECT_LICENSE";
 pub const KEY_REPO_WEB_URL: &str = "PROJECT_REPO_WEB_URL";
-pub const KEY_REPO_VERSIONED_WEB_URL: &str = "BUILD_REPO_VERSIONED_WEB_URL";
 pub const KEY_REPO_CLONE_URL: &str = "PROJECT_REPO_CLONE_URL";
 pub const KEY_REPO_RAW_VERSIONED_PREFIX_URL: &str = "PROJECT_REPO_RAW_VERSIONED_PREFIX_URL";
 pub const KEY_REPO_VERSIONED_FILE_PREFIX_URL: &str = "PROJECT_REPO_VERSIONED_FILE_PREFIX_URL";
@@ -277,11 +276,6 @@ const VAR_REPO_WEB_URL: Variable = Variable {
     key: KEY_REPO_WEB_URL,
     description: "The repo web UI URL, for example: https://gitlab.com/OSEGermany/OHS-3105",
     default_required: true,
-};
-const VAR_REPO_VERSIONED_WEB_URL: Variable = Variable {
-    key: KEY_REPO_VERSIONED_WEB_URL,
-    description: "The repo web UI URL, pointing to the specific version of this build, for example: https://gitlab.com/OSEGermany/OHS-3105/-/tree/din-3105-0.10.0",
-    default_required: false,
 };
 const VAR_REPO_CLONE_URL: Variable = Variable {
     key: KEY_REPO_CLONE_URL,
@@ -372,7 +366,6 @@ fn create(key: Key) -> &'static Variable {
         Key::Version => &VAR_VERSION,
         Key::License => &VAR_LICENSE,
         Key::RepoWebUrl => &VAR_REPO_WEB_URL,
-        Key::RepoVersionedWebUrl => &VAR_REPO_VERSIONED_WEB_URL,
         Key::RepoCloneUrl => &VAR_REPO_CLONE_URL,
         Key::RepoRawVersionedPrefixUrl => &VAR_REPO_RAW_VERSIONED_PREFIX_URL,
         Key::RepoVersionedFilePrefixUrl => &VAR_REPO_VERSIONED_FILE_PREFIX_URL,

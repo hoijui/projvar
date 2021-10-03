@@ -39,7 +39,6 @@ impl super::VarSource for VarSource {
                 var(environment, "BITBUCKET_REPO_FULL_NAME")
                     .map(|project_slug| format!("http://bitbucket.org/{}", project_slug))
             }
-            Key::RepoVersionedWebUrl => super::try_construct_versioned(self, environment)?,
             Key::Ci => var(environment, "CI"),
             Key::BuildBranch => var(environment, "BITBUCKET_BRANCH"),
             Key::BuildTag => var(environment, "BITBUCKET_TAG"),

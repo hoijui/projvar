@@ -76,7 +76,6 @@ impl super::VarSource for VarSource {
                     (_, _) => None,
                 }
             }
-            Key::RepoVersionedWebUrl => super::try_construct_versioned(self, environment)?,
             Key::Ci => var(environment, "CI"),
             Key::BuildBranch => {
                 let refr = var(environment, "GITHUB_REF");

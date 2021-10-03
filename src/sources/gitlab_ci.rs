@@ -34,7 +34,6 @@ impl super::VarSource for VarSource {
         Ok(match key {
             Key::Name => var(environment, "CI_PROJECT_NAME"),
             Key::RepoWebUrl => var(environment, "CI_PROJECT_URL"),
-            Key::RepoVersionedWebUrl => super::try_construct_versioned(self, environment)?,
             Key::RepoIssuesUrl => super::try_construct_issues_url(self, environment)?,
             Key::Ci => var(environment, "CI"),
             Key::BuildBranch => var(environment, "CI_COMMIT_BRANCH"),

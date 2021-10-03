@@ -33,7 +33,6 @@ impl super::VarSource for VarSource {
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
         Ok(match key {
             Key::Name => var(environment, "APP_NAME"),
-            Key::RepoVersionedWebUrl => super::try_construct_versioned(self, environment)?,
             Key::BuildBranch => var(environment, "BRANCH_NAME"),
             Key::Version => var(environment, "VERSION"), // Alternatively (but makes no sense to use): var(environment, "PULL_BASE_SHA")
             Key::BuildNumber => var(environment, "BUILD_NUMBER"),

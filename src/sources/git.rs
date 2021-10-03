@@ -81,13 +81,6 @@ fn tag(environment: &mut Environment) -> BoxResult<Option<String>> {
     })
 }
 
-fn sha(environment: &mut Environment) -> BoxResult<Option<String>> {
-    Ok(match environment.repo() {
-        Some(repo) => repo.sha()?,
-        None => None,
-    })
-}
-
 fn clone_url(environment: &mut Environment) -> BoxResult<Option<String>> {
     Ok(match environment.repo() {
         Some(repo) => {
@@ -154,27 +147,6 @@ impl super::VarSource for VarSource {
             Key::Version => version(environment)?,
             Key::Name => name(environment)?,
             Key::RepoWebUrl => repo_web_url(environment)?,
-            Key::RepoVersionedWebUrl => {
-                let base_repo_web_url = self.retrieve(environment, Key::RepoWebUrl)?;
-                let version = self.retrieve(environment, Key::Version)?;
-                let commit_sha = sha(environment)?;
-
-                if let (Some(base_repo_web_url), Some(version_or_sha)) =
-                    (base_repo_web_url, version.or(commit_sha))
-                {
-                    Some(format!("{}/tree/{}", base_repo_web_url, version_or_sha))
-                } else {
-                    None
-                }
-                // https://gitlab.com/OSEGermany/okhmanifest
-                // https://gitlab.com/OSEGermany/okhmanifest/-/commit/9e1df32c42a85253af95ea2dc9311128bd8f775a
-                // https://gitlab.com/OSEGermany/okhmanifest/-/tree/oldCombinedDeprecated
-                // https://gitlab.com/OSEGermany/OHS-3105/-/tree/din-3105-0.10.0
-                // https://gitlab.com/OSEGermany/OHS-3105/-/tree/din-spec-3105-0.10.0-179-g60c46fc
-
-                // https://github.com/hoijui/repvar
-                // https://github.com/hoijui/repvar/tree/4939bd538643bfb445167ea72b825e605f120318
-            }
             Key::BuildBranch => branch(environment)?,
             Key::BuildTag => tag(environment)?,
             Key::RepoCloneUrl => clone_url(environment)?,
