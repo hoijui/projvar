@@ -7,7 +7,7 @@ use crate::settings::FailOn;
 use crate::sinks::VarSink;
 use crate::sources::VarSource;
 use crate::validator;
-use crate::var::{self, Key, Variable};
+use crate::var::{Key, Variable};
 use std::cmp::Ordering;
 use std::error::Error;
 use strum::IntoEnumIterator;
@@ -47,14 +47,14 @@ pub fn prepare_project_vars(
         }
     });
 
-    for source in sources {
+    for (source_index, source) in sources.iter().enumerate() {
         if source.is_usable(environment) {
             log::trace!("Trying to fetch from source {} ...", source.display());
             for key in Key::iter() {
                 let value = source.retrieve(environment, key)?;
                 if let Some(value) = value {
                     log::trace!("\tFetched {:?}='{}'", key, value);
-                    environment.output.insert(key, value);
+                    environment.output.add(key, source_index, value);
                 }
             }
         }
@@ -64,7 +64,7 @@ pub fn prepare_project_vars(
     let output = environment.output.clone();
     for key in Key::iter() {
         let required = environment.settings.required_keys.contains(&key);
-        match output.get(&key) {
+        match output.get(key) {
             Some(value) => {
                 log::trace!("Validating value for key '{:?}': '{}'", key, value);
                 validator::get(key)(environment, value)?;
@@ -84,19 +84,12 @@ pub fn prepare_project_vars(
     }
 
     log::trace!("Evaluated variables ...");
-    let values: Vec<(Key, &'static Variable, String)> = {
-        environment
-            .output
-            .iter()
-            .map(|key_value| {
-                let key = *key_value.0;
-                let variable = var::get(*key_value.0);
-                let value = key_value.1.clone();
-                log::trace!("\t{:?}:{}='{}'", key, variable.key, &value);
-                (key, variable, value)
-            })
-            .collect()
-    };
+    let values: Vec<(Key, &'static Variable, &String)> = environment.output.get_wrapup();
+    if log::log_enabled!(log::Level::Trace) {
+        for (key, variable, value) in &values {
+            log::trace!("\t{:?}:{}='{}'", key, variable.key, &value);
+        }
+    }
 
     for ref sink in sinks {
         log::trace!("Checking if sink {} is usable ...", sink);

@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::settings::{Settings, STUB};
+use crate::storage::Storage;
 use crate::tools::git;
-use crate::var::Key;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 
@@ -14,7 +14,7 @@ pub struct Environment<'t> {
     /// on the command line or through input files.
     pub vars: HashMap<String, String>,
     /// The output values we evaluated for the project properties we want to know.
-    pub output: HashMap<Key, String>,
+    pub output: Storage,
     repo: Option<git::Repo>,
 }
 
@@ -22,7 +22,7 @@ impl<'t> Environment<'t> {
     #[must_use]
     pub fn new(settings: &Settings) -> Environment {
         let vars = HashMap::<String, String>::new();
-        let output = HashMap::<Key, String>::new();
+        let output = Storage::new();
         Environment {
             settings,
             vars,

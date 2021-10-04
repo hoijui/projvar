@@ -28,6 +28,7 @@ mod logger;
 pub mod settings;
 pub mod sinks;
 pub mod sources;
+mod storage;
 pub mod tools;
 mod validator;
 mod var;

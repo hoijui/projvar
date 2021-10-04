@@ -12,6 +12,7 @@ pub mod environment;
 pub mod settings;
 pub mod sinks;
 pub mod sources;
+mod storage;
 pub mod tools;
 pub mod validator;
 pub mod var;
