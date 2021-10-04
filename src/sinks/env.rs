@@ -11,28 +11,16 @@ pub struct VarSink;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 
-// fn flush_to_env<'a>(
-//     // vars: Box<dyn Iterator<Item=(&String, &String)>>,
-//     vars: Iter<'a, (&String, &String)>,
-//     overwrite: bool,
-// ) {
-//     for (key, value) in vars {
-//         if overwrite || env::var(&key).is_err() {
-//             env::set_var(&key, &value);
-//         }
-//     }
-// }
-
 /// Stores evaluated values (output) into environment variables.
 impl super::VarSink for VarSink {
-    fn is_usable(&self, _environment: &mut Environment) -> bool {
+    fn is_usable(&self, _environment: &Environment) -> bool {
         true
     }
 
     fn store(
         &self,
-        environment: &mut Environment,
-        values: &[(Key, &Variable, String)],
+        environment: &Environment,
+        values: &[(Key, &Variable, &String)],
     ) -> BoxResult<()> {
         for (_key, var, value) in values {
             let key = var.key;

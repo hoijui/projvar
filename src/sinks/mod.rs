@@ -18,7 +18,7 @@ pub trait VarSink: fmt::Display {
     /// Indicates whether this sink of variables is usable.
     /// It might not be usable if the underlying data-sink (e.g. a file) can not be written to,
     /// or is not reachable (e.g. a DB on the network).
-    fn is_usable(&self, environment: &mut Environment) -> bool;
+    fn is_usable(&self, environment: &Environment) -> bool;
 
     /// Tries to store a list of variable `values`.
     ///
@@ -30,8 +30,8 @@ pub trait VarSink: fmt::Display {
     /// depending on the kind of the sink.
     fn store(
         &self,
-        environment: &mut Environment,
-        values: &[(Key, &Variable, String)],
+        environment: &Environment,
+        values: &[(Key, &Variable, &String)],
         // values: Iter<'a, (&Key, &Variable, String)>,
     ) -> BoxResult<()>;
 }

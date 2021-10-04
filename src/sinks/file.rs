@@ -18,16 +18,17 @@ pub struct VarSink {
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 
-/// Stores evaluated values (output) into a file in a BASH compatible way ("KEY=VALUE\n").
+/// Stores evaluated values (output) into a file
+/// in a BASH compatible way ("KEY=VALUE\n").
 impl super::VarSink for VarSink {
-    fn is_usable(&self, _environment: &mut Environment) -> bool {
+    fn is_usable(&self, _environment: &Environment) -> bool {
         true
     }
 
     fn store(
         &self,
-        environment: &mut Environment,
-        values: &[(Key, &Variable, String)],
+        environment: &Environment,
+        values: &[(Key, &Variable, &String)],
     ) -> BoxResult<()> {
         let previous_vars = if self.file.exists() {
             var::parse_vars_file_reader(repvar::tools::create_input_reader(self.file.to_str())?)?
