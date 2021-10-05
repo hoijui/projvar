@@ -42,14 +42,16 @@ fn name(environment: &mut Environment) -> BoxResult<Option<String>> {
     }
 
     Ok(match environment.repo() {
-        Some(repo) => match repo.remote_tracking_branch() {
-            Ok(remote_tracking_branch) => Some(
-                R_REMOTE_NAME_SELECTOR
-                    .replace(&remote_tracking_branch, "$name")
-                    .into_owned(),
-            ),
-            Err(err) => return Err(err),
-        },
+        Some(repo) => {
+            let repo_web_url = repo.remote_web_url()?;
+            let name = R_REMOTE_NAME_SELECTOR.replace(&repo_web_url, "$name");
+            if name == repo_web_url {
+                // return Err(Box::new(Error::new(""))); // TODO Create a propper sources::Error type, and use it here
+                None // HACK
+            } else {
+                Some(name.into_owned())
+            }
+        }
         None => None,
     })
 }
