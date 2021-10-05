@@ -82,6 +82,10 @@ const A_S_LOG_FILE: char = 'L';
 const A_L_LOG_FILE: &str = "log-file";
 const A_S_DATE_FORMAT: char = 'T';
 const A_L_DATE_FORMAT: &str = "date-format";
+const A_S_SHOW_ALL_RETRIEVED: char = 'A';
+const A_L_SHOW_ALL_RETRIEVED: &str = "show-all-retrieved";
+const A_S_SHOW_PRIMARY_RETRIEVED: char = 'P';
+const A_L_SHOW_PRIMARY_RETRIEVED: &str = "show-primary-retrieved";
 
 fn arg_project_root() -> Arg<'static> {
     Arg::new(A_L_PROJECT_ROOT)
@@ -321,8 +325,31 @@ fn arg_date_format() -> Arg<'static> {
         .required(false)
 }
 
+fn arg_show_all_retrieved() -> Arg<'static> {
+    Arg::new(A_L_SHOW_ALL_RETRIEVED)
+        .about("Shows a table of all values retrieved from sources")
+        .long_about("Shows a table (in Markdown syntax) of all properties and the values retrieved for each from each individual source.")
+        .takes_value(false)
+        .short(A_S_SHOW_ALL_RETRIEVED)
+        .long(A_L_SHOW_ALL_RETRIEVED)
+        .multiple_occurrences(false)
+        .required(false)
+}
+
+fn arg_show_primary_retrieved() -> Arg<'static> {
+    Arg::new(A_L_SHOW_PRIMARY_RETRIEVED)
+        .about("Shows a list of the primary values retrieved from sources")
+        .long_about("Shows a list (in Markdown syntax) of all properties and the primary values retrieved for each, accumulated over the sources.")
+        .takes_value(false)
+        .short(A_S_SHOW_PRIMARY_RETRIEVED)
+        .long(A_L_SHOW_PRIMARY_RETRIEVED)
+        .multiple_occurrences(false)
+        .required(false)
+        .conflicts_with(A_L_SHOW_ALL_RETRIEVED)
+}
+
 lazy_static! {
-    static ref ARGS: [Arg<'static>; 18] = [
+    static ref ARGS: [Arg<'static>; 20] = [
         arg_project_root(),
         arg_variable(),
         arg_variables_file(),
@@ -341,6 +368,8 @@ lazy_static! {
         arg_list(),
         arg_log_file(),
         arg_date_format(),
+        arg_show_all_retrieved(),
+        arg_show_primary_retrieved(),
     ];
 }
 
@@ -502,6 +531,13 @@ fn main() -> BoxResult<()> {
 
     let fail_on_missing: bool = args.is_present(A_L_FAIL_ON_MISSING_VALUE);
     let required_keys = required_keys(&args)?;
+    let show_retrieved: settings::ShowRetrieved = if args.is_present(A_L_SHOW_ALL_RETRIEVED) {
+        settings::ShowRetrieved::All
+    } else if args.is_present(A_L_SHOW_PRIMARY_RETRIEVED) {
+        settings::ShowRetrieved::Primary
+    } else {
+        settings::ShowRetrieved::No
+    };
 
     let settings = Settings {
         repo_path: Some(repo_path),
@@ -509,6 +545,7 @@ fn main() -> BoxResult<()> {
         date_format: date_format.to_owned(),
         overwrite,
         fail_on: settings::FailOn::from(fail_on_missing),
+        show_retrieved,
         verbosity,
     };
     log::trace!("Created Settings.");

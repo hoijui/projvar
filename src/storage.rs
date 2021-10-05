@@ -4,6 +4,9 @@
 
 use std::collections::HashMap;
 
+use clap::lazy_static::lazy_static;
+use regex::Regex;
+
 use crate::{
     sources::VarSource,
     var::{self, Key, Variable},
@@ -30,30 +33,58 @@ impl Storage {
     /// containing the currently stored values.
     /// It will be created in markdown format.
     // TODO further specify the markdown flavor in the sentence above.
-    pub fn to_table(&self, sources: &Vec<Box<dyn VarSource>>) -> String {
-        let mut table = Vec::with_capacity(self.key_values.len() * 7 + 1); // because the loob below adds 7 strings for each entry
-        table.push("| Property | Env-Key | ");
-        let mut source_ids = Vec::with_capacity(sources.len());
+    pub fn to_table(&self, sources: &[Box<dyn VarSource>]) -> String {
+        lazy_static! {
+            static ref R_COMMON_SOURCE_PREFIX: Regex = Regex::new(r"^projvar::sources::").unwrap();
+        }
+        static HEADER_PREFIX: &str = "| Property | Env-Key |";
+        static SOURCE_NAME_ESTIMATE: usize = 32;
+        // "| `Key::name()` | `variable.key` |"
+        static CONTENT_LINE_PREFIX_EST: usize = 40;
+        // " `$value` |" (this will often be empty)
+        static CONTENT_LINE_PART_EST: usize = 10;
+        // the estimated size of the table in chars
+        let table_chars_estimate = (HEADER_PREFIX.len() + (sources.len() * (3 + SOURCE_NAME_ESTIMATE)) + 1) + // header
+            (1 + (sources.len() * 6) + 1) + // header separator
+            self.key_values.len() * (CONTENT_LINE_PREFIX_EST + sources.len() * CONTENT_LINE_PART_EST) + 1; // table content
+        let mut table = String::with_capacity(table_chars_estimate);
+
+        // header
+        table.push_str(HEADER_PREFIX);
         for source in sources {
-            source_ids.push(source.display());
+            let display = source.display();
+            let display = R_COMMON_SOURCE_PREFIX.replace(&display, "");
+            table.push(' ');
+            table.push_str(&display);
+            table.push_str(" |");
         }
-        for source_index in 0..sources.len() {
-            table.push(&source_ids[source_index]);
-            table.push(" |");
+        table.push('\n');
+
+        // header separator
+        table.push('|');
+        for _table_sep_index in 0..(sources.len() + 2) {
+            table.push_str(" --- |");
         }
+        table.push('\n');
+
+        // table content
         for (key, values) in &self.key_values {
             let variable = var::get(*key);
-            table.push("| ");
-            table.push(key.into());
-            table.push(" | ");
-            table.push(variable.key);
-            table.push(" | ");
+            table.push_str("| ");
+            table.push_str(key.into());
+            table.push_str(" | ");
+            table.push_str(variable.key);
+            table.push_str(" |");
             for source_index in 0..sources.len() {
-                table.push(values.get(&source_index).map_or("", |v| &v));
-                table.push("\n");
+                table.push(' ');
+                table.push_str(values.get(&source_index).map_or("", |v| v));
+                table.push_str(" |");
             }
+            table.push('\n');
         }
-        table.concat()
+        log::trace!("Table size (in chars), estimated: {}", table_chars_estimate);
+        log::trace!("Table size (in chars), actual:    {}", table.len());
+        table
     }
 
     /// Creates a list of all the keys,
@@ -111,7 +142,10 @@ impl Storage {
         // or creates, inserts and returns a new one,
         // if none is present yet.
         // See: <https://stackoverflow.com/a/41418147>
-        (*self.key_values.entry(key).or_insert_with(HashMap::new)).insert(source_index, value);
+        (*self.key_values.entry(key).or_insert_with(HashMap::new))
+            .insert(source_index, value.clone());
+        // here, the last to add, wins (should be the source with the highest hierarchy)
+        self.key_primary.insert(key, value);
     }
 }
 

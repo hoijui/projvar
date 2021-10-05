@@ -60,6 +60,20 @@ pub fn prepare_project_vars(
         }
     }
 
+    // Report raw values retrieved from the sources,
+    // if requested
+    let retrieved_display = match environment.settings.show_retrieved {
+        crate::settings::ShowRetrieved::No => None,
+        crate::settings::ShowRetrieved::Primary => Some(environment.output.to_list()),
+        crate::settings::ShowRetrieved::All => Some(environment.output.to_table(&sources)),
+    };
+    if let Some(retrieved_display) = retrieved_display {
+        log::info!(
+            "Raw, Retrieved values from sources:\n\n{}",
+            retrieved_display
+        );
+    }
+
     log::trace!("Validate each variables precense and value ...");
     let output = environment.output.clone();
     for key in Key::iter() {
