@@ -2,14 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// use dict::Dict;
-// use std::io;
-// use std::io::BufRead;
-// use std::io::Write;
-// use git2;
-
-// #[derive(Debug)]
-// #[derive(TypedBuilder)]
 use clap::lazy_static::lazy_static;
 use std::{collections::HashSet, path::PathBuf};
 use strum::IntoEnumIterator;
@@ -37,14 +29,6 @@ impl Verbosity {
     fn index(self) -> usize {
         self as usize
     }
-    // pub fn more(self) -> Self {
-    //     let new_index = self.index().saturating_add(1) % VARIANTS_LIST.len();
-    //     VARIANTS_LIST[new_index]
-    // }
-    // pub fn less(self) -> Self {
-    //     let new_index = self.index().saturating_sub(1);
-    //     VARIANTS_LIST[new_index]
-    // }
 
     /// Increases the verbosity by `steps`,
     /// halting at the upper bound of the enum.
@@ -62,41 +46,6 @@ impl Verbosity {
         VARIANTS_LIST[new_index]
     }
 }
-
-// impl Add<usize> for Verbosity {
-//     type Output = Self;
-
-//     fn add(self, other: usize) -> Self {
-//         let new_index = self.index().saturating_add(other) % VARIANTS_LIST.len();
-//         VARIANTS_LIST[new_index]
-//     }
-// }
-
-// impl Sub<usize> for Verbosity {
-//     type Output = Self;
-
-//     fn sub(self, other: usize) -> Self {
-//         let new_index = self.index().saturating_sub(other) % VARIANTS_LIST.len();
-//         VARIANTS_LIST[new_index]
-//     }
-// }
-
-// impl Add<i16> for Verbosity {
-//     type Output = Self;
-
-//     fn add(self, other: i16) -> Self {
-//         let new_index = ((self as i16 + other) % VARIANTS_LIST.len() as i16) as usize;
-//         VARIANTS_LIST[new_index]
-//     }
-// }
-
-// impl Sub<i16> for Verbosity {
-//     type Output = Self;
-
-//     fn sub(self, other: i16) -> Self {
-//         self.add(-other)
-//     }
-// }
 
 impl From<bool> for Verbosity {
     fn from(verbose: bool) -> Self {
