@@ -13,9 +13,9 @@ pub mod travis_ci;
 use std::error::Error;
 
 use clap::lazy_static::lazy_static;
-use url::Url;
+use url::{Host, Url};
 
-use crate::constants::{self, S_GIT_HUB_COM_RAW};
+use crate::constants;
 use crate::environment::Environment;
 use crate::var::Key;
 
@@ -131,30 +131,27 @@ pub fn try_construct_raw_prefix_url<S: VarSource>(
     var_source: &S,
     environment: &mut Environment,
 ) -> BoxResult<Option<String>> {
-    Ok(
-        // TODO This code with the 3 equal else's in the end is ugly, but don't know how to improve
-        if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
-            let mut url = Url::parse(&base_repo_web_url)?;
-            if let Some(host) = url.host() {
-                if host == constants::D_GIT_HUB_COM {
-                    url.set_host(Some(S_GIT_HUB_COM_RAW))?;
+    if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
+        let mut url = Url::parse(&base_repo_web_url)?;
+        if let Some(host) = url.host() {
+            return Ok(match host {
+                Host::Domain(constants::D_GIT_HUB_COM) => {
+                    url.set_host(Some(constants::D_GIT_HUB_COM_RAW))?;
                     Some(url.to_string())
-                } else if host == constants::D_GIT_LAB_COM {
+                }
+                Host::Domain(constants::D_GIT_LAB_COM) => {
                     url.set_path(&format!("{}/-/raw", url.path()));
                     Some(url.to_string())
-                } else if host == constants::D_BIT_BUCKET_ORG {
+                }
+                Host::Domain(constants::D_BIT_BUCKET_ORG) => {
                     url.set_path(&format!("{}/raw", url.path()));
                     Some(url.to_string())
-                } else {
-                    None
                 }
-            } else {
-                None
-            }
-        } else {
-            None
-        },
-    )
+                _ => None,
+            });
+        }
+    }
+    Ok(None)
 }
 
 /// Tries to construct the file prefix URL
@@ -172,30 +169,27 @@ pub fn try_construct_file_prefix_url<S: VarSource>(
     var_source: &S,
     environment: &mut Environment,
 ) -> BoxResult<Option<String>> {
-    Ok(
-        // TODO This code with the 3 equal else's in the end is ugly, but don't know how to improve
-        if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
-            let mut url = Url::parse(&base_repo_web_url)?;
-            if let Some(host) = url.host() {
-                if host == constants::D_GIT_HUB_COM {
+    if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
+        let mut url = Url::parse(&base_repo_web_url)?;
+        if let Some(host) = url.host() {
+            return Ok(match host {
+                Host::Domain(constants::D_GIT_HUB_COM) => {
                     url.set_path(&format!("{}/blob", url.path()));
                     Some(url.to_string())
-                } else if host == constants::D_GIT_LAB_COM {
+                }
+                Host::Domain(constants::D_GIT_LAB_COM) => {
                     url.set_path(&format!("{}/-/blob", url.path()));
                     Some(url.to_string())
-                } else if host == constants::D_BIT_BUCKET_ORG {
+                }
+                Host::Domain(constants::D_BIT_BUCKET_ORG) => {
                     url.set_path(&format!("{}/src", url.path()));
                     Some(url.to_string())
-                } else {
-                    None
                 }
-            } else {
-                None
-            }
-        } else {
-            None
-        },
-    )
+                _ => None,
+            });
+        }
+    }
+    Ok(None)
 }
 
 /// Tries to construct the directory prefix URL
@@ -213,30 +207,27 @@ pub fn try_construct_dir_prefix_url<S: VarSource>(
     var_source: &S,
     environment: &mut Environment,
 ) -> BoxResult<Option<String>> {
-    Ok(
-        // TODO This code with the 3 equal else's in the end is ugly, but don't know how to improve
-        if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
-            let mut url = Url::parse(&base_repo_web_url)?;
-            if let Some(host) = url.host() {
-                if host == constants::D_GIT_HUB_COM {
+    if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
+        let mut url = Url::parse(&base_repo_web_url)?;
+        if let Some(host) = url.host() {
+            return Ok(match host {
+                Host::Domain(constants::D_GIT_HUB_COM) => {
                     url.set_path(&format!("{}/tree", url.path()));
                     Some(url.to_string())
-                } else if host == constants::D_GIT_LAB_COM {
+                }
+                Host::Domain(constants::D_GIT_LAB_COM) => {
                     url.set_path(&format!("{}/-/tree", url.path()));
                     Some(url.to_string())
-                } else if host == constants::D_BIT_BUCKET_ORG {
+                }
+                Host::Domain(constants::D_BIT_BUCKET_ORG) => {
                     url.set_path(&format!("{}/src", url.path()));
                     Some(url.to_string())
-                } else {
-                    None
                 }
-            } else {
-                None
-            }
-        } else {
-            None
-        },
-    )
+                _ => None,
+            });
+        }
+    }
+    Ok(None)
 }
 
 /// Tries to construct the commit prefix URL
@@ -254,28 +245,25 @@ pub fn try_construct_commit_prefix_url<S: VarSource>(
     var_source: &S,
     environment: &mut Environment,
 ) -> BoxResult<Option<String>> {
-    Ok(
-        // TODO This code with the 3 equal else's in the end is ugly, but don't know how to improve
-        if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
-            let mut url = Url::parse(&base_repo_web_url)?;
-            if let Some(host) = url.host() {
-                if host == constants::D_GIT_HUB_COM {
+    if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
+        let mut url = Url::parse(&base_repo_web_url)?;
+        if let Some(host) = url.host() {
+            return Ok(match host {
+                Host::Domain(constants::D_GIT_HUB_COM) => {
                     url.set_path(&format!("{}/commit", url.path()));
                     Some(url.to_string())
-                } else if host == constants::D_GIT_LAB_COM {
+                }
+                Host::Domain(constants::D_GIT_LAB_COM) => {
                     url.set_path(&format!("{}/-/commit", url.path()));
                     Some(url.to_string())
-                } else if host == constants::D_BIT_BUCKET_ORG {
+                }
+                Host::Domain(constants::D_BIT_BUCKET_ORG) => {
                     url.set_path(&format!("{}/commits", url.path()));
                     Some(url.to_string())
-                } else {
-                    None
                 }
-            } else {
-                None
-            }
-        } else {
-            None
-        },
-    )
+                _ => None,
+            });
+        }
+    }
+    Ok(None)
 }

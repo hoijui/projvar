@@ -272,9 +272,12 @@ fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
         "versioned web",
         &url,
         vec![
-            (&constants::D_GIT_HUB_COM, &R_GIT_HUB_PATH),
-            (&constants::D_GIT_LAB_COM, &R_GIT_LAB_PATH),
-            (&constants::D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+            (&Host::Domain(constants::D_GIT_HUB_COM), &R_GIT_HUB_PATH),
+            (&Host::Domain(constants::D_GIT_LAB_COM), &R_GIT_LAB_PATH),
+            (
+                &Host::Domain(constants::D_BIT_BUCKET_ORG),
+                &R_BIT_BUCKET_PATH,
+            ),
         ],
     )
 }
@@ -308,9 +311,12 @@ fn validate_repo_clone_url(environment: &mut Environment, value: &str) -> Result
         "repo clone",
         &url,
         vec![
-            (&constants::D_GIT_HUB_COM, &R_GIT_HUB_PATH),
-            (&constants::D_GIT_LAB_COM, &R_GIT_LAB_PATH),
-            (&constants::D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+            (&Host::Domain(constants::D_GIT_HUB_COM), &R_GIT_HUB_PATH),
+            (&Host::Domain(constants::D_GIT_LAB_COM), &R_GIT_LAB_PATH),
+            (
+                &Host::Domain(constants::D_BIT_BUCKET_ORG),
+                &R_BIT_BUCKET_PATH,
+            ),
         ],
     )
 }
@@ -338,9 +344,12 @@ fn validate_repo_raw_versioned_prefix_url(environment: &mut Environment, value: 
         "raw versioned prefix",
         &url,
         vec![
-            (&constants::D_GIT_HUB_COM_RAW, &R_GIT_HUB_PATH),
-            (&constants::D_GIT_LAB_COM, &R_GIT_LAB_PATH),
-            (&constants::D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+            (&Host::Domain(constants::D_GIT_HUB_COM_RAW), &R_GIT_HUB_PATH),
+            (&Host::Domain(constants::D_GIT_LAB_COM), &R_GIT_LAB_PATH),
+            (
+                &Host::Domain(constants::D_BIT_BUCKET_ORG),
+                &R_BIT_BUCKET_PATH,
+            ),
         ],
     )
 }
@@ -364,9 +373,12 @@ fn validate_repo_versioned_file_prefix_url(environment: &mut Environment, value:
         "versioned file prefix",
         &url,
         vec![
-            (&constants::D_GIT_HUB_COM, &R_GIT_HUB_PATH),
-            (&constants::D_GIT_LAB_COM, &R_GIT_LAB_PATH),
-            (&constants::D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+            (&Host::Domain(constants::D_GIT_HUB_COM), &R_GIT_HUB_PATH),
+            (&Host::Domain(constants::D_GIT_LAB_COM), &R_GIT_LAB_PATH),
+            (
+                &Host::Domain(constants::D_BIT_BUCKET_ORG),
+                &R_BIT_BUCKET_PATH,
+            ),
         ],
     )
 }
@@ -390,9 +402,12 @@ fn validate_repo_versioned_dir_prefix_url(environment: &mut Environment, value: 
         "versioned dir prefix",
         &url,
         vec![
-            (&constants::D_GIT_HUB_COM, &R_GIT_HUB_PATH),
-            (&constants::D_GIT_LAB_COM, &R_GIT_LAB_PATH),
-            (&constants::D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+            (&Host::Domain(constants::D_GIT_HUB_COM), &R_GIT_HUB_PATH),
+            (&Host::Domain(constants::D_GIT_LAB_COM), &R_GIT_LAB_PATH),
+            (
+                &Host::Domain(constants::D_BIT_BUCKET_ORG),
+                &R_BIT_BUCKET_PATH,
+            ),
         ],
     )
 }
@@ -416,9 +431,12 @@ fn validate_repo_commit_prefix_url(environment: &mut Environment, value: &str) -
         "commit prefix",
         &url,
         vec![
-            (&constants::D_GIT_HUB_COM, &R_GIT_HUB_PATH),
-            (&constants::D_GIT_LAB_COM, &R_GIT_LAB_PATH),
-            (&constants::D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+            (&Host::Domain(constants::D_GIT_HUB_COM), &R_GIT_HUB_PATH),
+            (&Host::Domain(constants::D_GIT_LAB_COM), &R_GIT_LAB_PATH),
+            (
+                &Host::Domain(constants::D_BIT_BUCKET_ORG),
+                &R_BIT_BUCKET_PATH,
+            ),
         ],
     )
 }
@@ -441,9 +459,12 @@ fn validate_repo_issues_url(environment: &mut Environment, value: &str) -> Resul
         "issues",
         &url,
         vec![
-            (&constants::D_GIT_HUB_COM, &R_GIT_HUB_PATH),
-            (&constants::D_GIT_LAB_COM, &R_GIT_LAB_PATH),
-            (&constants::D_BIT_BUCKET_ORG, &R_BIT_BUCKET_PATH),
+            (&Host::Domain(constants::D_GIT_HUB_COM), &R_GIT_HUB_PATH),
+            (&Host::Domain(constants::D_GIT_LAB_COM), &R_GIT_LAB_PATH),
+            (
+                &Host::Domain(constants::D_BIT_BUCKET_ORG),
+                &R_BIT_BUCKET_PATH,
+            ),
         ],
     )
 }
@@ -462,8 +483,8 @@ fn validate_build_hosting_url(environment: &mut Environment, value: &str) -> Res
         "build hosting",
         &url,
         vec![
-            (constants::S_GIT_HUB_IO_SUFIX, &R_GIT_HUB_HOST),
-            (constants::S_GIT_LAB_IO_SUFIX, &R_GIT_LAB_HOST),
+            (constants::DP_GIT_HUB_IO_SUFIX, &R_GIT_HUB_HOST),
+            (constants::DP_GIT_LAB_IO_SUFIX, &R_GIT_LAB_HOST),
         ],
     )
 }
