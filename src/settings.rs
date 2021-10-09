@@ -7,7 +7,7 @@ use std::{collections::HashSet, path::PathBuf};
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, EnumString, EnumVariantNames, IntoStaticStr};
 
-use crate::var::Key;
+use crate::{tools::git_hosting_provs::HostingType, var::Key};
 
 #[derive(
     Debug, EnumString, EnumVariantNames, EnumIter, IntoStaticStr, PartialEq, PartialOrd, Copy, Clone,
@@ -121,6 +121,7 @@ pub struct Settings /*<S: ::std::hash::BuildHasher>*/ {
     // #[builder(default = false)]
     // fail_on_missing: bool,
     pub show_retrieved: ShowRetrieved,
+    pub hosting_type: HostingType,
     pub verbosity: (Verbosity, Verbosity),
 }
 
@@ -135,6 +136,7 @@ impl Settings {
             date_format: crate::tools::git::DATE_FORMAT.to_string(),
             fail_on: FailOn::AnyMissingValue,
             show_retrieved: ShowRetrieved::No,
+            hosting_type: HostingType::Unknown,
             verbosity: (Verbosity::None, Verbosity::None),
         }
     }

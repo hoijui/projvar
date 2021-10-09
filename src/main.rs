@@ -38,6 +38,7 @@ use crate::environment::Environment;
 use crate::settings::{Settings, Verbosity};
 use crate::sinks::VarSink;
 use crate::sources::VarSource;
+use crate::tools::git_hosting_provs::{self, HostingType};
 use crate::var::Key;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
@@ -58,6 +59,8 @@ const A_S_ENV_OUT: char = 'e';
 const A_L_ENV_OUT: &str = "env-out";
 const A_S_FILE_OUT: char = 'f';
 const A_L_FILE_OUT: &str = "file-out";
+const A_S_HOSTING_TYPE: char = 't';
+const A_L_HOSTING_TYPE: &str = "hosting-type";
 const A_S_VERBOSE: char = 'v';
 const A_L_VERBOSE: &str = "verbose";
 const A_S_LOG_LEVEL: char = 'F';
@@ -165,6 +168,20 @@ fn arg_out_file() -> Arg<'static> {
         .long(A_L_FILE_OUT)
         .multiple_occurrences(true)
         .required(false)
+}
+
+fn arg_hosting_type() -> Arg<'static> {
+    Arg::new(A_L_HOSTING_TYPE)
+        .about("Overrides the hosting type of the primary remote")
+        .long_about("As usually most kinds of repo URL property values are derived from the clone URL, it is essential to know how to construct them. Different hosting softwares construct them differently. By default, we try to derive it from the clone URL domain, but if this is not possible, this switch allows to set the hosting software manually.")
+        .takes_value(true)
+        .forbid_empty_values(true)
+        .possible_values(git_hosting_provs::HostingType::VARIANTS)
+        .short(A_S_HOSTING_TYPE)
+        .long(A_L_HOSTING_TYPE)
+        .multiple_occurrences(false)
+        .required(false)
+        .default_value(HostingType::Unknown.into())
 }
 
 fn arg_verbose() -> Arg<'static> {
@@ -349,13 +366,14 @@ fn arg_show_primary_retrieved() -> Arg<'static> {
 }
 
 lazy_static! {
-    static ref ARGS: [Arg<'static>; 20] = [
+    static ref ARGS: [Arg<'static>; 21] = [
         arg_project_root(),
         arg_variable(),
         arg_variables_file(),
         arg_no_env_in(),
         arg_env_out(),
         arg_out_file(),
+        arg_hosting_type(),
         arg_verbose(),
         arg_log_level(),
         arg_quiet(),
@@ -390,6 +408,16 @@ fn arg_matcher() -> App<'static> {
     // whihc are generate dautomatically.
     assert_eq!(app.get_arguments().count(), ARGS.len() + 2);
     app
+}
+
+fn hosting_type(args: &ArgMatches) -> BoxResult<HostingType> {
+    Ok(
+        if let Some(hosting_type_str) = args.value_of(A_L_HOSTING_TYPE) {
+            HostingType::from_str(hosting_type_str)?
+        } else {
+            HostingType::default()
+        },
+    )
 }
 
 /// Returns the logging verbosities to be used.
@@ -538,6 +566,7 @@ fn main() -> BoxResult<()> {
     } else {
         settings::ShowRetrieved::No
     };
+    let hosting_type = hosting_type(&args)?;
 
     let settings = Settings {
         repo_path: Some(repo_path),
@@ -546,6 +575,7 @@ fn main() -> BoxResult<()> {
         overwrite,
         fail_on: settings::FailOn::from(fail_on_missing),
         show_retrieved,
+        hosting_type,
         verbosity,
     };
     log::trace!("Created Settings.");

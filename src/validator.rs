@@ -2,13 +2,14 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use crate::tools::git_hosting_provs::{HostingType, PublicSite};
 use crate::var::Key;
 use crate::{constants, environment::Environment};
 use chrono::{DateTime, NaiveDateTime};
 use clap::lazy_static::lazy_static;
 use regex::Regex;
 use thiserror::Error;
-use url::{Host, Url};
+use url::Url;
 
 pub type Result = std::result::Result<Option<Warning>, Error>;
 pub type Validator = fn(&mut Environment, &str) -> Result;
@@ -193,67 +194,69 @@ fn check_empty(_environment: &mut Environment, value: &str, part_desc: &str) -> 
     }
 }
 
-fn check_url_path(
-    _environment: &mut Environment,
-    value: &str,
-    url_desc: &str,
-    url: &Url,
-    host_reg: Vec<(&Host<&str>, &Regex)>,
-) -> Result {
-    for (host, regex) in host_reg {
-        if url.host().as_ref() == Some(host) {
-            return if regex.is_match(url.path()) {
-                Ok(None)
-            } else {
-                Err(Error::AlmostUsableValue {
-                    msg: format!(
-                        r#"For {}, this path part of the {} URL is invalid: "{}"; it should match "{}""#,
-                        host,
-                        url_desc,
-                        url.path(),
-                        regex.as_str()
-                    ),
-                    value: value.to_owned(),
-                })
-            };
-        }
+fn eval_hosting_type(environment: &mut Environment, url: &Url) -> HostingType {
+    let configured_ht = environment.settings.hosting_type;
+    if let HostingType::Unknown = configured_ht {
+        HostingType::from(PublicSite::from(url.host()))
+    } else {
+        configured_ht
     }
-    Ok(Some(Warning::Unknown {
-        value: value.to_owned(),
-    }))
 }
 
-fn check_url_host(
-    _environment: &mut Environment,
-    value: &str,
-    url_desc: &str,
-    url: &Url,
-    host_checkers: Vec<(&'static str, &Regex)>,
-) -> Result {
-    if let Some(host) = url.host() {
-        let host_str = host.to_string();
-        for (host_suffix, host_matcher) in host_checkers {
-            if host_str.ends_with(host_suffix) {
-                return if host_matcher.is_match(&host.to_string()) {
-                    Ok(None)
-                } else {
-                    Err(Error::AlmostUsableValue {
-                        msg: format!(
-                            r#"For {}, this host part of the {} URL is invalid: "{}"; it should match "{}""#,
-                            host_suffix,
-                            url_desc,
-                            url.path(),
-                            host_matcher.as_str()
-                        ),
-                        value: value.to_owned(),
-                    })
-                };
-            }
-        }
+fn eval_hosting_type_from_hosting_suffix(environment: &mut Environment, url: &Url) -> HostingType {
+    let configured_ht = environment.settings.hosting_type;
+    if let HostingType::Unknown = configured_ht {
+        HostingType::from(PublicSite::from_hosting_domain_option(url.host().as_ref()))
+    } else {
+        configured_ht
     }
-    Ok(Some(Warning::Unknown {
-        value: value.to_owned(),
-    }))
+}
+
+fn check_url_path(value: &str, url_desc: &str, url: &Url, path_reg: Option<&Regex>) -> Result {
+    if let (Some(path_reg), Some(host)) = (path_reg, url.host().as_ref()) {
+        if path_reg.is_match(url.path()) {
+            Ok(None)
+        } else {
+            Err(Error::AlmostUsableValue {
+                msg: format!(
+                    r#"For {}, this path part of the {} URL is invalid: "{}"; it should match "{}""#,
+                    host,
+                    url_desc,
+                    url.path(),
+                    path_reg.as_str()
+                ),
+                value: value.to_owned(),
+            })
+        }
+    } else {
+        Ok(Some(Warning::Unknown {
+            value: value.to_owned(),
+        }))
+    }
+}
+
+fn check_url_host(value: &str, url_desc: &str, url: &Url, host_reg: Option<&Regex>) -> Result {
+    if let (Some(host_reg), Some(host)) = (host_reg, url.host().as_ref()) {
+        let host_str = host.to_string();
+        if host_reg.is_match(&host_str) {
+            Ok(None)
+        } else {
+            Err(Error::AlmostUsableValue {
+                msg: format!(
+                    r#"For {}, this host part of the {} URL is invalid: "{}"; it should match "{}""#,
+                    host,
+                    url_desc,
+                    url.path(),
+                    host_reg.as_str()
+                ),
+                value: value.to_owned(),
+            })
+        }
+    } else {
+        Ok(Some(Warning::Unknown {
+            value: value.to_owned(),
+        }))
+    }
 }
 
 fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
@@ -266,20 +269,14 @@ fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
     }
 
     let url = check_public_url(environment, value, false)?;
-    check_url_path(
-        environment,
-        value,
-        "versioned web",
-        &url,
-        vec![
-            (&Host::Domain(constants::D_GIT_HUB_COM), &R_GIT_HUB_PATH),
-            (&Host::Domain(constants::D_GIT_LAB_COM), &R_GIT_LAB_PATH),
-            (
-                &Host::Domain(constants::D_BIT_BUCKET_ORG),
-                &R_BIT_BUCKET_PATH,
-            ),
-        ],
-    )
+    let hosting_type = eval_hosting_type(environment, &url);
+    let host_reg: Option<&Regex> = match hosting_type {
+        HostingType::GitHub => Some(&R_GIT_HUB_PATH),
+        HostingType::GitLab => Some(&R_GIT_LAB_PATH),
+        HostingType::BitBucket => Some(&R_BIT_BUCKET_PATH),
+        _ => None, // TODO Implement the others
+    };
+    check_url_path(value, "versioned web", &url, host_reg)
 }
 
 // * git@bitbucket.org:Aouatef/master_arbeit.git
@@ -305,20 +302,15 @@ fn validate_repo_clone_url(environment: &mut Environment, value: &str) -> Result
             }
         }
     };
-    check_url_path(
-        environment,
-        value,
-        "repo clone",
-        &url,
-        vec![
-            (&Host::Domain(constants::D_GIT_HUB_COM), &R_GIT_HUB_PATH),
-            (&Host::Domain(constants::D_GIT_LAB_COM), &R_GIT_LAB_PATH),
-            (
-                &Host::Domain(constants::D_BIT_BUCKET_ORG),
-                &R_BIT_BUCKET_PATH,
-            ),
-        ],
-    )
+
+    let hosting_type = eval_hosting_type(environment, &url);
+    let host_reg: Option<&Regex> = match hosting_type {
+        HostingType::GitHub => Some(&R_GIT_HUB_PATH),
+        HostingType::GitLab => Some(&R_GIT_LAB_PATH),
+        HostingType::BitBucket => Some(&R_BIT_BUCKET_PATH),
+        _ => None, // TODO Implement the others
+    };
+    check_url_path(value, "repo clone", &url, host_reg)
 }
 
 /// See also `sources::try_construct_raw_prefix_url`.
@@ -338,20 +330,14 @@ fn validate_repo_raw_versioned_prefix_url(environment: &mut Environment, value: 
     }
 
     let url = check_public_url(environment, value, false)?;
-    check_url_path(
-        environment,
-        value,
-        "raw versioned prefix",
-        &url,
-        vec![
-            (&Host::Domain(constants::D_GIT_HUB_COM_RAW), &R_GIT_HUB_PATH),
-            (&Host::Domain(constants::D_GIT_LAB_COM), &R_GIT_LAB_PATH),
-            (
-                &Host::Domain(constants::D_BIT_BUCKET_ORG),
-                &R_BIT_BUCKET_PATH,
-            ),
-        ],
-    )
+    let hosting_type = eval_hosting_type(environment, &url);
+    let host_reg: Option<&Regex> = match hosting_type {
+        HostingType::GitHub => Some(&R_GIT_HUB_PATH),
+        HostingType::GitLab => Some(&R_GIT_LAB_PATH),
+        HostingType::BitBucket => Some(&R_BIT_BUCKET_PATH),
+        _ => None, // TODO Implement the others
+    };
+    check_url_path(value, "raw versioned prefix", &url, host_reg)
 }
 
 /// See also `sources::try_construct_file_prefix_url`.
@@ -367,20 +353,14 @@ fn validate_repo_versioned_file_prefix_url(environment: &mut Environment, value:
     }
 
     let url = check_public_url(environment, value, false)?;
-    check_url_path(
-        environment,
-        value,
-        "versioned file prefix",
-        &url,
-        vec![
-            (&Host::Domain(constants::D_GIT_HUB_COM), &R_GIT_HUB_PATH),
-            (&Host::Domain(constants::D_GIT_LAB_COM), &R_GIT_LAB_PATH),
-            (
-                &Host::Domain(constants::D_BIT_BUCKET_ORG),
-                &R_BIT_BUCKET_PATH,
-            ),
-        ],
-    )
+    let hosting_type = eval_hosting_type(environment, &url);
+    let host_reg: Option<&Regex> = match hosting_type {
+        HostingType::GitHub => Some(&R_GIT_HUB_PATH),
+        HostingType::GitLab => Some(&R_GIT_LAB_PATH),
+        HostingType::BitBucket => Some(&R_BIT_BUCKET_PATH),
+        _ => None, // TODO Implement the others
+    };
+    check_url_path(value, "versioned file prefix", &url, host_reg)
 }
 
 /// See also `sources::try_construct_file_prefix_url`.
@@ -396,20 +376,14 @@ fn validate_repo_versioned_dir_prefix_url(environment: &mut Environment, value: 
     }
 
     let url = check_public_url(environment, value, false)?;
-    check_url_path(
-        environment,
-        value,
-        "versioned dir prefix",
-        &url,
-        vec![
-            (&Host::Domain(constants::D_GIT_HUB_COM), &R_GIT_HUB_PATH),
-            (&Host::Domain(constants::D_GIT_LAB_COM), &R_GIT_LAB_PATH),
-            (
-                &Host::Domain(constants::D_BIT_BUCKET_ORG),
-                &R_BIT_BUCKET_PATH,
-            ),
-        ],
-    )
+    let hosting_type = eval_hosting_type(environment, &url);
+    let host_reg: Option<&Regex> = match hosting_type {
+        HostingType::GitHub => Some(&R_GIT_HUB_PATH),
+        HostingType::GitLab => Some(&R_GIT_LAB_PATH),
+        HostingType::BitBucket => Some(&R_BIT_BUCKET_PATH),
+        _ => None, // TODO Implement the others
+    };
+    check_url_path(value, "versioned dir prefix", &url, host_reg)
 }
 
 /// See also `sources::try_construct_commit_prefix_url`.
@@ -425,20 +399,14 @@ fn validate_repo_commit_prefix_url(environment: &mut Environment, value: &str) -
     }
 
     let url = check_public_url(environment, value, false)?;
-    check_url_path(
-        environment,
-        value,
-        "commit prefix",
-        &url,
-        vec![
-            (&Host::Domain(constants::D_GIT_HUB_COM), &R_GIT_HUB_PATH),
-            (&Host::Domain(constants::D_GIT_LAB_COM), &R_GIT_LAB_PATH),
-            (
-                &Host::Domain(constants::D_BIT_BUCKET_ORG),
-                &R_BIT_BUCKET_PATH,
-            ),
-        ],
-    )
+    let hosting_type = eval_hosting_type(environment, &url);
+    let host_reg: Option<&Regex> = match hosting_type {
+        HostingType::GitHub => Some(&R_GIT_HUB_PATH),
+        HostingType::GitLab => Some(&R_GIT_LAB_PATH),
+        HostingType::BitBucket => Some(&R_BIT_BUCKET_PATH),
+        _ => None, // TODO Implement the others
+    };
+    check_url_path(value, "commit prefix", &url, host_reg)
 }
 
 fn validate_repo_issues_url(environment: &mut Environment, value: &str) -> Result {
@@ -453,20 +421,14 @@ fn validate_repo_issues_url(environment: &mut Environment, value: &str) -> Resul
     }
 
     let url = check_public_url(environment, value, false)?;
-    check_url_path(
-        environment,
-        value,
-        "issues",
-        &url,
-        vec![
-            (&Host::Domain(constants::D_GIT_HUB_COM), &R_GIT_HUB_PATH),
-            (&Host::Domain(constants::D_GIT_LAB_COM), &R_GIT_LAB_PATH),
-            (
-                &Host::Domain(constants::D_BIT_BUCKET_ORG),
-                &R_BIT_BUCKET_PATH,
-            ),
-        ],
-    )
+    let hosting_type = eval_hosting_type(environment, &url);
+    let host_reg: Option<&Regex> = match hosting_type {
+        HostingType::GitHub => Some(&R_GIT_HUB_PATH),
+        HostingType::GitLab => Some(&R_GIT_LAB_PATH),
+        HostingType::BitBucket => Some(&R_BIT_BUCKET_PATH),
+        _ => None, // TODO Implement the others
+    };
+    check_url_path(value, "issues", &url, host_reg)
 }
 
 fn validate_build_hosting_url(environment: &mut Environment, value: &str) -> Result {
@@ -477,16 +439,13 @@ fn validate_build_hosting_url(environment: &mut Environment, value: &str) -> Res
     }
 
     let url = check_public_url(environment, value, false)?;
-    check_url_host(
-        environment,
-        value,
-        "build hosting",
-        &url,
-        vec![
-            (constants::DP_GIT_HUB_IO_SUFIX, &R_GIT_HUB_HOST),
-            (constants::DP_GIT_LAB_IO_SUFIX, &R_GIT_LAB_HOST),
-        ],
-    )
+    let hosting_type = eval_hosting_type_from_hosting_suffix(environment, &url);
+    let host_reg: Option<&Regex> = match hosting_type {
+        HostingType::GitHub => Some(&R_GIT_HUB_HOST),
+        HostingType::GitLab => Some(&R_GIT_LAB_HOST),
+        _ => None, // TODO Implement the others (BitBucket does not have pages though, so skip it!)
+    };
+    check_url_host(value, "build hosting", &url, host_reg)
 }
 
 fn validate_name(environment: &mut Environment, value: &str) -> Result {
