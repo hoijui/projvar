@@ -57,7 +57,7 @@ impl From<bool> for Verbosity {
     }
 }
 
-#[derive(Debug, EnumString, EnumVariantNames, IntoStaticStr)]
+#[derive(Debug, EnumString, EnumVariantNames, IntoStaticStr, Clone, Copy)]
 pub enum Overwrite {
     All,
     None,
@@ -87,6 +87,7 @@ impl Overwrite {
 /*     const VARIANTS: &'static [&'static str]; */
 /* } */
 
+#[derive(Clone, Copy)]
 pub enum FailOn {
     AnyMissingValue,
     Error,
@@ -102,6 +103,7 @@ impl From<bool> for FailOn {
     }
 }
 
+#[derive(Clone, Copy)]
 pub enum ShowRetrieved {
     No,
     Primary,
