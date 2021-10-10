@@ -47,6 +47,8 @@ fn is_git_repo_root(repo_path: Option<&Path>) -> bool {
     tools::git::Repo::try_from(repo_path).is_ok()
 }
 
+const DEFAULT_FILE_OUT: &str = ".projvars.env.txt";
+
 const A_S_PROJECT_ROOT: char = 'C';
 const A_L_PROJECT_ROOT: &str = "project-root";
 const A_S_VARIABLE: char = 'D';
@@ -167,6 +169,7 @@ fn arg_out_file() -> Arg<'static> {
         .short(A_S_FILE_OUT)
         .long(A_L_FILE_OUT)
         .multiple_occurrences(true)
+        .default_value(DEFAULT_FILE_OUT)
         .required(false)
 }
 
@@ -496,11 +499,18 @@ fn sinks(args: &ArgMatches) -> BoxResult<Vec<Box<dyn VarSink>>> {
     if args.is_present(A_L_ENV_OUT) {
         sinks.push(Box::new(sinks::env::VarSink {}));
     }
-    if let Some(out_files) = args.values_of(A_S_FILE_OUT) {
-        for out_file in out_files {
+    if args.is_present(A_L_FILE_OUT) {
+        if args.occurrences_of(A_L_FILE_OUT) == 0 {
+            log::info!("Using the default out file: {}", DEFAULT_FILE_OUT);
             sinks.push(Box::new(sinks::file::VarSink {
-                file: PathBuf::from_str(out_file)?,
+                file: PathBuf::from_str(DEFAULT_FILE_OUT)?,
             }));
+        } else if let Some(out_files) = args.values_of(A_L_FILE_OUT) {
+            for out_file in out_files {
+                sinks.push(Box::new(sinks::file::VarSink {
+                    file: PathBuf::from_str(out_file)?,
+                }));
+            }
         }
     }
     if args.is_present(A_L_DRY) {
