@@ -405,7 +405,7 @@ fn arg_matcher() -> App<'static> {
     // This makes sure that we have no duplicate short- or long-flags,
     // as App would not store duplicates, while the slice does.
     // NOTE: We add 2 for "--help" and "--version",
-    // whihc are generate dautomatically.
+    // which are generated automatically.
     assert_eq!(app.get_arguments().count(), ARGS.len() + 2);
     app
 }
