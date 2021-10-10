@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 pub mod bitbucket_ci;
+pub mod env;
 pub mod fs;
 pub mod git;
 pub mod github_ci;
