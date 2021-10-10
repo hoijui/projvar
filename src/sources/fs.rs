@@ -50,7 +50,7 @@ where
     Ok(first_line[last_hash..].trim().into())
 }
 
-/// Read the first line of the file into `title`.
+/// Read the first line of the file and use it as title.
 fn file_title(path: &Path) -> BoxResult<Option<String>> {
     Ok(if path.exists() && path.is_file() {
         let file = File::open(path)?;
