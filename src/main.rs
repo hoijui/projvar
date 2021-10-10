@@ -411,13 +411,18 @@ fn arg_matcher() -> App<'static> {
 }
 
 fn hosting_type(args: &ArgMatches) -> BoxResult<HostingType> {
-    Ok(
-        if let Some(hosting_type_str) = args.value_of(A_L_HOSTING_TYPE) {
-            HostingType::from_str(hosting_type_str)?
-        } else {
-            HostingType::default()
-        },
-    )
+    let hosting_type = if let Some(hosting_type_str) = args.value_of(A_L_HOSTING_TYPE) {
+        HostingType::from_str(hosting_type_str)?
+    } else {
+        HostingType::default()
+    };
+
+    if log::log_enabled!(log::Level::Debug) {
+        let hosting_type_str: &str = hosting_type.into();
+        log::debug!("Hosting-type setting: {}", hosting_type_str);
+    }
+
+    Ok(hosting_type)
 }
 
 /// Returns the logging verbosities to be used.
