@@ -505,6 +505,8 @@ fn sinks(args: &ArgMatches) -> BoxResult<Vec<Box<dyn VarSink>>> {
     }
     if args.is_present(A_L_DRY) {
         sinks.clear();
+    } else if sinks.is_empty() {
+        log::warn!("No sinks registered! The results of this run will not be stored anywhere.");
     }
     for sink in &sinks {
         log::trace!("Registered sink {}.", sink);
