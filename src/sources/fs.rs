@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use chrono::Local;
+use clap::lazy_static::lazy_static;
+use regex::Regex;
 
 use crate::environment::Environment;
 use crate::var::Key;
@@ -10,12 +12,20 @@ use std::env;
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use super::Hierarchy;
 pub struct VarSource;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
+
+fn repo_path<'a>(environment: &'a mut Environment) -> BoxResult<&'a PathBuf> {
+    Ok(environment
+        .settings
+        .repo_path
+        .as_ref()
+        .ok_or("No repo path provided")?)
+}
 
 /// Returns the name of the given path (same as `basename` on UNIX systems)
 fn dir_name(path: &Path) -> BoxResult<String> {
@@ -61,6 +71,29 @@ fn file_title(path: &Path) -> BoxResult<Option<String>> {
     })
 }
 
+fn licenses(environment: &mut Environment) -> BoxResult<Option<Vec<String>>> {
+    lazy_static! {
+        static ref R_TXT_SUFFIX: Regex = Regex::new(r"\.txt$").unwrap();
+    }
+    let repo_path = repo_path(environment)?;
+    let licenses_dir = repo_path.join("LICENSES");
+    if licenses_dir.is_dir() {
+        let mut licenses = Vec::<String>::new();
+        for file in licenses_dir.read_dir()? {
+            let file_name = file?.file_name();
+            let file_name = file_name.to_str().ok_or_else(|| {
+                git2::Error::from_str("Supposed license file-name is not a valid UTF-8 string")
+            })?;
+            if R_TXT_SUFFIX.is_match(file_name) {
+                licenses.push(R_TXT_SUFFIX.replace(file_name, "").into_owned());
+            }
+        }
+        Ok(Some(licenses))
+    } else {
+        Ok(None)
+    }
+}
+
 fn version(environment: &mut Environment) -> BoxResult<Option<String>> {
     Ok(match &environment.settings.repo_path {
         Some(repo_path) => {
@@ -72,12 +105,7 @@ fn version(environment: &mut Environment) -> BoxResult<Option<String>> {
 }
 
 fn name(environment: &mut Environment) -> BoxResult<Option<String>> {
-    let repo_path = environment
-        .settings
-        .repo_path
-        .as_ref()
-        .ok_or("No repo path provided")?;
-    let dir_name = dir_name(repo_path)?;
+    let dir_name = dir_name(repo_path(environment)?)?;
     Ok(match dir_name.to_lowercase().as_str() {
         // Filter out some common directory names that are not likely to be the projects name
         "src" | "target" | "build" | "master" | "main" | "develop" | "git" | "repo" | "repos"
@@ -134,8 +162,12 @@ impl super::VarSource for VarSource {
 
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
         Ok(match key {
+            Key::Licenses => licenses(environment)?.map(|lv| lv.join(", ")),
             Key::Version => version(environment)?,
             Key::Name => name(environment)?,
+            Key::NameMachineReadable => {
+                super::try_construct_machine_readable_name_from_name(self, environment)?
+            }
             Key::BuildDate => Some(build_date(environment)),
             Key::BuildOs => Some(build_os(environment)),
             Key::BuildOsFamily => Some(build_os_family(environment)),

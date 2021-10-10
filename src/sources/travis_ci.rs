@@ -38,6 +38,9 @@ impl super::VarSource for VarSource {
             Key::Version => var(environment, "TRAVIS_COMMIT"),
             Key::BuildNumber => var(environment, "TRAVIS_BUILD_NUMBER"),
             Key::Name => super::proj_name_from_slug(environment.vars.get("TRAVIS_REPO_SLUG"))?, // usually: TRAVIS_REPO_SLUG="user/project"
+            Key::NameMachineReadable => {
+                super::try_construct_machine_readable_name_from_name(self, environment)?
+            }
             Key::RepoIssuesUrl
             | Key::RepoWebUrl
             | Key::Ci
@@ -51,6 +54,7 @@ impl super::VarSource for VarSource {
             | Key::BuildDate
             | Key::BuildOsFamily
             | Key::BuildArch
+            | Key::Licenses
             | Key::License => None,
         })
     }

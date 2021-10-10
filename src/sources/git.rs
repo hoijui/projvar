@@ -148,6 +148,9 @@ impl super::VarSource for VarSource {
         Ok(match key {
             Key::Version => version(environment)?,
             Key::Name => name(environment)?,
+            Key::NameMachineReadable => {
+                super::try_construct_machine_readable_name_from_web_url(self, environment)?
+            }
             Key::RepoWebUrl => repo_web_url(environment)?,
             Key::BuildBranch => branch(environment)?,
             Key::BuildTag => tag(environment)?,
@@ -171,6 +174,7 @@ impl super::VarSource for VarSource {
             | Key::BuildOsFamily
             | Key::BuildArch
             | Key::License
+            | Key::Licenses
             | Key::BuildNumber => None,
         })
     }

@@ -130,6 +130,23 @@ fn validate_license(environment: &mut Environment, value: &str) -> Result {
     }
 }
 
+fn validate_licenses(environment: &mut Environment, value: &str) -> Result {
+    if value.is_empty() {
+        missing(environment, Key::Licenses)
+    } else {
+        for license in value.split(',') {
+            let license = license.trim();
+            if !constants::SPDX_IDENTS.contains(&license) {
+                return Ok(Some(Warning::SuboptimalValue {
+                    msg: format!("Not all recognized SPDX license identifier: {}", license),
+                    value: value.to_owned(),
+                }));
+            }
+        }
+        Ok(None)
+    }
+}
+
 fn check_public_url(
     _environment: &mut Environment,
     value: &str,
@@ -449,7 +466,26 @@ fn validate_build_hosting_url(environment: &mut Environment, value: &str) -> Res
 }
 
 fn validate_name(environment: &mut Environment, value: &str) -> Result {
-    check_empty(environment, value, "Project name")
+    check_empty(environment, value, "Project name (human-readable)")
+}
+
+fn validate_name_machine_readable(environment: &mut Environment, value: &str) -> Result {
+    lazy_static! {
+        static ref R_MACHINE_READABLE: Regex = Regex::new(r"^[0-9a-zA-Z_-]+$").unwrap();
+    }
+
+    check_empty(environment, value, "Project name (machine-readable)")?;
+    if R_MACHINE_READABLE.is_match(value) {
+        Ok(None)
+    } else {
+        Err(Error::BadValue {
+            msg: format!(
+                "Name is not machine-readable, does not match '{}'",
+                R_MACHINE_READABLE.as_str()
+            ),
+            value: value.to_owned(),
+        })
+    }
 }
 
 fn check_date(environment: &mut Environment, value: &str, date_desc: &str) -> Result {
@@ -562,6 +598,7 @@ pub fn get(key: Key) -> Validator {
     match key {
         Key::Version => validate_version,
         Key::License => validate_license,
+        Key::Licenses => validate_licenses,
         Key::RepoWebUrl => validate_repo_web_url,
         Key::RepoCloneUrl => validate_repo_clone_url,
         Key::RepoRawVersionedPrefixUrl => validate_repo_raw_versioned_prefix_url,
@@ -570,6 +607,7 @@ pub fn get(key: Key) -> Validator {
         Key::RepoCommitPrefixUrl => validate_repo_commit_prefix_url,
         Key::RepoIssuesUrl => validate_repo_issues_url,
         Key::Name => validate_name,
+        Key::NameMachineReadable => validate_name_machine_readable,
         Key::VersionDate => validate_version_date,
         Key::BuildDate => validate_build_date,
         Key::BuildBranch => validate_build_branch,

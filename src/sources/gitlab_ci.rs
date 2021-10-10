@@ -33,6 +33,9 @@ impl super::VarSource for VarSource {
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
         Ok(match key {
             Key::Name => var(environment, "CI_PROJECT_NAME"),
+            Key::NameMachineReadable => {
+                super::try_construct_machine_readable_name_from_web_url(self, environment)?
+            }
             Key::RepoWebUrl => var(environment, "CI_PROJECT_URL"),
             Key::RepoIssuesUrl => super::try_construct_issues_url(self, environment)?,
             Key::Ci => var(environment, "CI"),
@@ -59,6 +62,7 @@ impl super::VarSource for VarSource {
             | Key::BuildOsFamily
             | Key::BuildArch
             | Key::License
+            | Key::Licenses
             | Key::BuildNumber => None,
         })
     }

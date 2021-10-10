@@ -14,6 +14,7 @@ pub mod travis_ci;
 use std::error::Error;
 
 use clap::lazy_static::lazy_static;
+use regex::Regex;
 use url::{Host, Url};
 
 use crate::constants;
@@ -91,6 +92,57 @@ pub fn proj_name_from_slug(slug: Option<&String>) -> BoxResult<Option<String>> {
             .to_owned())
     } else {
         None
+    })
+}
+
+/// Tries to construct the machine-readable project name
+/// from the human-readable one of a variable source.
+///
+/// # Errors
+///
+/// If an attempt to try fetching any required property returned an error.
+pub fn try_construct_machine_readable_name_from_name<S: VarSource>(
+    var_source: &S,
+    environment: &mut Environment,
+) -> BoxResult<Option<String>> {
+    lazy_static! {
+        static ref R_BAD_CHAR: Regex = Regex::new(r"[^0-9a-zA-Z_-]").unwrap();
+    }
+
+    Ok(match var_source.retrieve(environment, Key::Name)? {
+        Some(human_name) => {
+            let machine_name = R_BAD_CHAR.replace_all(&human_name, "_");
+            Some(machine_name.into_owned())
+        }
+        None => None,
+    })
+}
+
+/// Tries to construct the machine-readable project name
+/// from the human-readable one of a variable source.
+///
+/// # Errors
+///
+/// If an attempt to try fetching any required property returned an error.
+pub fn try_construct_machine_readable_name_from_web_url<S: VarSource>(
+    var_source: &S,
+    environment: &mut Environment,
+) -> BoxResult<Option<String>> {
+    lazy_static! {
+        static ref R_NAME_EXTRACTOR: Regex = Regex::new(r"^.*/").unwrap();
+    }
+
+    Ok(match var_source.retrieve(environment, Key::RepoWebUrl)? {
+        Some(web_url) => {
+            let machine_name = R_NAME_EXTRACTOR.replace(&web_url, "");
+            if machine_name == web_url {
+                return Err(Box::new(git2::Error::from_str(
+                    "Failed to extract human-readable project name from web URL",
+                )));
+            }
+            Some(machine_name.into_owned())
+        }
+        None => None,
     })
 }
 

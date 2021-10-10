@@ -33,6 +33,9 @@ impl super::VarSource for VarSource {
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
         Ok(match key {
             Key::Name => var(environment, "BITBUCKET_PROJECT_KEY"),
+            Key::NameMachineReadable => {
+                super::try_construct_machine_readable_name_from_web_url(self, environment)?
+            }
             Key::RepoWebUrl => {
                 // BITBUCKET_REPO_FULL_NAME = The full name of the repository
                 // (everything that comes after http://bitbucket.org/).
@@ -70,6 +73,7 @@ impl super::VarSource for VarSource {
             | Key::BuildDate
             | Key::BuildOsFamily
             | Key::BuildArch
+            | Key::Licenses
             | Key::License => None,
         })
     }

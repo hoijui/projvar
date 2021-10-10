@@ -56,6 +56,7 @@ impl<'a> Default for &'a Variable {
 pub enum Key {
     Version,
     License,
+    Licenses,
     RepoWebUrl,
     RepoCloneUrl,
     RepoRawVersionedPrefixUrl,
@@ -64,6 +65,7 @@ pub enum Key {
     RepoCommitPrefixUrl,
     RepoIssuesUrl,
     Name,
+    NameMachineReadable,
     VersionDate,
     BuildDate,
     BuildBranch,
@@ -217,6 +219,7 @@ pub fn list_keys() {
 
 pub const KEY_VERSION: &str = "PROJECT_VERSION";
 pub const KEY_LICENSE: &str = "PROJECT_LICENSE";
+pub const KEY_LICENSES: &str = "PROJECT_LICENSES";
 pub const KEY_REPO_WEB_URL: &str = "PROJECT_REPO_WEB_URL";
 pub const KEY_REPO_CLONE_URL: &str = "PROJECT_REPO_CLONE_URL";
 pub const KEY_REPO_RAW_VERSIONED_PREFIX_URL: &str = "PROJECT_REPO_RAW_VERSIONED_PREFIX_URL";
@@ -225,6 +228,7 @@ pub const KEY_REPO_VERSIONED_DIR_PREFIX_URL: &str = "PROJECT_REPO_VERSIONED_DIR_
 pub const KEY_REPO_COMMIT_PREFIX_URL: &str = "PROJECT_REPO_COMMIT_PREFIX_URL";
 pub const KEY_REPO_ISSUES_URL: &str = "PROJECT_REPO_ISSUES_URL";
 pub const KEY_NAME: &str = "PROJECT_NAME";
+pub const KEY_NAME_MACHINE_READABLE: &str = "PROJECT_NAME_MACHINE_READABLE";
 pub const KEY_VERSION_DATE: &str = "PROJECT_VERSION_DATE";
 pub const KEY_BUILD_DATE: &str = "BUILD_DATE";
 pub const KEY_BUILD_BRANCH: &str = "BUILD_BRANCH";
@@ -273,6 +277,11 @@ const VAR_LICENSE: Variable = Variable {
     description: r#"The main License identifier of the sources, prefferably from the SPDX specs, for example: "AGPL-3.0-or-later", "CC-BY-SA-4.0""#,
     default_required: true,
 };
+const VAR_LICENSES: Variable = Variable {
+    key: KEY_LICENSES,
+    description: r#"The identifiers of all the licenses of this project, prefferably from the SPDX specs, comma separated, for example: "AGPL-3.0-or-later, CC0-1.0, Unlicense""#,
+    default_required: true,
+};
 const VAR_REPO_WEB_URL: Variable = Variable {
     key: KEY_REPO_WEB_URL,
     description: "The repo web UI URL, for example: https://gitlab.com/OSEGermany/OHS-3105",
@@ -310,7 +319,12 @@ const VAR_REPO_ISSUES_URL: Variable = Variable {
 };
 const VAR_NAME: Variable = Variable {
     key: KEY_NAME,
-    description: "The name of the project.", // TODO Add more specific description: human- or machine readable? with or without spaces? ...
+    description: "The human focused name of the project.",
+    default_required: true,
+};
+const VAR_NAME_MACHINE_READABLE: Variable = Variable {
+    key: KEY_NAME_MACHINE_READABLE,
+    description: "The machine readable name of the project.",
     default_required: true,
 };
 const VAR_VERSION_DATE: Variable = Variable {
@@ -373,6 +387,7 @@ pub fn get(key: Key) -> &'static Variable {
     match key {
         Key::Version => &VAR_VERSION,
         Key::License => &VAR_LICENSE,
+        Key::Licenses => &VAR_LICENSES,
         Key::RepoWebUrl => &VAR_REPO_WEB_URL,
         Key::RepoCloneUrl => &VAR_REPO_CLONE_URL,
         Key::RepoRawVersionedPrefixUrl => &VAR_REPO_RAW_VERSIONED_PREFIX_URL,
@@ -381,6 +396,7 @@ pub fn get(key: Key) -> &'static Variable {
         Key::RepoCommitPrefixUrl => &VAR_REPO_COMMIT_PREFIX_URL,
         Key::RepoIssuesUrl => &VAR_REPO_ISSUES_URL,
         Key::Name => &VAR_NAME,
+        Key::NameMachineReadable => &VAR_NAME_MACHINE_READABLE,
         Key::VersionDate => &VAR_VERSION_DATE,
         Key::BuildDate => &VAR_BUILD_DATE,
         Key::BuildBranch => &VAR_BUILD_BRANCH,

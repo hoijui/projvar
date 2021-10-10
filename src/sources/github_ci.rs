@@ -61,6 +61,9 @@ impl super::VarSource for VarSource {
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
         Ok(match key {
             Key::Name => super::proj_name_from_slug(environment.vars.get("GITHUB_REPOSITORY"))?, // usually: GITHUB_REPOSITORY="user/project"
+            Key::NameMachineReadable => {
+                super::try_construct_machine_readable_name_from_web_url(self, environment)?
+            }
             Key::RepoWebUrl => {
                 match (
                     environment.vars.get("GITHUB_SERVER_URL"),
@@ -130,6 +133,7 @@ impl super::VarSource for VarSource {
             | Key::BuildOsFamily
             | Key::BuildArch
             | Key::License
+            | Key::Licenses
             | Key::BuildNumber => None,
         })
     }
