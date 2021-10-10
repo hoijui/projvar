@@ -39,7 +39,7 @@ In your CI job:
    * it ensures a a few variables are set, for example:
      * `PROJECT_NAME=MyProject`
      * `PROJECT_VERSION=my-proj-1.2.3-44-ge73gf28`
-     * `PROJECT_REPO_WEB_URL=https://github.com/user/my-proj/`
+     * `PROJECT_REPO_WEB_URL=https://github.com/user/my-proj`
 3. Run some other tool that uses these environment variables.
    For example, you may include it in a QRCode,
    which you then print onto your project.
