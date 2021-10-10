@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use clap::lazy_static::lazy_static;
-use enum_map::{Enum, EnumMap};
+use enum_map::Enum;
 // use enumset::{EnumSet, EnumSetType};
 use regex::Regex;
 use std::{
@@ -367,7 +367,9 @@ const VAR_CI: Variable = Variable {
     default_required: false,
 };
 
-fn create(key: Key) -> &'static Variable {
+/// Returns a reference to the variable settings associated with the given key.
+#[must_use]
+pub fn get(key: Key) -> &'static Variable {
     match key {
         Key::Version => &VAR_VERSION,
         Key::License => &VAR_LICENSE,
@@ -392,21 +394,10 @@ fn create(key: Key) -> &'static Variable {
     }
 }
 
-fn create_vars() -> EnumMap<Key, &'static Variable> {
-    Key::iter()
-        .map(|key| {
-            let var = create(key);
-            (key, var)
-        })
-        .into_iter()
-        .collect()
-}
-
-// fn create_default_keys() -> EnumSet<Key> {
-//     let mut def_keys = EnumSet::<Key>::empty();
 fn create_default_keys() -> HashSet<Key> {
     let mut def_keys = HashSet::<Key>::new();
-    for (key, variable) in VARS.iter() {
+    for key in Key::iter() {
+        let variable = get(key);
         if variable.default_required {
             def_keys.insert(key);
         }
@@ -415,23 +406,8 @@ fn create_default_keys() -> HashSet<Key> {
 }
 
 lazy_static! {
-    static ref VARS: EnumMap<Key, &'static Variable> = create_vars();
-}
-lazy_static! {
     // static ref DEFAULT_KEYS: EnumSet<Key> = create_default_keys();
     static ref DEFAULT_KEYS: HashSet<Key> = create_default_keys();
-}
-
-/// Returns a reference to the variable settings associated with the given key.
-///
-/// # Panics
-///
-/// Never, as a match in the code ensures that all enum variants of `Key`
-/// have a value assigned to them.
-#[must_use]
-pub fn get(key: Key) -> &'static Variable {
-    // VARS.get(&key).unwrap()
-    VARS[key]
 }
 
 #[must_use]
