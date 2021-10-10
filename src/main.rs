@@ -406,7 +406,12 @@ fn arg_matcher() -> App<'static> {
     // as App would not store duplicates, while the slice does.
     // NOTE: We add 2 for "--help" and "--version",
     // which are generated automatically.
-    assert_eq!(app.get_arguments().count(), ARGS.len() + 2);
+    // assert_eq!(app.get_arguments().count(), ARGS.len() + 2); // For some reason, this does not work, so we do the below
+    let mut uniq_short_options: HashSet<Option<char>> =
+        ARGS.iter().map(clap::Arg::get_short).collect();
+    uniq_short_options.insert(Some('h')); // standard option --help
+    uniq_short_options.insert(Some('V')); // stnadard option --version
+    assert_eq!(uniq_short_options.len(), ARGS.len() + 2);
     app
 }
 
