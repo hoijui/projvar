@@ -122,8 +122,8 @@ fn arg_variable() -> Arg<'static> {
 
 fn arg_variables_file() -> Arg<'static> {
     Arg::new(A_L_VARIABLES_FILE)
-        .about("A file containing KEY=VALUE pairs")
-        .long_about("A file containing KEY=VALUE pairs, one per line (BASH style). Empty lines, and those startign with \"#\" or \"//\" are ignored. See -D,--variable for specifying one pair at a time.")
+        .about("An input file containing KEY=VALUE pairs")
+        .long_about("An input file containing KEY=VALUE pairs, one per line (BASH style). Empty lines, and those starting with \"#\" or \"//\" are ignored. See -D,--variable for specifying one pair at a time.")
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("FILE")
