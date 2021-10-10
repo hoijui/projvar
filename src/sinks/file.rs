@@ -41,7 +41,7 @@ impl super::VarSink for VarSink {
         for (_key, var, value) in values {
             let key = var.key;
             if environment.settings.overwrite.main() || previous_vars.contains_key(key) {
-                file.write_fmt(format_args!("{}={}\n", key, value))?;
+                file.write_fmt(format_args!("{}=\"{}\"\n", key, value))?;
             }
         }
         Ok(())
