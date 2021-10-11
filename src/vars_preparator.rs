@@ -87,7 +87,7 @@ pub fn prepare_project_vars(
                 if required {
                     log::warn!("Missing value for required key '{:?}'", key);
                     match environment.settings.fail_on {
-                        FailOn::AnyMissingValue => return Err(validator::Error::Missing.into()), // TODO Should/could/is this be handled in the validator already?
+                        FailOn::AnyMissingValue => return Err(validator::Error::Missing.into()), // TODO Should/could this be handled in the validator already?
                         FailOn::Error => (),
                     }
                 } else {
