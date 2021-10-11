@@ -20,7 +20,7 @@ impl super::VarSource for VarSource {
     }
 
     fn hierarchy(&self) -> Hierarchy {
-        Hierarchy::High
+        Hierarchy::Higher
     }
 
     fn type_name(&self) -> &'static str {

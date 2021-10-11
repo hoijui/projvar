@@ -28,6 +28,7 @@ pub enum Hierarchy {
     Low,
     Middle,
     High,
+    Higher,
 }
 
 lazy_static! {
