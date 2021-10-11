@@ -673,9 +673,9 @@ mod tests {
         }
     }
 
-    fn is_almost_usable(res: Result) -> bool {
-        variant_eq(&res.unwrap_err(), &VE_ALMOST_USABLE_VALUE)
-    }
+    // fn is_almost_usable(res: Result) -> bool {
+    //     variant_eq(&res.unwrap_err(), &VE_ALMOST_USABLE_VALUE)
+    // }
 
     fn is_missing_err(res: Result) -> bool {
         variant_eq(&res.unwrap_err(), &VE_MISSING)
