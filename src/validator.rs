@@ -138,7 +138,10 @@ fn validate_licenses(environment: &mut Environment, value: &str) -> Result {
             let license = license.trim();
             if !constants::SPDX_IDENTS.contains(&license) {
                 return Ok(Some(Warning::SuboptimalValue {
-                    msg: format!("Not all recognized SPDX license identifier: {}", license),
+                    msg: format!(
+                        "Not all of these are recognized SPDX license identifiers: {}",
+                        license
+                    ),
                     value: value.to_owned(),
                 }));
             }
