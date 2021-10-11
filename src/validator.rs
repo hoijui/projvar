@@ -89,7 +89,7 @@ fn validate_version(environment: &mut Environment, value: &str) -> Result {
         static ref R_SEM_VERS_RELEASE: Regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)$").unwrap();
         static ref R_SEM_VERS: Regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$").unwrap();
         static ref R_GIT_VERS: Regex = Regex::new(r"^((g[0-9a-f]{7})|((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)))(-(0|[1-9]\d*)-(g[0-9a-f]{7}))?((-dirty(-broken)?)|-broken(-dirty)?)?$").unwrap();
-        static ref R_GIT_SHA: Regex = Regex::new(r"^g[0-9a-f]{7,40}$").unwrap();
+        static ref R_GIT_SHA: Regex = Regex::new(r"^g?[0-9a-f]{7,40}$").unwrap();
         static ref R_UNKNOWN_VERS: Regex = Regex::new(r"^($|#|//)").unwrap();
     }
     // log::info!("Validating version: '{}' ...", value);
@@ -630,11 +630,16 @@ mod tests {
     lazy_static! {
         static ref VE_ALMOST_USABLE_VALUE: Error = Error::AlmostUsableValue {
             msg: String::default(),
-            value: String::default()
+            value: String::default(),
+        };
+        static ref VE_MISSING: Error = Error::Missing {};
+        static ref VE_BAD_VALUE: Error = Error::BadValue {
+            msg: String::default(),
+            value: String::default(),
         };
         static ref VW_SUBOPTIMAL_VALUE: Warning = Warning::SuboptimalValue {
             msg: String::default(),
-            value: String::default()
+            value: String::default(),
         };
     }
 
@@ -657,10 +662,6 @@ mod tests {
         variant_eq(&res.unwrap(), &None)
     }
 
-    fn is_almost_usable(res: Result) -> bool {
-        variant_eq(&res.unwrap_err(), &VE_ALMOST_USABLE_VALUE)
-    }
-
     fn is_suboptimal(res: Result) -> bool {
         if let Some(err) = res.unwrap() {
             variant_eq(&err, &VW_SUBOPTIMAL_VALUE)
@@ -669,9 +670,32 @@ mod tests {
         }
     }
 
+    fn is_almost_usable(res: Result) -> bool {
+        variant_eq(&res.unwrap_err(), &VE_ALMOST_USABLE_VALUE)
+    }
+
+    fn is_missing_err(res: Result) -> bool {
+        variant_eq(&res.unwrap_err(), &VE_MISSING)
+    }
+
+    fn is_bad_value(res: Result) -> bool {
+        variant_eq(&res.unwrap_err(), &VE_BAD_VALUE)
+    }
+
     #[test]
     fn test_validate_version() {
         let mut environment = Environment::stub();
+        let full_sha = "cf73ea34fcc785b1ac44ffb20d655c917e77c83d";
+        let double_sha =
+            "cf73ea34fcc785b1ac44ffb20d655c917e77c83dcf73ea34fcc785b1ac44ffb20d655c917e77c83d";
+
+        // Good cases
+        for sha_length in 7..full_sha.len() {
+            assert!(is_suboptimal(validate_version(
+                &mut environment,
+                &full_sha[0..sha_length],
+            )));
+        }
         assert!(is_suboptimal(validate_version(
             &mut environment,
             "gad8f844"
@@ -729,10 +753,25 @@ mod tests {
             &mut environment,
             "0.1.19-broken-dirty"
         )));
-        assert!(validate_version(&mut environment, "").is_err()); // TODO Rather check the details of the Err value!
-        assert!(validate_version(&mut environment, "gabcdefg").is_err()); // TODO Rather check the details of the Ok value!
-        assert!(validate_version(&mut environment, "abcdeff").is_err()); // TODO Rather check the details of the Ok value!
-                                                                         // todo!(); // TODO Add some bad cases too; Producing various different errors
+
+        // Bad cases
+        assert!(is_missing_err(validate_version(&mut environment, "")));
+        assert!(is_bad_value(validate_version(&mut environment, "gabcdefg")));
+        // Too short SHAs
+        for sha_length in 1..7 {
+            assert!(is_bad_value(validate_version(
+                &mut environment,
+                &full_sha[0..sha_length],
+            )));
+        }
+        // Too long SHAs
+        for sha_length in full_sha.len() + 1..double_sha.len() {
+            assert!(is_bad_value(validate_version(
+                &mut environment,
+                &double_sha[0..sha_length],
+            )));
+        }
+        // TODO Add some more bad cases. producing various different errors
     }
 
     #[test]
