@@ -122,6 +122,7 @@ pub struct Settings /*<S: ::std::hash::BuildHasher>*/ {
     // fail_on_missing: bool,
     pub show_retrieved: ShowRetrieved,
     pub hosting_type: HostingType,
+    pub only_required: bool,
     pub verbosity: (Verbosity, Verbosity),
 }
 
@@ -137,6 +138,7 @@ impl Settings {
             fail_on: FailOn::AnyMissingValue,
             show_retrieved: ShowRetrieved::No,
             hosting_type: HostingType::Unknown,
+            only_required: false,
             verbosity: (Verbosity::None, Verbosity::None),
         }
     }

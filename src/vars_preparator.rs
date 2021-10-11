@@ -51,6 +51,12 @@ pub fn prepare_project_vars(
         if source.is_usable(environment) {
             log::trace!("Trying to fetch from source {} ...", source.display());
             for key in Key::iter() {
+                if environment.settings.only_required
+                    && !environment.settings.required_keys.contains(&key)
+                {
+                    log::trace!("\tSkip fetching {:?} because it is not required", key);
+                    continue;
+                }
                 let value = source.retrieve(environment, key)?;
                 if let Some(value) = value {
                     log::trace!("\tFetched {:?}='{}'", key, value);

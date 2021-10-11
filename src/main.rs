@@ -77,6 +77,8 @@ const A_S_REQUIRE: char = 'R';
 const A_L_REQUIRE: &str = "require";
 const A_S_REQUIRE_NOT: char = 'N';
 const A_L_REQUIRE_NOT: &str = "require-not";
+// const A_S_ONLY_REQUIRED: char = '?';
+const A_L_ONLY_REQUIRED: &str = "only-required";
 const A_S_DRY: char = 'd';
 const A_L_DRY: &str = "dry";
 const A_S_OVERWRITE: char = 'o';
@@ -279,6 +281,19 @@ fn arg_require_not() -> Arg<'static> {
         .conflicts_with(A_L_REQUIRE)
 }
 
+fn arg_only_required() -> Arg<'static> {
+    Arg::new(A_L_ONLY_REQUIRED)
+        .about("Only fetch and output the required values")
+        .long_about(
+            "Only fetch and output the required values (see --all,--require, --require-not).",
+        )
+        .takes_value(false)
+        // .short(A_S_ONLY_REQUIRED)
+        .long(A_L_ONLY_REQUIRED)
+        .multiple_occurrences(false)
+        .required(false)
+}
+
 fn arg_dry() -> Arg<'static> {
     Arg::new(A_L_DRY)
         .about("Do not write any files or set any environment variables")
@@ -369,7 +384,7 @@ fn arg_show_primary_retrieved() -> Arg<'static> {
 }
 
 lazy_static! {
-    static ref ARGS: [Arg<'static>; 21] = [
+    static ref ARGS: [Arg<'static>; 22] = [
         arg_project_root(),
         arg_variable(),
         arg_variables_file(),
@@ -384,6 +399,7 @@ lazy_static! {
         arg_require_all(),
         arg_require(),
         arg_require_not(),
+        arg_only_required(),
         arg_dry(),
         arg_overwrite(),
         arg_list(),
@@ -590,6 +606,7 @@ fn main() -> BoxResult<()> {
         settings::ShowRetrieved::No
     };
     let hosting_type = hosting_type(&args)?;
+    let only_required = args.is_present(A_L_ONLY_REQUIRED);
 
     let settings = Settings {
         repo_path: Some(repo_path),
@@ -599,6 +616,7 @@ fn main() -> BoxResult<()> {
         fail_on: settings::FailOn::from(fail_on_missing),
         show_retrieved,
         hosting_type,
+        only_required,
         verbosity,
     };
     log::trace!("Created Settings.");
