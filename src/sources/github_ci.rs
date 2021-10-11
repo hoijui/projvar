@@ -70,11 +70,11 @@ impl super::VarSource for VarSource {
                     environment.vars.get("GITHUB_REPOSITORY"),
                 ) {
                     (Some(server), Some(repo)) => {
-                        // "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/"
+                        // "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
                         // usually:
                         // GITHUB_SERVER_URL="https://github.com/"
                         // GITHUB_REPOSITORY="user/project"
-                        Some(format!("{}/{}/", server, repo))
+                        Some(format!("{}/{}", server, repo))
                     }
                     (_, _) => None,
                 }
