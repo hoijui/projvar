@@ -81,7 +81,17 @@ pub fn prepare_project_vars(
         match output.get(key) {
             Some(value) => {
                 log::trace!("Validating value for key '{:?}': '{}'", key, value);
-                validator::get(key)(environment, value)?;
+                let validation_res = validator::get(key)(environment, value);
+                match validation_res {
+                    Ok(None) => log::trace!("Validation result for key '{:?}': Good", key),
+                    Ok(Some(warning)) => {
+                        log::info!("Validation result for key '{:?}': {:?}", key, warning);
+                    }
+                    Err(err) => {
+                        log::error!("Validation result for key '{:?}': {:?}", key, err);
+                        return Err(Box::new(err));
+                    }
+                }
             }
             None => {
                 if required {
