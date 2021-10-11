@@ -38,8 +38,12 @@ impl super::VarSink for VarSink {
 
         let file = File::create(self.file.as_path())?;
         let mut file = LineWriter::new(file);
-        for (_key, var, value) in values {
-            let key = var.key;
+        let mut output_values: Vec<(&str, &&String)> = values
+            .iter()
+            .map(|(_key, var, value)| (var.key, value))
+            .collect();
+        output_values.sort();
+        for (key, value) in output_values {
             if environment.settings.overwrite.main() || previous_vars.contains_key(key) {
                 file.write_fmt(format_args!("{}=\"{}\"\n", key, value))?;
             }
