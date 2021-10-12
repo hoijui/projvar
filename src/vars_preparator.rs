@@ -70,8 +70,10 @@ pub fn prepare_project_vars(
     // if requested
     let retrieved_display = match environment.settings.show_retrieved {
         crate::settings::ShowRetrieved::No => None,
-        crate::settings::ShowRetrieved::Primary => Some(environment.output.to_list()),
-        crate::settings::ShowRetrieved::All => Some(environment.output.to_table(&sources)),
+        crate::settings::ShowRetrieved::Primary => Some(environment.output.to_list(environment)),
+        crate::settings::ShowRetrieved::All => {
+            Some(environment.output.to_table(environment, &sources))
+        }
     };
     if let Some(retrieved_display) = retrieved_display {
         log::info!(
@@ -117,7 +119,7 @@ pub fn prepare_project_vars(
     let values: Vec<(Key, &'static Variable, &String)> = environment.output.get_wrapup();
     if log::log_enabled!(log::Level::Trace) {
         for (key, variable, value) in &values {
-            log::trace!("\t{:?}:{}='{}'", key, variable.key, &value);
+            log::trace!("\t{:?}:{}='{}'", key, variable.key(environment), &value);
         }
     }
 

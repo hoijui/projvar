@@ -7,6 +7,7 @@ use enum_map::Enum;
 // use enumset::{EnumSet, EnumSetType};
 use regex::Regex;
 use std::{
+    borrow::Cow,
     collections::{HashMap, HashSet},
     error::Error,
     fmt::Display,
@@ -18,16 +19,28 @@ use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 
 use std::str::FromStr;
 
+use crate::environment::Environment;
+
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 
 // #[derive(Clone)]
 // #[derive(Debug)]
 #[derive(Default)]
 pub struct Variable {
-    pub key: &'static str,
+    key: &'static str,
     pub description: &'static str,
     pub default_required: bool,
     // pub alt_keys: &'static [&'static str], // This data was once present for all variables; see the commit that commented out this line with `git blame`
+}
+
+impl Variable {
+    #[must_use]
+    pub fn key(&self, environment: &Environment) -> Cow<str> {
+        match &environment.settings.key_prefix {
+            Some(prefix) => Cow::Owned(prefix.clone() + self.key),
+            None => Cow::Borrowed(self.key),
+        }
+    }
 }
 
 impl Display for Variable {
@@ -207,29 +220,34 @@ pub fn is_key_value_str_valid(key_value: &str) -> Result<(), String> {
         .map_err(|_err| String::from("Not a valid key=value pair"))
 }
 
-pub fn list_keys() {
+pub fn list_keys(environment: &Environment) {
     log::info!("| {} | {} | {} |", "D", "Key", "Description");
     log::info!("| - | --- | ------------ |");
     for key in Key::iter() {
         let var = get(key);
-        let def = if var.default_required { "X" } else { " " };
-        log::info!("| {} | {} | {} |", def, var.key, var.description);
+        let def = if var.default_required { "[x]" } else { "[ ]" };
+        log::info!(
+            "| {} | {} | {} |",
+            def,
+            var.key(environment),
+            var.description
+        );
     }
 }
 
-pub const KEY_VERSION: &str = "PROJECT_VERSION";
-pub const KEY_LICENSE: &str = "PROJECT_LICENSE";
-pub const KEY_LICENSES: &str = "PROJECT_LICENSES";
-pub const KEY_REPO_WEB_URL: &str = "PROJECT_REPO_WEB_URL";
-pub const KEY_REPO_CLONE_URL: &str = "PROJECT_REPO_CLONE_URL";
-pub const KEY_REPO_RAW_VERSIONED_PREFIX_URL: &str = "PROJECT_REPO_RAW_VERSIONED_PREFIX_URL";
-pub const KEY_REPO_VERSIONED_FILE_PREFIX_URL: &str = "PROJECT_REPO_VERSIONED_FILE_PREFIX_URL";
-pub const KEY_REPO_VERSIONED_DIR_PREFIX_URL: &str = "PROJECT_REPO_VERSIONED_DIR_PREFIX_URL";
-pub const KEY_REPO_COMMIT_PREFIX_URL: &str = "PROJECT_REPO_COMMIT_PREFIX_URL";
-pub const KEY_REPO_ISSUES_URL: &str = "PROJECT_REPO_ISSUES_URL";
-pub const KEY_NAME: &str = "PROJECT_NAME";
-pub const KEY_NAME_MACHINE_READABLE: &str = "PROJECT_NAME_MACHINE_READABLE";
-pub const KEY_VERSION_DATE: &str = "PROJECT_VERSION_DATE";
+pub const KEY_VERSION: &str = "VERSION";
+pub const KEY_LICENSE: &str = "LICENSE";
+pub const KEY_LICENSES: &str = "LICENSES";
+pub const KEY_REPO_WEB_URL: &str = "REPO_WEB_URL";
+pub const KEY_REPO_CLONE_URL: &str = "REPO_CLONE_URL";
+pub const KEY_REPO_RAW_VERSIONED_PREFIX_URL: &str = "REPO_RAW_VERSIONED_PREFIX_URL";
+pub const KEY_REPO_VERSIONED_FILE_PREFIX_URL: &str = "REPO_VERSIONED_FILE_PREFIX_URL";
+pub const KEY_REPO_VERSIONED_DIR_PREFIX_URL: &str = "REPO_VERSIONED_DIR_PREFIX_URL";
+pub const KEY_REPO_COMMIT_PREFIX_URL: &str = "REPO_COMMIT_PREFIX_URL";
+pub const KEY_REPO_ISSUES_URL: &str = "REPO_ISSUES_URL";
+pub const KEY_NAME: &str = "NAME";
+pub const KEY_NAME_MACHINE_READABLE: &str = "NAME_MACHINE_READABLE";
+pub const KEY_VERSION_DATE: &str = "VERSION_DATE";
 pub const KEY_BUILD_DATE: &str = "BUILD_DATE";
 pub const KEY_BUILD_BRANCH: &str = "BUILD_BRANCH";
 pub const KEY_BUILD_TAG: &str = "BUILD_TAG";

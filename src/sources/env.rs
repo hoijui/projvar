@@ -32,6 +32,6 @@ impl super::VarSource for VarSource {
     }
 
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
-        Ok(var(environment, var::get(key).key))
+        Ok(var(environment, &var::get(key).key(environment)))
     }
 }

@@ -4,6 +4,8 @@
 
 use clap::lazy_static::lazy_static;
 
+pub const DEFAULT_KEY_PREFIX: &str = "PROJECT_";
+
 pub const D_GIT_HUB_COM: &str = "github.com";
 pub const D_GIT_HUB_COM_RAW: &str = "raw.githubusercontent.com";
 pub const DS_GIT_HUB_IO_SUFIX: &str = "github.io";

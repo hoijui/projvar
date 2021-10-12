@@ -8,6 +8,7 @@ use clap::lazy_static::lazy_static;
 use regex::Regex;
 
 use crate::{
+    environment::Environment,
     sources::VarSource,
     var::{self, Key, Variable},
 };
@@ -33,7 +34,7 @@ impl Storage {
     /// containing the currently stored values.
     /// It will be created in markdown format.
     // TODO further specify the markdown flavor in the sentence above.
-    pub fn to_table(&self, sources: &[Box<dyn VarSource>]) -> String {
+    pub fn to_table(&self, environment: &Environment, sources: &[Box<dyn VarSource>]) -> String {
         lazy_static! {
             static ref R_COMMON_SOURCE_PREFIX: Regex = Regex::new(r"^projvar::sources::").unwrap();
         }
@@ -73,7 +74,7 @@ impl Storage {
             table.push_str("| ");
             table.push_str(key.into());
             table.push_str(" | ");
-            table.push_str(variable.key);
+            table.push_str(&variable.key(environment));
             table.push_str(" |");
             for source_index in 0..sources.len() {
                 table.push(' ');
@@ -90,14 +91,19 @@ impl Storage {
     /// Creates a list of all the keys,
     /// containing the currently stored values.
     /// It will be created in markdown format.
-    pub fn to_list(&self) -> String {
+    pub fn to_list(&self, environment: &Environment) -> String {
         let values = self.get_wrapup();
+        let mut key_strs: HashMap<Key, String> = HashMap::with_capacity(values.len());
+        for (key, variable, _value) in &values {
+            let key_str = variable.key(environment);
+            key_strs.insert(*key, key_str.as_ref().to_owned());
+        }
         let mut list = Vec::with_capacity(values.len() * 7); // because the loob below adds 7 strings for each entry
-        for (key, variable, value) in values {
+        for (key, _variable, value) in &values {
             list.push("* ");
             list.push(key.into());
             list.push(" - ");
-            list.push(variable.key);
+            list.push(&key_strs[key]);
             list.push(" - ");
             list.push(value);
             list.push("\n");

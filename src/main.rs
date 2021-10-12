@@ -79,6 +79,8 @@ const A_S_REQUIRE_NOT: char = 'N';
 const A_L_REQUIRE_NOT: &str = "require-not";
 // const A_S_ONLY_REQUIRED: char = '?';
 const A_L_ONLY_REQUIRED: &str = "only-required";
+// const A_S_KEY_PREFIX: char = '?';
+const A_L_KEY_PREFIX: &str = "key-prefix";
 const A_S_DRY: char = 'd';
 const A_L_DRY: &str = "dry";
 const A_S_OVERWRITE: char = 'o';
@@ -294,6 +296,22 @@ fn arg_only_required() -> Arg<'static> {
         .required(false)
 }
 
+fn arg_key_prefix() -> Arg<'static> {
+    Arg::new(A_L_KEY_PREFIX)
+        .about("The key prefix to be used for output")
+        .long_about("The key prefix to be used when writing out values in the sinks. For example \"PROJECT_\" -> \"PROJECT_VERSION\", \"PROJECT_NAME\", ...")
+        .takes_value(true)
+        .forbid_empty_values(false)
+        .value_name("STRING")
+        .value_hint(ValueHint::Other)
+        // .short(A_S_KEY_PREFIX)
+        .long(A_L_KEY_PREFIX)
+        .multiple_occurrences(false)
+        .default_missing_value("")
+        .default_value(constants::DEFAULT_KEY_PREFIX)
+        .required(false)
+}
+
 fn arg_dry() -> Arg<'static> {
     Arg::new(A_L_DRY)
         .about("Do not write any files or set any environment variables")
@@ -384,7 +402,7 @@ fn arg_show_primary_retrieved() -> Arg<'static> {
 }
 
 lazy_static! {
-    static ref ARGS: [Arg<'static>; 22] = [
+    static ref ARGS: [Arg<'static>; 23] = [
         arg_project_root(),
         arg_variable(),
         arg_variables_file(),
@@ -400,6 +418,7 @@ lazy_static! {
         arg_require(),
         arg_require_not(),
         arg_only_required(),
+        arg_key_prefix(),
         arg_dry(),
         arg_overwrite(),
         arg_list(),
@@ -595,7 +614,8 @@ fn main() -> BoxResult<()> {
     // logger::init2(log_file)?;
 
     if args.is_present(A_L_LIST) {
-        var::list_keys();
+        let environment = Environment::stub();
+        var::list_keys(&environment);
         return Ok(());
     }
 
@@ -620,6 +640,7 @@ fn main() -> BoxResult<()> {
     };
     let hosting_type = hosting_type(&args)?;
     let only_required = args.is_present(A_L_ONLY_REQUIRED);
+    let key_prefix = args.value_of(A_L_KEY_PREFIX);
 
     let settings = Settings {
         repo_path: Some(repo_path),
@@ -630,6 +651,7 @@ fn main() -> BoxResult<()> {
         show_retrieved,
         hosting_type,
         only_required,
+        key_prefix: key_prefix.map(ToOwned::to_owned),
         verbosity,
     };
     log::trace!("Created Settings.");

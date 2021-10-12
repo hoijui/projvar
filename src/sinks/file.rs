@@ -4,6 +4,7 @@
 
 use crate::environment::Environment;
 use crate::var::{self, Key, Variable};
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
@@ -38,13 +39,13 @@ impl super::VarSink for VarSink {
 
         let file = File::create(self.file.as_path())?;
         let mut file = LineWriter::new(file);
-        let mut output_values: Vec<(&str, &&String)> = values
+        let mut output_values: Vec<(Cow<str>, &&String)> = values
             .iter()
-            .map(|(_key, var, value)| (var.key, value))
+            .map(|(_key, var, value)| (var.key(environment), value))
             .collect();
         output_values.sort();
         for (key, value) in output_values {
-            if environment.settings.overwrite.main() || previous_vars.contains_key(key) {
+            if environment.settings.overwrite.main() || previous_vars.contains_key(key.as_ref()) {
                 file.write_fmt(format_args!("{}=\"{}\"\n", key, value))?;
             }
         }

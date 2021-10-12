@@ -7,7 +7,7 @@ use std::{collections::HashSet, path::PathBuf};
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, EnumString, EnumVariantNames, IntoStaticStr};
 
-use crate::{tools::git_hosting_provs::HostingType, var::Key};
+use crate::{constants, tools::git_hosting_provs::HostingType, var::Key};
 
 #[derive(
     Debug, EnumString, EnumVariantNames, EnumIter, IntoStaticStr, PartialEq, PartialOrd, Copy, Clone,
@@ -123,6 +123,7 @@ pub struct Settings /*<S: ::std::hash::BuildHasher>*/ {
     pub show_retrieved: ShowRetrieved,
     pub hosting_type: HostingType,
     pub only_required: bool,
+    pub key_prefix: Option<String>,
     pub verbosity: (Verbosity, Verbosity),
 }
 
@@ -139,6 +140,7 @@ impl Settings {
             show_retrieved: ShowRetrieved::No,
             hosting_type: HostingType::Unknown,
             only_required: false,
+            key_prefix: Some(constants::DEFAULT_KEY_PREFIX.to_owned()),
             verbosity: (Verbosity::None, Verbosity::None),
         }
     }
