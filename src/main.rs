@@ -458,7 +458,7 @@ fn arg_matcher() -> App<'static> {
     let duplicate_short_options = find_duplicate_short_options();
     if !duplicate_short_options.is_empty() {
         panic!(
-            "Duplicate argument short option names: {:?}",
+            "Duplicate argument short options: {:?}",
             duplicate_short_options
         );
     }
