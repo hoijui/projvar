@@ -422,3 +422,26 @@ lazy_static! {
 pub fn default_keys() -> &'static HashSet<Key> {
     &DEFAULT_KEYS
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_camel_to_upper_snake_case() -> std::result::Result<(), Box<dyn Error>> {
+        assert_eq!(camel_to_upper_snake_case("Version"), "VERSION");
+        assert_eq!(camel_to_upper_snake_case("version"), "VERSION");
+        assert_eq!(
+            camel_to_upper_snake_case("ProjectVersion"),
+            "PROJECT_VERSION"
+        );
+        assert_eq!(
+            camel_to_upper_snake_case("projectVersion"),
+            "PROJECT_VERSION"
+        );
+        assert_eq!(camel_to_upper_snake_case("RepoWebUrl"), "REPO_WEB_URL");
+        assert_eq!(camel_to_upper_snake_case("repoWebUrl"), "REPO_WEB_URL");
+
+        Ok(())
+    }
+}
