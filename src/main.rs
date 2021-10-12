@@ -12,6 +12,7 @@ use clap::{
     crate_authors, crate_description, crate_license, crate_name, crate_version, App, AppSettings,
     Arg, ArgMatches, ValueHint,
 };
+use regex::Regex;
 use std::collections::HashSet;
 // use enumset::EnumSet;
 use std::convert::{TryFrom, TryInto};
@@ -590,7 +591,7 @@ fn sinks(args: &ArgMatches) -> BoxResult<Vec<Box<dyn VarSink>>> {
     Ok(sinks)
 }
 
-fn required_keys(args: &ArgMatches) -> BoxResult<HashSet<Key>> {
+fn required_keys(key_prefix: Option<&str>, args: &ArgMatches) -> BoxResult<HashSet<Key>> {
     let require_all: bool = args.is_present(A_L_REQUIRE_ALL);
     let require_none: bool = args.is_present(A_L_REQUIRE_NONE);
     let mut required_keys = if require_all {
@@ -604,15 +605,17 @@ fn required_keys(args: &ArgMatches) -> BoxResult<HashSet<Key>> {
     } else {
         var::default_keys().clone()
     };
+    let r_key_prefix_str = format!("^{}", key_prefix.unwrap_or(""));
+    let r_key_prefix = Regex::new(&r_key_prefix_str).unwrap();
     if let Some(requires) = args.values_of(A_L_REQUIRE) {
         for require in requires {
-            let key = Key::from_name_or_var_key(require)?;
+            let key = Key::from_name_or_var_key(&r_key_prefix, require)?;
             required_keys.insert(key);
         }
     }
     if let Some(require_nots) = args.values_of(A_L_REQUIRE_NOT) {
         for require_not in require_nots {
-            let key = Key::from_name_or_var_key(require_not)?;
+            let key = Key::from_name_or_var_key(&r_key_prefix, require_not)?;
             required_keys.remove(&key);
         }
     }
@@ -651,7 +654,8 @@ fn main() -> BoxResult<()> {
     let sinks = sinks(&args)?;
 
     let fail_on_missing: bool = args.is_present(A_L_FAIL_ON_MISSING_VALUE);
-    let required_keys = required_keys(&args)?;
+    let key_prefix = args.value_of(A_L_KEY_PREFIX);
+    let required_keys = required_keys(key_prefix, &args)?;
     let show_retrieved: settings::ShowRetrieved = if args.is_present(A_L_SHOW_ALL_RETRIEVED) {
         settings::ShowRetrieved::All
     } else if args.is_present(A_L_SHOW_PRIMARY_RETRIEVED) {
@@ -661,7 +665,6 @@ fn main() -> BoxResult<()> {
     };
     let hosting_type = hosting_type(&args)?;
     let only_required = args.is_present(A_L_ONLY_REQUIRED);
-    let key_prefix = args.value_of(A_L_KEY_PREFIX);
 
     let settings = Settings {
         repo_path: Some(repo_path),

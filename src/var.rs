@@ -92,40 +92,45 @@ pub enum Key {
     Ci,
 }
 
-/// Converts a `"CamelCase"` string into an `"UPPER_SNAKE_CASE"` one.
+/// Converts an `"UPPER_SNAKE_CASE"` string into an `"CamelCase"` one.
 ///
 /// for example:
 ///
 /// ```
 /// //# fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # use projvar::var::camel_to_upper_snake_case;
+/// # use projvar::var::upper_snake_to_camel_case;
 /// assert_eq!(
-///     camel_to_upper_snake_case("someLowerCaseStartingTest"),
-///     "SOME_LOWER_CASE_STARTING_TEST"
-/// );
-/// assert_eq!(
-///     camel_to_upper_snake_case("SomeUpperCaseStartingTest"),
-///     "SOME_UPPER_CASE_STARTING_TEST"
+///     upper_snake_to_camel_case("SOME_UPPER_CASE_STARTING_TEST"),
+///     "SomeUpperCaseStartingTest"
 /// );
 /// // NOTE From here on, we start seeing the limitation of this simple algorithm
 /// assert_eq!(
-///     camel_to_upper_snake_case("somethingWith123ANumber"),
-///     "SOMETHING_WITH123_A_NUMBER"
-/// );
-/// assert_eq!(
-///     camel_to_upper_snake_case("somethingWith123aNumber"),
-///     "SOMETHING_WITH123A_NUMBER"
+///     upper_snake_to_camel_case("SOMETHING_WITH123A_NUMBER"),
+///     "SomethingWith123aNumber"
 /// );
 /// //# Ok(())
 /// //# }
 /// ```
 #[must_use]
-pub fn camel_to_upper_snake_case(id: &str) -> String {
+pub fn upper_snake_to_camel_case(id: &str) -> String {
     lazy_static! {
-        static ref R_UPPER_SEL: Regex = Regex::new(r"(?P<after>[A-Z])").unwrap();
+        // static ref R_PREF: Regex = Regex::new(r"^_").unwrap();
+        // static ref R_SUFF: Regex = Regex::new(r"_$").unwrap();
+        static ref R_FIRST: Regex = Regex::new(r"^(.)").unwrap();
+        static ref R_UPPER_SEL: Regex = Regex::new(r"(.)_(.)").unwrap();
     }
-    let res = R_UPPER_SEL.replace_all(id, "_$after").to_uppercase();
-    res.strip_prefix('_').unwrap_or(&res).to_string()
+    let id = id.to_lowercase();
+    // let id= R_PREF.replace(&id, "");
+    // let id= R_SUFF.replace(&id, "");
+    let id = R_FIRST.replace_all(&id, |captures: &regex::Captures| captures[1].to_uppercase());
+    let id = R_UPPER_SEL.replace_all(&id, |captures: &regex::Captures| {
+        captures[1].to_owned() + &captures[2].to_uppercase()
+    });
+    id.strip_prefix('_')
+        .unwrap_or(&id)
+        .strip_suffix('_')
+        .unwrap_or(&id)
+        .to_string()
 }
 
 impl Key {
@@ -136,8 +141,12 @@ impl Key {
     /// # Errors
     ///
     /// If the given identifier could not be mapped to any `Key` variant.
-    pub fn from_name_or_var_key(id: &str) -> BoxResult<Key> {
-        Ok(Self::from_str(id).or_else(|_| Self::from_str(&camel_to_upper_snake_case(id)))?)
+    pub fn from_name_or_var_key(key_prefix: &Regex, id: &str) -> BoxResult<Key> {
+        Ok(Self::from_str(id).or_else(|_| {
+            Self::from_str(&upper_snake_to_camel_case(
+                key_prefix.replace(id, "").as_ref(),
+            ))
+        })?)
     }
 }
 
@@ -428,19 +437,37 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_camel_to_upper_snake_case() -> std::result::Result<(), Box<dyn Error>> {
-        assert_eq!(camel_to_upper_snake_case("Version"), "VERSION");
-        assert_eq!(camel_to_upper_snake_case("version"), "VERSION");
+    fn test_from_name_or_var_key() -> std::result::Result<(), Box<dyn Error>> {
+        let r_prefix_none = Regex::new("^").unwrap();
+        let r_prefix_project = Regex::new("^PROJECT_").unwrap();
+
         assert_eq!(
-            camel_to_upper_snake_case("ProjectVersion"),
-            "PROJECT_VERSION"
+            Key::from_name_or_var_key(&r_prefix_none, "VERSION")?,
+            Key::Version
         );
         assert_eq!(
-            camel_to_upper_snake_case("projectVersion"),
-            "PROJECT_VERSION"
+            Key::from_name_or_var_key(&r_prefix_project, "VERSION")?,
+            Key::Version
         );
-        assert_eq!(camel_to_upper_snake_case("RepoWebUrl"), "REPO_WEB_URL");
-        assert_eq!(camel_to_upper_snake_case("repoWebUrl"), "REPO_WEB_URL");
+        assert_eq!(
+            Key::from_name_or_var_key(&r_prefix_project, "PROJECT_VERSION")?,
+            Key::Version
+        );
+        assert_eq!(
+            Key::from_name_or_var_key(&r_prefix_none, "REPO_WEB_URL")?,
+            Key::RepoWebUrl
+        );
+        assert_eq!(
+            Key::from_name_or_var_key(&r_prefix_project, "REPO_WEB_URL")?,
+            Key::RepoWebUrl
+        );
+        assert_eq!(
+            Key::from_name_or_var_key(&r_prefix_project, "PROJECT_REPO_WEB_URL")?,
+            Key::RepoWebUrl
+        );
+
+        assert!(Key::from_name_or_var_key(&r_prefix_none, "PROJECT_VERSION").is_err());
+        assert!(Key::from_name_or_var_key(&r_prefix_none, "PROJECT_REPO_WEB_URL").is_err());
 
         Ok(())
     }
