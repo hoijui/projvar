@@ -410,6 +410,22 @@ lazy_static! {
     ];
 }
 
+fn find_duplicate_short_options() -> Vec<char> {
+    let mut short_options: Vec<char> = ARGS.iter().filter_map(clap::Arg::get_short).collect();
+    short_options.push('h'); // standard option --help
+    short_options.push('V'); // standard option --version
+    short_options.sort_unstable();
+    let mut duplicate_short_options = HashSet::new();
+    let mut last_chr = '&';
+    for chr in &short_options {
+        if *chr == last_chr {
+            duplicate_short_options.insert(*chr);
+        }
+        last_chr = *chr;
+    }
+    duplicate_short_options.iter().copied().collect()
+}
+
 fn arg_matcher() -> App<'static> {
     // App::new("Project Variables")
     let app = App::new(crate_name!())
@@ -421,16 +437,13 @@ fn arg_matcher() -> App<'static> {
         .setting(AppSettings::UnifiedHelpMessage)
         .bin_name("osh")
         .args(ARGS.iter());
-    // This makes sure that we have no duplicate short- or long-flags,
-    // as App would not store duplicates, while the slice does.
-    // NOTE: We add 2 for "--help" and "--version",
-    // which are generated automatically.
-    // assert_eq!(app.get_arguments().count(), ARGS.len() + 2); // For some reason, this does not work, so we do the below
-    let mut uniq_short_options: HashSet<Option<char>> =
-        ARGS.iter().map(clap::Arg::get_short).collect();
-    uniq_short_options.insert(Some('h')); // standard option --help
-    uniq_short_options.insert(Some('V')); // stnadard option --version
-    assert_eq!(uniq_short_options.len(), ARGS.len() + 2);
+    let duplicate_short_options = find_duplicate_short_options();
+    if !duplicate_short_options.is_empty() {
+        panic!(
+            "Duplicate argument short option names: {:?}",
+            duplicate_short_options
+        );
+    }
     app
 }
 
