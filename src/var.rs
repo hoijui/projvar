@@ -258,33 +258,6 @@ pub const KEY_BUILD_HOSTING_URL: &str = "BUILD_HOSTING_URL";
 pub const KEY_BUILD_NUMBER: &str = "BUILD_NUMBER";
 pub const KEY_CI: &str = "CI";
 
-// impl enum_map::Enum for Key {
-//     type Array;
-
-//     fn from_usize(value: usize) -> Self {
-//         todo!()
-//     }
-
-//     fn into_usize(self) -> usize {
-//         todo!()
-//     }
-// }
-
-// impl Eq for Key {
-//     fn assert_receiver_is_total_eq(&self) {}
-// }
-
-#[macro_export]
-macro_rules! variable {
-    ($key_str:ident, $description:expr, $alt_keys:expr) => {
-        Variable {
-            key: $key_str,
-            description: $description,
-            alt_keys: $alt_keys,
-        }
-    };
-}
-
 const VAR_VERSION: Variable = Variable {
     key: KEY_VERSION,
     description: r#"The project version, for example: "1.10.3", "0.2.0-1-ga5387ac-dirty""#,

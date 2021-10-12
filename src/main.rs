@@ -446,7 +446,6 @@ fn find_duplicate_short_options() -> Vec<char> {
 }
 
 fn arg_matcher() -> App<'static> {
-    // App::new("Project Variables")
     let app = App::new(crate_name!())
         .about(crate_description!())
         .version(crate_version!())
