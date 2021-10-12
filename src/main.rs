@@ -71,6 +71,8 @@ const A_S_QUIET: char = 'q';
 const A_L_QUIET: &str = "quiet";
 const A_S_FAIL_ON_MISSING_VALUE: char = 'f';
 const A_L_FAIL_ON_MISSING_VALUE: &str = "fail";
+const A_S_REQUIRE_NONE: char = 'n';
+const A_L_REQUIRE_NONE: &str = "none";
 const A_S_REQUIRE_ALL: char = 'a';
 const A_L_REQUIRE_ALL: &str = "all";
 const A_S_REQUIRE: char = 'R';
@@ -229,7 +231,7 @@ fn arg_quiet() -> Arg<'static> {
 fn arg_fail() -> Arg<'static> {
     Arg::new(A_L_FAIL_ON_MISSING_VALUE)
         .about("Fail if a required value is missing")
-        .long_about("Fail if no value is available for any of the required properties (see --all,--require,--require-not)")
+        .long_about("Fail if no value is available for any of the required properties (see --all,--none,--require,--require-not)")
         .takes_value(false)
         .short(A_S_FAIL_ON_MISSING_VALUE)
         .long(A_L_FAIL_ON_MISSING_VALUE)
@@ -240,20 +242,36 @@ fn arg_fail() -> Arg<'static> {
 fn arg_require_all() -> Arg<'static> {
     Arg::new(A_L_REQUIRE_ALL)
         .about("Marks all properties as required")
-        .long_about("Marks all properties as required. See --fail,--require,--require-not.")
+        .long_about("Marks all properties as required. See --none,--fail,--require,--require-not.")
         .takes_value(false)
         .short(A_S_REQUIRE_ALL)
         .long(A_L_REQUIRE_ALL)
         .multiple_occurrences(false)
         .required(false)
-        .requires(A_L_FAIL_ON_MISSING_VALUE)
+        // .requires(A_L_FAIL_ON_MISSING_VALUE)
         .conflicts_with(A_L_REQUIRE)
+}
+
+fn arg_require_none() -> Arg<'static> {
+    Arg::new(A_L_REQUIRE_NONE)
+        .about("Marks all properties as *not* required")
+        .long_about(
+            "Marks all properties as *not* required. See --all,--fail,--require,--require-not.",
+        )
+        .takes_value(false)
+        .short(A_S_REQUIRE_NONE)
+        .long(A_L_REQUIRE_NONE)
+        .multiple_occurrences(false)
+        .required(false)
+        // .requires(A_L_FAIL_ON_MISSING_VALUE)
+        .conflicts_with(A_L_REQUIRE_NOT)
+        .conflicts_with(A_L_REQUIRE_ALL)
 }
 
 fn arg_require() -> Arg<'static> {
     Arg::new(A_L_REQUIRE)
         .about("Mark a propery as required")
-        .long_about(r#"Mark a propery as required. You may use the property name (e.g. "Name") or the variable key (e.g. "PROJECT_NAME"); See --list for all possible keys. If at least one such option is present, the default required values list is cleared (see --fail,--all,--require-not)."#)
+        .long_about(r#"Mark a propery as required. You may use the property name (e.g. "Name") or the variable key (e.g. "PROJECT_NAME"); See --list for all possible keys. If at least one such option is present, the default required values list is cleared (see --fail,--all,--none,--require-not)."#)
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("KEY")
@@ -270,7 +288,7 @@ fn arg_require() -> Arg<'static> {
 fn arg_require_not() -> Arg<'static> {
     Arg::new(A_L_REQUIRE_NOT)
         .about("Mark a property as not required")
-        .long_about("A key of a variable whose value is *not* required. For example PROJECT_NAME (see --list for all possible keys). Can be used either on the base of the default requried list or all (see --fail,--all,--require)")
+        .long_about("A key of a variable whose value is *not* required. For example PROJECT_NAME (see --list for all possible keys). Can be used either on the base of the default requried list or all (see --fail,--all,--none,--require)")
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("KEY")
@@ -287,7 +305,7 @@ fn arg_only_required() -> Arg<'static> {
     Arg::new(A_L_ONLY_REQUIRED)
         .about("Only fetch and output the required values")
         .long_about(
-            "Only fetch and output the required values (see --all,--require, --require-not).",
+            "Only fetch and output the required values (see --all,--none,--require, --require-not).",
         )
         .takes_value(false)
         // .short(A_S_ONLY_REQUIRED)
@@ -402,7 +420,7 @@ fn arg_show_primary_retrieved() -> Arg<'static> {
 }
 
 lazy_static! {
-    static ref ARGS: [Arg<'static>; 23] = [
+    static ref ARGS: [Arg<'static>; 24] = [
         arg_project_root(),
         arg_variable(),
         arg_variables_file(),
@@ -415,6 +433,7 @@ lazy_static! {
         arg_quiet(),
         arg_fail(),
         arg_require_all(),
+        arg_require_none(),
         arg_require(),
         arg_require_not(),
         arg_only_required(),
@@ -573,12 +592,15 @@ fn sinks(args: &ArgMatches) -> BoxResult<Vec<Box<dyn VarSink>>> {
 
 fn required_keys(args: &ArgMatches) -> BoxResult<HashSet<Key>> {
     let require_all: bool = args.is_present(A_L_REQUIRE_ALL);
+    let require_none: bool = args.is_present(A_L_REQUIRE_NONE);
     let mut required_keys = if require_all {
         // EnumSet::<Key>::all()
         // HashSet::<Key>::allj()
         let mut all = HashSet::<Key>::new();
         all.extend(Key::iter());
         all
+    } else if require_none {
+        HashSet::<Key>::new()
     } else {
         var::default_keys().clone()
     };
