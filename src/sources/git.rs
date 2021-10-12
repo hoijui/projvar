@@ -6,7 +6,6 @@ use clap::lazy_static::lazy_static;
 use regex::Regex;
 
 use crate::environment::Environment;
-use crate::tools::git;
 use crate::var::Key;
 use std::error::Error;
 
@@ -23,13 +22,6 @@ fn version(environment: &mut Environment) -> BoxResult<Option<String>> {
                 repo.sha()
                     .and_then(|v| v.ok_or_else(|| "No SHA available to serve as version".into()))
             })?;
-
-            if git::is_git_dirty_version(&sc_version) {
-                log::warn!(
-                    "Dirty project version ('{}')! (you have uncommitted changes in your project)",
-                    sc_version
-                );
-            }
             Some(sc_version)
         }
         None => None,

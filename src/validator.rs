@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use crate::tools::git;
 use crate::tools::git_hosting_provs::{HostingType, PublicSite};
 use crate::var::Key;
 use crate::{constants, environment::Environment};
@@ -95,6 +96,12 @@ fn validate_version(environment: &mut Environment, value: &str) -> Result {
     // log::info!("Validating version: '{}' ...", value);
     if R_SEM_VERS_RELEASE.is_match(value) {
         Ok(None)
+    } else if git::is_git_dirty_version(value) {
+        // Err(Error::AlmostUsableValue {
+        Ok(Some(Warning::SuboptimalValue {
+            msg: "Dirty project version; you have uncommitted changes in your project".to_owned(),
+            value: value.to_owned(),
+        }))
     } else if R_SEM_VERS.is_match(value) || R_GIT_VERS.is_match(value) {
         Ok(Some(Warning::SuboptimalValue {
             msg: "This version is technically good, but not a release-version (i.e., does not look so nice)".to_owned(),
