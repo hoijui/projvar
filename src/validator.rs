@@ -602,32 +602,34 @@ fn validate_ci(environment: &mut Environment, value: &str) -> Result {
     }
 }
 
+#[remain::check]
 #[must_use]
 pub fn get(key: Key) -> Validator {
     // TODO This match could be written by a macro
+    #[remain::sorted]
     match key {
-        Key::Version => validate_version,
-        Key::License => validate_license,
-        Key::Licenses => validate_licenses,
-        Key::RepoWebUrl => validate_repo_web_url,
-        Key::RepoCloneUrl => validate_repo_clone_url,
-        Key::RepoRawVersionedPrefixUrl => validate_repo_raw_versioned_prefix_url,
-        Key::RepoVersionedFilePrefixUrl => validate_repo_versioned_file_prefix_url,
-        Key::RepoVersionedDirPrefixUrl => validate_repo_versioned_dir_prefix_url,
-        Key::RepoCommitPrefixUrl => validate_repo_commit_prefix_url,
-        Key::RepoIssuesUrl => validate_repo_issues_url,
-        Key::Name => validate_name,
-        Key::NameMachineReadable => validate_name_machine_readable,
-        Key::VersionDate => validate_version_date,
-        Key::BuildDate => validate_build_date,
-        Key::BuildBranch => validate_build_branch,
-        Key::BuildTag => validate_build_tag,
-        Key::BuildOs => validate_build_os,
-        Key::BuildOsFamily => validate_build_os_family,
         Key::BuildArch => validate_build_arch,
+        Key::BuildBranch => validate_build_branch,
+        Key::BuildDate => validate_build_date,
         Key::BuildHostingUrl => validate_build_hosting_url,
         Key::BuildNumber => validate_build_number,
+        Key::BuildOs => validate_build_os,
+        Key::BuildOsFamily => validate_build_os_family,
+        Key::BuildTag => validate_build_tag,
         Key::Ci => validate_ci,
+        Key::License => validate_license,
+        Key::Licenses => validate_licenses,
+        Key::Name => validate_name,
+        Key::NameMachineReadable => validate_name_machine_readable,
+        Key::RepoCloneUrl => validate_repo_clone_url,
+        Key::RepoCommitPrefixUrl => validate_repo_commit_prefix_url,
+        Key::RepoIssuesUrl => validate_repo_issues_url,
+        Key::RepoRawVersionedPrefixUrl => validate_repo_raw_versioned_prefix_url,
+        Key::RepoVersionedDirPrefixUrl => validate_repo_versioned_dir_prefix_url,
+        Key::RepoVersionedFilePrefixUrl => validate_repo_versioned_file_prefix_url,
+        Key::RepoWebUrl => validate_repo_web_url,
+        Key::Version => validate_version,
+        Key::VersionDate => validate_version_date,
     }
 }
 

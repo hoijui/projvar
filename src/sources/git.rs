@@ -136,38 +136,44 @@ impl super::VarSource for VarSource {
         &super::NO_PROPS
     }
 
+    #[remain::check]
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
-        Ok(match key {
-            Key::Version => version(environment)?,
-            Key::Name => name(environment)?,
-            Key::NameMachineReadable => {
-                super::try_construct_machine_readable_name_from_web_url(self, environment)?
-            }
-            Key::RepoWebUrl => repo_web_url(environment)?,
-            Key::BuildBranch => branch(environment)?,
-            Key::BuildTag => tag(environment)?,
-            Key::RepoCloneUrl => clone_url(environment)?,
-            Key::RepoRawVersionedPrefixUrl => {
-                super::try_construct_raw_prefix_url(self, environment)?
-            }
-            Key::RepoVersionedFilePrefixUrl => {
-                super::try_construct_file_prefix_url(self, environment)?
-            }
-            Key::RepoVersionedDirPrefixUrl => {
-                super::try_construct_dir_prefix_url(self, environment)?
-            }
-            Key::RepoCommitPrefixUrl => super::try_construct_commit_prefix_url(self, environment)?,
-            Key::RepoIssuesUrl => issues_url(environment)?,
-            Key::VersionDate => version_date(environment)?,
-            Key::BuildHostingUrl => build_hosting_url(environment)?,
-            Key::BuildDate
-            | Key::Ci
-            | Key::BuildOs
-            | Key::BuildOsFamily
-            | Key::BuildArch
-            | Key::License
-            | Key::Licenses
-            | Key::BuildNumber => None,
-        })
+        Ok(
+            #[remain::sorted]
+            match key {
+                Key::BuildArch
+                | Key::BuildDate
+                | Key::BuildNumber
+                | Key::BuildOs
+                | Key::BuildOsFamily
+                | Key::Ci
+                | Key::License
+                | Key::Licenses => None,
+                Key::BuildBranch => branch(environment)?,
+                Key::BuildHostingUrl => build_hosting_url(environment)?,
+                Key::BuildTag => tag(environment)?,
+                Key::Name => name(environment)?,
+                Key::NameMachineReadable => {
+                    super::try_construct_machine_readable_name_from_web_url(self, environment)?
+                }
+                Key::RepoCloneUrl => clone_url(environment)?,
+                Key::RepoCommitPrefixUrl => {
+                    super::try_construct_commit_prefix_url(self, environment)?
+                }
+                Key::RepoIssuesUrl => issues_url(environment)?,
+                Key::RepoRawVersionedPrefixUrl => {
+                    super::try_construct_raw_prefix_url(self, environment)?
+                }
+                Key::RepoVersionedDirPrefixUrl => {
+                    super::try_construct_dir_prefix_url(self, environment)?
+                }
+                Key::RepoVersionedFilePrefixUrl => {
+                    super::try_construct_file_prefix_url(self, environment)?
+                }
+                Key::RepoWebUrl => repo_web_url(environment)?,
+                Key::Version => version(environment)?,
+                Key::VersionDate => version_date(environment)?,
+            },
+        )
     }
 }

@@ -119,38 +119,44 @@ impl super::VarSource for VarSource {
         &super::NO_PROPS
     }
 
+    #[remain::check]
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
-        Ok(match key {
-            Key::Name => super::proj_name_from_slug(environment.vars.get("GITHUB_REPOSITORY"))?, // usually: GITHUB_REPOSITORY="user/project"
-            Key::NameMachineReadable => {
-                super::try_construct_machine_readable_name_from_web_url(self, environment)?
-            }
-            Key::RepoWebUrl => repo_web_url(environment),
-            Key::Ci => var(environment, "CI"),
-            Key::BuildBranch => build_branch(environment)?,
-            Key::BuildTag => build_tag(environment)?,
-            Key::RepoCloneUrl => repo_clone_url(self, environment)?,
-            Key::RepoRawVersionedPrefixUrl => {
-                super::try_construct_raw_prefix_url(self, environment)?
-            }
-            Key::RepoVersionedFilePrefixUrl => {
-                super::try_construct_file_prefix_url(self, environment)?
-            }
-            Key::RepoVersionedDirPrefixUrl => {
-                super::try_construct_dir_prefix_url(self, environment)?
-            }
-            Key::RepoCommitPrefixUrl => super::try_construct_commit_prefix_url(self, environment)?,
-            Key::BuildHostingUrl => build_hosting_url(self, environment)?,
-            Key::RepoIssuesUrl => super::try_construct_issues_url(self, environment)?,
-            Key::BuildOs => var(environment, "RUNNER_OS"), // TODO Not sure if this makes sense ... have to check in practise!
-            Key::Version => var(environment, "GITHUB_SHA"),
-            Key::BuildDate
-            | Key::VersionDate
-            | Key::BuildOsFamily
-            | Key::BuildArch
-            | Key::License
-            | Key::Licenses
-            | Key::BuildNumber => None,
-        })
+        Ok(
+            #[remain::sorted]
+            match key {
+                Key::BuildArch
+                | Key::BuildDate
+                | Key::BuildNumber
+                | Key::BuildOsFamily
+                | Key::License
+                | Key::Licenses
+                | Key::VersionDate => None,
+                Key::BuildBranch => build_branch(environment)?,
+                Key::BuildHostingUrl => build_hosting_url(self, environment)?,
+                Key::BuildOs => var(environment, "RUNNER_OS"), // TODO Not sure if this makes sense ... have to check in practise!
+                Key::BuildTag => build_tag(environment)?,
+                Key::Ci => var(environment, "CI"),
+                Key::Name => super::proj_name_from_slug(environment.vars.get("GITHUB_REPOSITORY"))?, // usually: GITHUB_REPOSITORY="user/project"
+                Key::NameMachineReadable => {
+                    super::try_construct_machine_readable_name_from_web_url(self, environment)?
+                }
+                Key::RepoCloneUrl => repo_clone_url(self, environment)?,
+                Key::RepoCommitPrefixUrl => {
+                    super::try_construct_commit_prefix_url(self, environment)?
+                }
+                Key::RepoIssuesUrl => super::try_construct_issues_url(self, environment)?,
+                Key::RepoRawVersionedPrefixUrl => {
+                    super::try_construct_raw_prefix_url(self, environment)?
+                }
+                Key::RepoVersionedDirPrefixUrl => {
+                    super::try_construct_dir_prefix_url(self, environment)?
+                }
+                Key::RepoVersionedFilePrefixUrl => {
+                    super::try_construct_file_prefix_url(self, environment)?
+                }
+                Key::RepoWebUrl => repo_web_url(environment),
+                Key::Version => var(environment, "GITHUB_SHA"),
+            },
+        )
     }
 }

@@ -63,33 +63,34 @@ impl<'a> Default for &'a Variable {
     }
 }
 
+#[remain::sorted]
 // #[derive(Debug, EnumString, EnumIter, IntoStaticStr, PartialEq, Eq, Hash, Copy, Clone, Enum)]
 // #[derive(Debug, EnumString, EnumIter, IntoStaticStr, Hash, Enum, EnumSetType)]
 #[derive(Debug, EnumString, EnumIter, IntoStaticStr, Hash, Enum, PartialEq, Eq, Clone, Copy)]
 pub enum Key {
-    Version,
-    License,
-    Licenses,
-    RepoWebUrl,
-    RepoCloneUrl,
-    RepoRawVersionedPrefixUrl,
-    RepoVersionedFilePrefixUrl,
-    RepoVersionedDirPrefixUrl,
-    RepoCommitPrefixUrl,
-    RepoIssuesUrl,
-    Name,
-    NameMachineReadable,
-    VersionDate,
-    BuildDate,
+    BuildArch,
     BuildBranch,
-    BuildTag,
+    BuildDate,
+    BuildHostingUrl,
     // BuildIdent, // TODO This name is very bad, as it makes one think of BUILD_NUMBER; choose a different one! Maybe refunction it as well(?) -> `HumanVersion` (vs a machine-readable one like from git describe, which goes to `Version`), for example "Ubuntu 10.04 - UbsiDubsi"
+    BuildNumber,
     BuildOs,
     BuildOsFamily,
-    BuildArch,
-    BuildHostingUrl,
-    BuildNumber,
+    BuildTag,
     Ci,
+    License,
+    Licenses,
+    Name,
+    NameMachineReadable,
+    RepoCloneUrl,
+    RepoCommitPrefixUrl,
+    RepoIssuesUrl,
+    RepoRawVersionedPrefixUrl,
+    RepoVersionedDirPrefixUrl,
+    RepoVersionedFilePrefixUrl,
+    RepoWebUrl,
+    Version,
+    VersionDate,
 }
 
 /// Converts an `"UPPER_SNAKE_CASE"` string into an `"CamelCase"` one.
@@ -383,30 +384,32 @@ const VAR_CI: Variable = Variable {
 
 /// Returns a reference to the variable settings associated with the given key.
 #[must_use]
+#[remain::check]
 pub fn get(key: Key) -> &'static Variable {
+    #[remain::sorted]
     match key {
-        Key::Version => &VAR_VERSION,
-        Key::License => &VAR_LICENSE,
-        Key::Licenses => &VAR_LICENSES,
-        Key::RepoWebUrl => &VAR_REPO_WEB_URL,
-        Key::RepoCloneUrl => &VAR_REPO_CLONE_URL,
-        Key::RepoRawVersionedPrefixUrl => &VAR_REPO_RAW_VERSIONED_PREFIX_URL,
-        Key::RepoVersionedFilePrefixUrl => &VAR_REPO_VERSIONED_FILE_PREFIX_URL,
-        Key::RepoVersionedDirPrefixUrl => &VAR_REPO_VERSIONED_DIR_PREFIX_URL,
-        Key::RepoCommitPrefixUrl => &VAR_REPO_COMMIT_PREFIX_URL,
-        Key::RepoIssuesUrl => &VAR_REPO_ISSUES_URL,
-        Key::Name => &VAR_NAME,
-        Key::NameMachineReadable => &VAR_NAME_MACHINE_READABLE,
-        Key::VersionDate => &VAR_VERSION_DATE,
-        Key::BuildDate => &VAR_BUILD_DATE,
-        Key::BuildBranch => &VAR_BUILD_BRANCH,
-        Key::BuildTag => &VAR_BUILD_TAG,
-        Key::BuildOs => &VAR_BUILD_OS,
-        Key::BuildOsFamily => &VAR_BUILD_OS_FAMILY,
         Key::BuildArch => &VAR_BUILD_ARCH,
+        Key::BuildBranch => &VAR_BUILD_BRANCH,
+        Key::BuildDate => &VAR_BUILD_DATE,
         Key::BuildHostingUrl => &VAR_BUILD_HOSTING_URL,
         Key::BuildNumber => &VAR_BUILD_NUMBER,
+        Key::BuildOs => &VAR_BUILD_OS,
+        Key::BuildOsFamily => &VAR_BUILD_OS_FAMILY,
+        Key::BuildTag => &VAR_BUILD_TAG,
         Key::Ci => &VAR_CI,
+        Key::License => &VAR_LICENSE,
+        Key::Licenses => &VAR_LICENSES,
+        Key::Name => &VAR_NAME,
+        Key::NameMachineReadable => &VAR_NAME_MACHINE_READABLE,
+        Key::RepoCloneUrl => &VAR_REPO_CLONE_URL,
+        Key::RepoCommitPrefixUrl => &VAR_REPO_COMMIT_PREFIX_URL,
+        Key::RepoIssuesUrl => &VAR_REPO_ISSUES_URL,
+        Key::RepoRawVersionedPrefixUrl => &VAR_REPO_RAW_VERSIONED_PREFIX_URL,
+        Key::RepoVersionedDirPrefixUrl => &VAR_REPO_VERSIONED_DIR_PREFIX_URL,
+        Key::RepoVersionedFilePrefixUrl => &VAR_REPO_VERSIONED_FILE_PREFIX_URL,
+        Key::RepoWebUrl => &VAR_REPO_WEB_URL,
+        Key::Version => &VAR_VERSION,
+        Key::VersionDate => &VAR_VERSION_DATE,
     }
 }
 

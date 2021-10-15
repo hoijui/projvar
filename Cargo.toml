@@ -37,3 +37,4 @@ enum-map = { git = "https://gitlab.com/bit_network/enum-map.git", branch = "impl
 thiserror = "1"
 anyhow = "1"
 url = "2.2.2"
+remain = "0.2.2"

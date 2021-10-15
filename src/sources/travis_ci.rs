@@ -30,32 +30,36 @@ impl super::VarSource for VarSource {
         &super::NO_PROPS
     }
 
+    #[remain::check]
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
-        Ok(match key {
-            Key::BuildBranch => var(environment, "TRAVIS_BRANCH"),
-            Key::BuildTag => var(environment, "TRAVIS_TAG"),
-            Key::BuildOs => var(environment, "TRAVIS_OS_NAME"),
-            Key::Version => var(environment, "TRAVIS_COMMIT"),
-            Key::BuildNumber => var(environment, "TRAVIS_BUILD_NUMBER"),
-            Key::Name => super::proj_name_from_slug(environment.vars.get("TRAVIS_REPO_SLUG"))?, // usually: TRAVIS_REPO_SLUG="user/project"
-            Key::NameMachineReadable => {
-                super::try_construct_machine_readable_name_from_name(self, environment)?
-            }
-            Key::RepoIssuesUrl
-            | Key::RepoWebUrl
-            | Key::Ci
-            | Key::RepoCloneUrl
-            | Key::RepoRawVersionedPrefixUrl
-            | Key::RepoVersionedFilePrefixUrl
-            | Key::RepoVersionedDirPrefixUrl
-            | Key::RepoCommitPrefixUrl
-            | Key::BuildHostingUrl
-            | Key::VersionDate
-            | Key::BuildDate
-            | Key::BuildOsFamily
-            | Key::BuildArch
-            | Key::Licenses
-            | Key::License => None,
-        })
+        Ok(
+            #[remain::sorted]
+            match key {
+                Key::BuildArch
+                | Key::BuildHostingUrl
+                | Key::BuildDate
+                | Key::BuildOsFamily
+                | Key::Ci
+                | Key::Licenses
+                | Key::License
+                | Key::RepoIssuesUrl
+                | Key::RepoCloneUrl
+                | Key::RepoCommitPrefixUrl
+                | Key::RepoRawVersionedPrefixUrl
+                | Key::RepoVersionedDirPrefixUrl
+                | Key::RepoVersionedFilePrefixUrl
+                | Key::RepoWebUrl
+                | Key::VersionDate => None,
+                Key::BuildBranch => var(environment, "TRAVIS_BRANCH"),
+                Key::BuildNumber => var(environment, "TRAVIS_BUILD_NUMBER"),
+                Key::BuildOs => var(environment, "TRAVIS_OS_NAME"),
+                Key::BuildTag => var(environment, "TRAVIS_TAG"),
+                Key::Name => super::proj_name_from_slug(environment.vars.get("TRAVIS_REPO_SLUG"))?, // usually: TRAVIS_REPO_SLUG="user/project"
+                Key::NameMachineReadable => {
+                    super::try_construct_machine_readable_name_from_name(self, environment)?
+                }
+                Key::Version => var(environment, "TRAVIS_COMMIT"),
+            },
+        )
     }
 }

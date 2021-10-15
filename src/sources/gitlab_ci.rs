@@ -30,40 +30,46 @@ impl super::VarSource for VarSource {
         &super::NO_PROPS
     }
 
+    #[remain::check]
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
-        Ok(match key {
-            Key::Name => var(environment, "CI_PROJECT_NAME"),
-            Key::NameMachineReadable => {
-                super::try_construct_machine_readable_name_from_web_url(self, environment)?
-            }
-            Key::RepoWebUrl => var(environment, "CI_PROJECT_URL"),
-            Key::RepoIssuesUrl => super::try_construct_issues_url(self, environment)?,
-            Key::Ci => var(environment, "CI"),
-            Key::BuildBranch => var(environment, "CI_COMMIT_BRANCH"),
-            Key::BuildTag => var(environment, "CI_COMMIT_TAG"),
-            Key::RepoCloneUrl => var(environment, "CI_REPOSITORY_URL"),
-            Key::RepoRawVersionedPrefixUrl => {
-                super::try_construct_raw_prefix_url(self, environment)?
-            }
-            Key::RepoVersionedFilePrefixUrl => {
-                super::try_construct_file_prefix_url(self, environment)?
-            }
-            Key::RepoVersionedDirPrefixUrl => {
-                super::try_construct_dir_prefix_url(self, environment)?
-            }
-            Key::RepoCommitPrefixUrl => super::try_construct_commit_prefix_url(self, environment)?,
-            Key::BuildHostingUrl => var(environment, "CI_PAGES_URL"),
-            Key::BuildOs => var(environment, "CI_RUNNER_EXECUTABLE_ARCH"), // TODO Not sure if this makes sense ... have to check in practise!
-            Key::VersionDate => var(environment, "CI_COMMIT_TIMESTAMP"), // TODO This probably has to be converted/formatted
-            Key::Version => self
-                .retrieve(environment, Key::BuildTag)?
-                .or_else(|| var(environment, "CI_COMMIT_SHORT_SHA")),
-            Key::BuildDate
-            | Key::BuildOsFamily
-            | Key::BuildArch
-            | Key::License
-            | Key::Licenses
-            | Key::BuildNumber => None,
-        })
+        Ok(
+            #[remain::sorted]
+            match key {
+                Key::BuildArch
+                | Key::BuildDate
+                | Key::BuildNumber
+                | Key::BuildOsFamily
+                | Key::License
+                | Key::Licenses => None,
+                Key::BuildBranch => var(environment, "CI_COMMIT_BRANCH"),
+                Key::BuildHostingUrl => var(environment, "CI_PAGES_URL"),
+                Key::BuildOs => var(environment, "CI_RUNNER_EXECUTABLE_ARCH"), // TODO Not sure if this makes sense ... have to check in practise!
+                Key::BuildTag => var(environment, "CI_COMMIT_TAG"),
+                Key::Ci => var(environment, "CI"),
+                Key::Name => var(environment, "CI_PROJECT_NAME"),
+                Key::NameMachineReadable => {
+                    super::try_construct_machine_readable_name_from_web_url(self, environment)?
+                }
+                Key::RepoCloneUrl => var(environment, "CI_REPOSITORY_URL"),
+                Key::RepoCommitPrefixUrl => {
+                    super::try_construct_commit_prefix_url(self, environment)?
+                }
+                Key::RepoIssuesUrl => super::try_construct_issues_url(self, environment)?,
+                Key::RepoRawVersionedPrefixUrl => {
+                    super::try_construct_raw_prefix_url(self, environment)?
+                }
+                Key::RepoVersionedDirPrefixUrl => {
+                    super::try_construct_dir_prefix_url(self, environment)?
+                }
+                Key::RepoVersionedFilePrefixUrl => {
+                    super::try_construct_file_prefix_url(self, environment)?
+                }
+                Key::RepoWebUrl => var(environment, "CI_PROJECT_URL"),
+                Key::Version => self
+                    .retrieve(environment, Key::BuildTag)?
+                    .or_else(|| var(environment, "CI_COMMIT_SHORT_SHA")),
+                Key::VersionDate => var(environment, "CI_COMMIT_TIMESTAMP"), // TODO This probably has to be converted/formatted
+            },
+        )
     }
 }

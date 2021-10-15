@@ -30,32 +30,36 @@ impl super::VarSource for VarSource {
         &super::NO_PROPS
     }
 
+    #[remain::check]
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
-        Ok(match key {
-            Key::Name => var(environment, "APP_NAME"),
-            Key::NameMachineReadable => {
-                super::try_construct_machine_readable_name_from_name(self, environment)?
-            }
-            Key::BuildBranch => var(environment, "BRANCH_NAME"),
-            Key::Version => var(environment, "VERSION"), // Alternatively (but makes no sense to use): var(environment, "PULL_BASE_SHA")
-            Key::BuildNumber => var(environment, "BUILD_NUMBER"),
-            Key::RepoIssuesUrl
-            | Key::RepoWebUrl
-            | Key::Ci
-            | Key::BuildTag
-            | Key::RepoCloneUrl
-            | Key::RepoRawVersionedPrefixUrl
-            | Key::RepoVersionedFilePrefixUrl
-            | Key::RepoVersionedDirPrefixUrl
-            | Key::RepoCommitPrefixUrl
-            | Key::BuildHostingUrl
-            | Key::BuildOs
-            | Key::VersionDate
-            | Key::BuildDate
-            | Key::BuildOsFamily
-            | Key::BuildArch
-            | Key::Licenses
-            | Key::License => None,
-        })
+        Ok(
+            #[remain::sorted]
+            match key {
+                Key::BuildArch
+                | Key::BuildDate
+                | Key::BuildHostingUrl
+                | Key::BuildOs
+                | Key::BuildOsFamily
+                | Key::BuildTag
+                | Key::Ci
+                | Key::License
+                | Key::Licenses
+                | Key::RepoCloneUrl
+                | Key::RepoCommitPrefixUrl
+                | Key::RepoIssuesUrl
+                | Key::RepoRawVersionedPrefixUrl
+                | Key::RepoVersionedDirPrefixUrl
+                | Key::RepoVersionedFilePrefixUrl
+                | Key::RepoWebUrl
+                | Key::VersionDate => None,
+                Key::BuildBranch => var(environment, "BRANCH_NAME"),
+                Key::BuildNumber => var(environment, "BUILD_NUMBER"),
+                Key::Name => var(environment, "APP_NAME"),
+                Key::NameMachineReadable => {
+                    super::try_construct_machine_readable_name_from_name(self, environment)?
+                }
+                Key::Version => var(environment, "VERSION"), // Alternatively (but makes no sense to use): var(environment, "PULL_BASE_SHA")
+            },
+        )
     }
 }

@@ -160,32 +160,36 @@ impl super::VarSource for VarSource {
         &super::NO_PROPS
     }
 
+    #[remain::check]
     fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
-        Ok(match key {
-            Key::Licenses => licenses(environment)?.map(|lv| lv.join(", ")),
-            Key::Version => version(environment)?,
-            Key::Name => name(environment)?,
-            Key::NameMachineReadable => {
-                super::try_construct_machine_readable_name_from_name(self, environment)?
-            }
-            Key::BuildDate => Some(build_date(environment)),
-            Key::BuildOs => Some(build_os(environment)),
-            Key::BuildOsFamily => Some(build_os_family(environment)),
-            Key::BuildArch => Some(build_arch(environment)),
-            Key::RepoWebUrl
-            | Key::RepoIssuesUrl
-            | Key::BuildBranch
-            | Key::BuildTag
-            | Key::RepoCloneUrl
-            | Key::RepoRawVersionedPrefixUrl
-            | Key::RepoVersionedFilePrefixUrl
-            | Key::RepoVersionedDirPrefixUrl
-            | Key::RepoCommitPrefixUrl
-            | Key::VersionDate
-            | Key::BuildHostingUrl
-            | Key::Ci
-            | Key::License
-            | Key::BuildNumber => None,
-        })
+        Ok(
+            #[remain::sorted]
+            match key {
+                Key::BuildArch => Some(build_arch(environment)),
+                Key::BuildBranch
+                | Key::BuildHostingUrl
+                | Key::BuildNumber
+                | Key::BuildTag
+                | Key::Ci
+                | Key::License
+                | Key::RepoCloneUrl
+                | Key::RepoCommitPrefixUrl
+                | Key::RepoIssuesUrl
+                | Key::RepoRawVersionedPrefixUrl
+                | Key::RepoVersionedDirPrefixUrl
+                | Key::RepoVersionedFilePrefixUrl
+                | Key::RepoWebUrl
+                | Key::VersionDate => None,
+                Key::BuildDate => Some(build_date(environment)),
+                Key::BuildOs => Some(build_os(environment)),
+                Key::BuildOsFamily => Some(build_os_family(environment)),
+                Key::Licenses => licenses(environment)?.map(|lv| lv.join(", ")),
+                Key::Name => name(environment)?,
+                Key::NameMachineReadable => {
+                    super::try_construct_machine_readable_name_from_name(self, environment)?
+                }
+                Key::Version => version(environment)?,
+            },
+        )
     }
 }
