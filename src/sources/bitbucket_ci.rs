@@ -51,15 +51,8 @@ impl super::VarSource for VarSource {
                 Key::NameMachineReadable => {
                     super::try_construct_machine_readable_name_from_web_url(self, environment)?
                 }
-                Key::RepoCloneUrl => {
-                    // NOTE:
-                    // In reality, either both of these or none are set,
-                    // so we will never use BITBUCKET_GIT_SSH_ORIGIN, but formally,
-                    // it makes sense, and can be seen as a form of documentation,
-                    // which at some point might become handy.
-                    var(environment, "BITBUCKET_GIT_HTTP_ORIGIN")
-                        .or_else(|| var(environment, "BITBUCKET_GIT_SSH_ORIGIN"))
-                }
+                Key::RepoCloneUrl => var(environment, "BITBUCKET_GIT_HTTP_ORIGIN"),
+                Key::RepoCloneUrlSsh => var(environment, "BITBUCKET_GIT_SSH_ORIGIN"),
                 Key::RepoCommitPrefixUrl => {
                     super::try_construct_commit_prefix_url(self, environment)?
                 }

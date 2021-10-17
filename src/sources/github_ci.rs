@@ -62,13 +62,14 @@ fn build_tag(environment: &mut Environment) -> BoxResult<Option<String>> {
 fn repo_clone_url(
     source: &dyn super::VarSource,
     environment: &mut Environment,
+    ssh: bool,
 ) -> BoxResult<Option<String>> {
     let repo_web_url = source.retrieve(environment, Key::RepoWebUrl)?;
     Ok(if let Some(repo_web_url) = repo_web_url {
         // usually:
         // https://github.com/hoijui/nim-ci.git
         // https://gitlab.com/hoijui/tebe.git
-        Some(tools::git::web_to_clone_url(&repo_web_url, false)?)
+        Some(tools::git::web_to_clone_url(&repo_web_url, ssh)?)
     } else {
         None
     })
@@ -140,7 +141,8 @@ impl super::VarSource for VarSource {
                 Key::NameMachineReadable => {
                     super::try_construct_machine_readable_name_from_web_url(self, environment)?
                 }
-                Key::RepoCloneUrl => repo_clone_url(self, environment)?,
+                Key::RepoCloneUrl => repo_clone_url(self, environment, false)?,
+                Key::RepoCloneUrlSsh => repo_clone_url(self, environment, true)?,
                 Key::RepoCommitPrefixUrl => {
                     super::try_construct_commit_prefix_url(self, environment)?
                 }

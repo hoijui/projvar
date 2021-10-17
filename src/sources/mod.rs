@@ -321,3 +321,104 @@ pub fn try_construct_commit_prefix_url<S: VarSource>(
     }
     Ok(None)
 }
+
+/// Converts an SSH clone URL to an HTTP(S) one.
+///
+/// # Errors
+///
+/// If an attempt to try fetching any required property returned an error.
+// * git@github.com:hoijui/rust-project-scripts.git
+// * https://github.com/hoijui/rust-project-scripts.git
+pub fn convert_clone_ssh_to_http(clone_url_ssh: &str) -> BoxResult<String> {
+    lazy_static! {
+        static ref R_CLONE_URL: Regex = Regex::new(r"^((?P<protocol>[0-9a-zA-Z._-]+)://)?((?P<user>[0-9a-zA-Z._-]+)@)?(?P<host>[0-9a-zA-Z._-]+)([/:](?P<path_and_rest>.+)?)?$").unwrap();
+        /* static ref R_PROTOCOL: Regex = Regex::new(r"^[a-z]+:").unwrap(); */
+        /* static ref R_PROTOCOL: Regex = Regex::new(r"^[a-z]+:").unwrap(); */
+        /* static ref R_COLON: Regex = Regex::new(r":([^/])").unwrap(); */
+    }
+    // let clone_url_https = R_PROTOCOL.replace(clone_url_ssh, ""ssh);
+
+    let clone_url_https = R_CLONE_URL.replace(clone_url_ssh, |caps: &regex::Captures| {
+        // let_named_cap!(caps, protocol);
+        let_named_cap!(caps, host);
+        // let_named_cap!(caps, user);
+        let_named_cap!(caps, path_and_rest);
+        let host = caps.name("host").map(|m| m.as_str());
+        if let Some(host) = host {
+            let path_and_rest = caps
+                .name("path_and_rest")
+                .map(|m| "/".to_owned() + m.as_str());
+            format!(
+                "{protocol}://{host}/{path_and_rest}",
+                protocol = "https",
+                // user = user.to_lowercase(),
+                host = host,
+                path_and_rest = path_and_rest.unwrap_or_default(),
+            )
+        } else {
+            clone_url_ssh.to_owned()
+        }
+    });
+    if clone_url_https == clone_url_ssh {
+        Err(Box::new(""))
+    } else {
+        Ok(clone_url_https.as_ref().to_owned())
+    }
+
+    /* let clone_url_ssh = R_COLON.replace(clone_url_ssh, "/$1"); */
+    /* if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? { */
+    /*     let mut url = Url::parse(&base_repo_web_url)?; */
+    /*     if let Some(host) = url.host() { */
+    /*         return Ok(match host { */
+    /*             Host::Domain(constants::D_GIT_HUB_COM) => { */
+    /*                 url.set_path(&format!("{}/commit", url.path())); */
+    /*                 Some(url.to_string()) */
+    /*             } */
+    /*             Host::Domain(constants::D_GIT_LAB_COM) => { */
+    /*                 url.set_path(&format!("{}/-/commit", url.path())); */
+    /*                 Some(url.to_string()) */
+    /*             } */
+    /*             Host::Domain(constants::D_BIT_BUCKET_ORG) => { */
+    /*                 url.set_path(&format!("{}/commits", url.path())); */
+    /*                 Some(url.to_string()) */
+    /*             } */
+    /*             _ => None, */
+    /*         }); */
+    /*     } */
+    /* } */
+    /* Ok(None) */
+}
+
+/// Converts an SSH clone URL to an HTTP(S) one.
+///
+/// # Errors
+///
+/// If an attempt to try fetching any required property returned an error.
+// * git@github.com:hoijui/rust-project-scripts.git
+// * https://github.com/hoijui/rust-project-scripts.git
+pub fn try_convert_clone_ssh_to_http<S: VarSource>(
+    var_source: &S,
+    environment: &mut Environment,
+) -> BoxResult<Option<String>> {
+    if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
+        let mut url = Url::parse(&base_repo_web_url)?;
+        if let Some(host) = url.host() {
+            return Ok(match host {
+                Host::Domain(constants::D_GIT_HUB_COM) => {
+                    url.set_path(&format!("{}/commit", url.path()));
+                    Some(url.to_string())
+                }
+                Host::Domain(constants::D_GIT_LAB_COM) => {
+                    url.set_path(&format!("{}/-/commit", url.path()));
+                    Some(url.to_string())
+                }
+                Host::Domain(constants::D_BIT_BUCKET_ORG) => {
+                    url.set_path(&format!("{}/commits", url.path()));
+                    Some(url.to_string())
+                }
+                _ => None,
+            });
+        }
+    }
+    Ok(None)
+}

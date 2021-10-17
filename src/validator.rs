@@ -622,6 +622,7 @@ pub fn get(key: Key) -> Validator {
         Key::Name => validate_name,
         Key::NameMachineReadable => validate_name_machine_readable,
         Key::RepoCloneUrl => validate_repo_clone_url,
+        Key::RepoCloneUrlSsh => validate_repo_clone_url_ssh,
         Key::RepoCommitPrefixUrl => validate_repo_commit_prefix_url,
         Key::RepoIssuesUrl => validate_repo_issues_url,
         Key::RepoRawVersionedPrefixUrl => validate_repo_raw_versioned_prefix_url,
