@@ -208,7 +208,7 @@ pub fn web_to_clone_url(web_url: &str, ssh: bool) -> BoxResult<String> {
 ///
 /// Failed generating the "pages" URL,
 /// likely because the remote is neither "github.com" nor "gitlab.com".
-pub fn web_to_build_hosting_url(web_url: &str) -> BoxResult<String> {
+pub fn web_to_build_hosting_url(web_url: &str) -> BoxResult<String> { // TODO This and others are doubled in sources::mod.rs! This here is older, nad only suports github and gitlab urls
     lazy_static! {
         static ref R_WEB_URL: Regex = Regex::new(
             r"(?P<protocol>[0-9a-zA-Z_-]+)://((?P<protocol_user>[0-9a-zA-Z_-]+)@)?(?P<server>[0-9a-zA-Z_-]+)\.com/(?P<user>[^/]+)/(?P<project>[^/]+)/?"
