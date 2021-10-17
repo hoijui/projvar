@@ -99,6 +99,42 @@ pub enum Key {
     VersionDate,
 }
 
+/// Converts a `"CamelCase"` string into an `"UPPER_SNAKE_CASE"` one.
+///
+/// for example:
+///
+/// ```
+/// //# fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # use projvar::var::camel_to_upper_snake_case;
+/// assert_eq!(
+///     camel_to_upper_snake_case("someLowerCaseStartingTest"),
+///     "SOME_LOWER_CASE_STARTING_TEST"
+/// );
+/// assert_eq!(
+///     camel_to_upper_snake_case("SomeUpperCaseStartingTest"),
+///     "SOME_UPPER_CASE_STARTING_TEST"
+/// );
+/// // NOTE From here on, we start seeing the limitation of this simple algorithm
+/// assert_eq!(
+///     camel_to_upper_snake_case("somethingWith123ANumber"),
+///     "SOMETHING_WITH123_A_NUMBER"
+/// );
+/// assert_eq!(
+///     camel_to_upper_snake_case("somethingWith123aNumber"),
+///     "SOMETHING_WITH123A_NUMBER"
+/// );
+/// //# Ok(())
+/// //# }
+/// ```
+#[must_use]
+pub fn camel_to_upper_snake_case(id: &str) -> String {
+    lazy_static! {
+        static ref R_UPPER_SEL: Regex = Regex::new(r"(?P<after>[A-Z])").unwrap();
+    }
+    let res = R_UPPER_SEL.replace_all(id, "_$after").to_uppercase();
+    res.strip_prefix('_').unwrap_or(&res).to_string()
+}
+
 /// Converts an `"UPPER_SNAKE_CASE"` string into an `"CamelCase"` one.
 ///
 /// for example:
@@ -451,6 +487,24 @@ pub fn default_keys() -> &'static HashSet<Key> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_camel_to_upper_snake_case() -> std::result::Result<(), Box<dyn Error>> {
+        assert_eq!(camel_to_upper_snake_case("Version"), "VERSION");
+        assert_eq!(camel_to_upper_snake_case("version"), "VERSION");
+        assert_eq!(
+            camel_to_upper_snake_case("ProjectVersion"),
+            "PROJECT_VERSION"
+        );
+        assert_eq!(
+            camel_to_upper_snake_case("projectVersion"),
+            "PROJECT_VERSION"
+        );
+        assert_eq!(camel_to_upper_snake_case("RepoWebUrl"), "REPO_WEB_URL");
+        assert_eq!(camel_to_upper_snake_case("repoWebUrl"), "REPO_WEB_URL");
+
+        Ok(())
+    }
 
     #[test]
     fn test_from_name_or_var_key() -> std::result::Result<(), Box<dyn Error>> {
