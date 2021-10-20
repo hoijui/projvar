@@ -4,17 +4,16 @@
 
 use crate::environment::Environment;
 use crate::tools;
+use crate::value_conversions::slug_to_proj_name;
 use crate::var::Key;
-use std::error::Error;
 
 use super::var;
 use super::Hierarchy;
+use super::RetrieveRes;
 pub struct VarSource;
 
-type BoxResult<T> = Result<T, Box<dyn Error>>;
-
 // TODO Move this elsewhere
-fn is_branch(environment: &mut Environment, refr: &str) -> BoxResult<Option<String>> {
+fn is_branch(environment: &mut Environment, refr: &str) -> RetrieveRes {
     let mut branch = None;
     if let Some(repo) = environment.repo() {
         let checked_out_branch = repo.branch()?;
@@ -28,7 +27,7 @@ fn is_branch(environment: &mut Environment, refr: &str) -> BoxResult<Option<Stri
 }
 
 // TODO Move this elsewhere
-fn is_tag(environment: &mut Environment, refr: &str) -> BoxResult<Option<String>> {
+fn is_tag(environment: &mut Environment, refr: &str) -> RetrieveRes {
     let mut tag = None;
     if let Some(repo) = environment.repo() {
         let checked_out_branch = repo.tag()?;
@@ -41,7 +40,7 @@ fn is_tag(environment: &mut Environment, refr: &str) -> BoxResult<Option<String>
     Ok(tag.map(std::borrow::ToOwned::to_owned))
 }
 
-fn build_branch(environment: &mut Environment) -> BoxResult<Option<String>> {
+fn build_branch(environment: &mut Environment) -> RetrieveRes {
     let refr = var(environment, "GITHUB_REF");
     Ok(if let Some(refr) = refr {
         is_branch(environment, &refr)?
@@ -50,7 +49,7 @@ fn build_branch(environment: &mut Environment) -> BoxResult<Option<String>> {
     })
 }
 
-fn build_tag(environment: &mut Environment) -> BoxResult<Option<String>> {
+fn build_tag(environment: &mut Environment) -> RetrieveRes {
     let refr = var(environment, "GITHUB_REF");
     Ok(if let Some(refr) = refr {
         is_tag(environment, &refr)?
@@ -60,10 +59,11 @@ fn build_tag(environment: &mut Environment) -> BoxResult<Option<String>> {
 }
 
 fn repo_clone_url(
+    // TODO move to super:: and move innerads to value_conversions
     source: &dyn super::VarSource,
     environment: &mut Environment,
     ssh: bool,
-) -> BoxResult<Option<String>> {
+) -> RetrieveRes {
     let repo_web_url = source.retrieve(environment, Key::RepoWebUrl)?;
     Ok(if let Some(repo_web_url) = repo_web_url {
         // usually:
@@ -91,10 +91,7 @@ fn repo_web_url(environment: &mut Environment) -> Option<String> {
     }
 }
 
-fn build_hosting_url(
-    source: &dyn super::VarSource,
-    environment: &mut Environment,
-) -> BoxResult<Option<String>> {
+fn build_hosting_url(source: &dyn super::VarSource, environment: &mut Environment) -> RetrieveRes {
     let repo_web_url = source.retrieve(environment, Key::RepoWebUrl)?;
     Ok(if let Some(repo_web_url) = repo_web_url {
         Some(tools::git::web_to_build_hosting_url(&repo_web_url)?) // TODO This currently comes without final '/', is that OK?
@@ -121,7 +118,7 @@ impl super::VarSource for VarSource {
     }
 
     #[remain::check]
-    fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
+    fn retrieve(&self, environment: &mut Environment, key: Key) -> RetrieveRes {
         Ok(
             #[remain::sorted]
             match key {
@@ -137,7 +134,7 @@ impl super::VarSource for VarSource {
                 Key::BuildOs => var(environment, "RUNNER_OS"), // TODO Not sure if this makes sense ... have to check in practise!
                 Key::BuildTag => build_tag(environment)?,
                 Key::Ci => var(environment, "CI"),
-                Key::Name => super::proj_name_from_slug(environment.vars.get("GITHUB_REPOSITORY"))?, // usually: GITHUB_REPOSITORY="user/project"
+                Key::Name => slug_to_proj_name(environment.vars.get("GITHUB_REPOSITORY"))?, // usually: GITHUB_REPOSITORY="user/project"
                 Key::NameMachineReadable => {
                     super::try_construct_machine_readable_name_from_web_url(self, environment)?
                 }

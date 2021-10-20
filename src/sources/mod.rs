@@ -11,17 +11,13 @@ pub mod gitlab_ci;
 pub mod jenkins_ci;
 pub mod travis_ci;
 
-use std::error::Error;
+use thiserror::Error;
 
 use clap::lazy_static::lazy_static;
-use regex::Regex;
-use url::{Host, Url};
 
-use crate::constants;
 use crate::environment::Environment;
 use crate::var::Key;
-
-type BoxResult<T> = Result<T, Box<dyn Error>>;
+use crate::{std_error, value_conversions};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub enum Hierarchy {
@@ -34,6 +30,28 @@ pub enum Hierarchy {
 lazy_static! {
     static ref NO_PROPS: Vec::<String> = Vec::<String>::new();
 }
+
+/// This enumerates all possible errors returned by this module.
+#[derive(Error, Debug)]
+pub enum Error {
+    /// Represents all other cases of `std::io::Error`.
+    #[error(transparent)]
+    ConversionError(#[from] value_conversions::Error),
+
+    /// Represents all other cases of `std::io::Error`.
+    #[error(transparent)]
+    IO(#[from] std::io::Error),
+
+    /// Represents all other cases of `std_error::Error`.
+    #[error(transparent)]
+    Std(#[from] std_error::Error),
+
+    /// Represents all other cases of `std::error::Error`.
+    #[error(transparent)]
+    Other(#[from] Box<dyn std::error::Error>),
+}
+
+type RetrieveRes = Result<Option<String>, Error>;
 
 pub trait VarSource {
     /// Indicates whether this source of variables is usable.
@@ -69,7 +87,7 @@ pub trait VarSource {
     /// or is not reachable (e.g. a web URL),
     /// or innumerable other kinds of problems,
     /// depending on the kind of the source.
-    fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>>;
+    fn retrieve(&self, environment: &mut Environment, key: Key) -> RetrieveRes;
 }
 
 pub fn var(environment: &Environment, key: &str) -> Option<String> {
@@ -79,21 +97,24 @@ pub fn var(environment: &Environment, key: &str) -> Option<String> {
         .map(std::borrow::ToOwned::to_owned)
 }
 
-/// Extracts the project name from the project slug ("user/project").
-///
-/// # Errors
-///
-/// When splitting the slug at '/' fails.
-pub fn proj_name_from_slug(slug: Option<&String>) -> BoxResult<Option<String>> {
-    Ok(if let Some(repo_name) = slug {
-        Some(repo_name
-            .split('/')
-            .nth(1)
-            .ok_or("Failed splitting the repository name (assumed to be \"user/repo\") into \"user\" and \"repo\"")?
-            .to_owned())
-    } else {
-        None
-    })
+macro_rules! convert_from_key {
+    ($var_source:ident, $environment:ident, $key:expr, $conversion_function:ident) => {{
+        let value = $var_source.retrieve($environment, $key)?;
+        value.map_or(Ok(None), |value| {
+            value_conversions::$conversion_function($environment, &value).map_err(|e| e.into())
+        })
+    }};
+}
+
+macro_rules! convert_from_web_url {
+    ($var_source:ident, $environment:ident, $conversion_function:ident) => {
+        convert_from_key!(
+            $var_source,
+            $environment,
+            Key::RepoWebUrl,
+            $conversion_function
+        )
+    };
 }
 
 /// Tries to construct the machine-readable project name
@@ -105,18 +126,13 @@ pub fn proj_name_from_slug(slug: Option<&String>) -> BoxResult<Option<String>> {
 pub fn try_construct_machine_readable_name_from_name<S: VarSource>(
     var_source: &S,
     environment: &mut Environment,
-) -> BoxResult<Option<String>> {
-    lazy_static! {
-        static ref R_BAD_CHAR: Regex = Regex::new(r"[^0-9a-zA-Z_-]").unwrap();
-    }
-
-    Ok(match var_source.retrieve(environment, Key::Name)? {
-        Some(human_name) => {
-            let machine_name = R_BAD_CHAR.replace_all(&human_name, "_");
-            Some(machine_name.into_owned())
-        }
-        None => None,
-    })
+) -> RetrieveRes {
+    convert_from_key!(
+        var_source,
+        environment,
+        Key::Name,
+        name_to_machine_readable_name
+    )
 }
 
 /// Tries to construct the machine-readable project name
@@ -128,23 +144,8 @@ pub fn try_construct_machine_readable_name_from_name<S: VarSource>(
 pub fn try_construct_machine_readable_name_from_web_url<S: VarSource>(
     var_source: &S,
     environment: &mut Environment,
-) -> BoxResult<Option<String>> {
-    lazy_static! {
-        static ref R_NAME_EXTRACTOR: Regex = Regex::new(r"^.*/").unwrap();
-    }
-
-    Ok(match var_source.retrieve(environment, Key::RepoWebUrl)? {
-        Some(web_url) => {
-            let machine_name = R_NAME_EXTRACTOR.replace(&web_url, "");
-            if machine_name == web_url {
-                return Err(Box::new(git2::Error::from_str(
-                    "Failed to extract human-readable project name from web URL",
-                )));
-            }
-            Some(machine_name.into_owned())
-        }
-        None => None,
-    })
+) -> RetrieveRes {
+    convert_from_web_url!(var_source, environment, web_url_to_machine_readable_name)
 }
 
 /// Tries to construct the issues URL
@@ -164,9 +165,8 @@ pub fn try_construct_machine_readable_name_from_web_url<S: VarSource>(
 pub fn try_construct_issues_url<S: VarSource>(
     var_source: &S,
     environment: &mut Environment,
-) -> BoxResult<Option<String>> {
-    let base_repo_web_url = var_source.retrieve(environment, Key::RepoWebUrl)?;
-    Ok(base_repo_web_url.map(|base_repo_web_url| format!("{}/issues", base_repo_web_url)))
+) -> RetrieveRes {
+    convert_from_web_url!(var_source, environment, web_url_to_issues_url)
 }
 
 /// Tries to construct the raw prefix URL
@@ -184,28 +184,8 @@ pub fn try_construct_issues_url<S: VarSource>(
 pub fn try_construct_raw_prefix_url<S: VarSource>(
     var_source: &S,
     environment: &mut Environment,
-) -> BoxResult<Option<String>> {
-    if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
-        let mut url = Url::parse(&base_repo_web_url)?;
-        if let Some(host) = url.host() {
-            return Ok(match host {
-                Host::Domain(constants::D_GIT_HUB_COM) => {
-                    url.set_host(Some(constants::D_GIT_HUB_COM_RAW))?;
-                    Some(url.to_string())
-                }
-                Host::Domain(constants::D_GIT_LAB_COM) => {
-                    url.set_path(&format!("{}/-/raw", url.path()));
-                    Some(url.to_string())
-                }
-                Host::Domain(constants::D_BIT_BUCKET_ORG) => {
-                    url.set_path(&format!("{}/raw", url.path()));
-                    Some(url.to_string())
-                }
-                _ => None,
-            });
-        }
-    }
-    Ok(None)
+) -> RetrieveRes {
+    convert_from_web_url!(var_source, environment, web_url_to_raw_prefix_url)
 }
 
 /// Tries to construct the file prefix URL
@@ -222,28 +202,12 @@ pub fn try_construct_raw_prefix_url<S: VarSource>(
 pub fn try_construct_file_prefix_url<S: VarSource>(
     var_source: &S,
     environment: &mut Environment,
-) -> BoxResult<Option<String>> {
-    if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
-        let mut url = Url::parse(&base_repo_web_url)?;
-        if let Some(host) = url.host() {
-            return Ok(match host {
-                Host::Domain(constants::D_GIT_HUB_COM) => {
-                    url.set_path(&format!("{}/blob", url.path()));
-                    Some(url.to_string())
-                }
-                Host::Domain(constants::D_GIT_LAB_COM) => {
-                    url.set_path(&format!("{}/-/blob", url.path()));
-                    Some(url.to_string())
-                }
-                Host::Domain(constants::D_BIT_BUCKET_ORG) => {
-                    url.set_path(&format!("{}/src", url.path()));
-                    Some(url.to_string())
-                }
-                _ => None,
-            });
-        }
-    }
-    Ok(None)
+) -> RetrieveRes {
+    convert_from_web_url!(
+        var_source,
+        environment,
+        web_url_to_versioned_file_prefix_url
+    )
 }
 
 /// Tries to construct the directory prefix URL
@@ -260,28 +224,8 @@ pub fn try_construct_file_prefix_url<S: VarSource>(
 pub fn try_construct_dir_prefix_url<S: VarSource>(
     var_source: &S,
     environment: &mut Environment,
-) -> BoxResult<Option<String>> {
-    if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
-        let mut url = Url::parse(&base_repo_web_url)?;
-        if let Some(host) = url.host() {
-            return Ok(match host {
-                Host::Domain(constants::D_GIT_HUB_COM) => {
-                    url.set_path(&format!("{}/tree", url.path()));
-                    Some(url.to_string())
-                }
-                Host::Domain(constants::D_GIT_LAB_COM) => {
-                    url.set_path(&format!("{}/-/tree", url.path()));
-                    Some(url.to_string())
-                }
-                Host::Domain(constants::D_BIT_BUCKET_ORG) => {
-                    url.set_path(&format!("{}/src", url.path()));
-                    Some(url.to_string())
-                }
-                _ => None,
-            });
-        }
-    }
-    Ok(None)
+) -> RetrieveRes {
+    convert_from_web_url!(var_source, environment, web_url_to_versioned_dir_prefix_url)
 }
 
 /// Tries to construct the commit prefix URL
@@ -298,127 +242,6 @@ pub fn try_construct_dir_prefix_url<S: VarSource>(
 pub fn try_construct_commit_prefix_url<S: VarSource>(
     var_source: &S,
     environment: &mut Environment,
-) -> BoxResult<Option<String>> {
-    if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
-        let mut url = Url::parse(&base_repo_web_url)?;
-        if let Some(host) = url.host() {
-            return Ok(match host {
-                Host::Domain(constants::D_GIT_HUB_COM) => {
-                    url.set_path(&format!("{}/commit", url.path()));
-                    Some(url.to_string())
-                }
-                Host::Domain(constants::D_GIT_LAB_COM) => {
-                    url.set_path(&format!("{}/-/commit", url.path()));
-                    Some(url.to_string())
-                }
-                Host::Domain(constants::D_BIT_BUCKET_ORG) => {
-                    url.set_path(&format!("{}/commits", url.path()));
-                    Some(url.to_string())
-                }
-                _ => None,
-            });
-        }
-    }
-    Ok(None)
-}
-
-/// Converts an SSH clone URL to an HTTP(S) one.
-///
-/// # Errors
-///
-/// If an attempt to try fetching any required property returned an error.
-// * git@github.com:hoijui/rust-project-scripts.git
-// * https://github.com/hoijui/rust-project-scripts.git
-pub fn convert_clone_ssh_to_http(clone_url_ssh: &str) -> BoxResult<String> {
-    lazy_static! {
-        static ref R_CLONE_URL: Regex = Regex::new(r"^((?P<protocol>[0-9a-zA-Z._-]+)://)?((?P<user>[0-9a-zA-Z._-]+)@)?(?P<host>[0-9a-zA-Z._-]+)([/:](?P<path_and_rest>.+)?)?$").unwrap();
-        /* static ref R_PROTOCOL: Regex = Regex::new(r"^[a-z]+:").unwrap(); */
-        /* static ref R_PROTOCOL: Regex = Regex::new(r"^[a-z]+:").unwrap(); */
-        /* static ref R_COLON: Regex = Regex::new(r":([^/])").unwrap(); */
-    }
-    // let clone_url_https = R_PROTOCOL.replace(clone_url_ssh, ""ssh);
-
-    let clone_url_https = R_CLONE_URL.replace(clone_url_ssh, |caps: &regex::Captures| {
-        // let_named_cap!(caps, protocol);
-        let_named_cap!(caps, host);
-        // let_named_cap!(caps, user);
-        let_named_cap!(caps, path_and_rest);
-        let host = caps.name("host").map(|m| m.as_str());
-        if let Some(host) = host {
-            let path_and_rest = caps
-                .name("path_and_rest")
-                .map(|m| "/".to_owned() + m.as_str());
-            format!(
-                "{protocol}://{host}/{path_and_rest}",
-                protocol = "https",
-                // user = user.to_lowercase(),
-                host = host,
-                path_and_rest = path_and_rest.unwrap_or_default(),
-            )
-        } else {
-            clone_url_ssh.to_owned()
-        }
-    });
-    if clone_url_https == clone_url_ssh {
-        Err(Box::new(""))
-    } else {
-        Ok(clone_url_https.as_ref().to_owned())
-    }
-
-    /* let clone_url_ssh = R_COLON.replace(clone_url_ssh, "/$1"); */
-    /* if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? { */
-    /*     let mut url = Url::parse(&base_repo_web_url)?; */
-    /*     if let Some(host) = url.host() { */
-    /*         return Ok(match host { */
-    /*             Host::Domain(constants::D_GIT_HUB_COM) => { */
-    /*                 url.set_path(&format!("{}/commit", url.path())); */
-    /*                 Some(url.to_string()) */
-    /*             } */
-    /*             Host::Domain(constants::D_GIT_LAB_COM) => { */
-    /*                 url.set_path(&format!("{}/-/commit", url.path())); */
-    /*                 Some(url.to_string()) */
-    /*             } */
-    /*             Host::Domain(constants::D_BIT_BUCKET_ORG) => { */
-    /*                 url.set_path(&format!("{}/commits", url.path())); */
-    /*                 Some(url.to_string()) */
-    /*             } */
-    /*             _ => None, */
-    /*         }); */
-    /*     } */
-    /* } */
-    /* Ok(None) */
-}
-
-/// Converts an SSH clone URL to an HTTP(S) one.
-///
-/// # Errors
-///
-/// If an attempt to try fetching any required property returned an error.
-// * git@github.com:hoijui/rust-project-scripts.git
-// * https://github.com/hoijui/rust-project-scripts.git
-pub fn try_convert_clone_ssh_to_http<S: VarSource>(
-    var_source: &S,
-    environment: &mut Environment,
-) -> BoxResult<Option<String>> {
-    if let Some(base_repo_web_url) = var_source.retrieve(environment, Key::RepoWebUrl)? {
-        let mut url = Url::parse(&base_repo_web_url)?;
-        if let Some(host) = url.host() {
-            return Ok(match host {
-                Host::Domain(constants::D_GIT_HUB_COM) => {
-                    url.set_path(&format!("{}/commit", url.path()));
-                    Some(url.to_string())
-                }
-                Host::Domain(constants::D_GIT_LAB_COM) => {
-                    url.set_path(&format!("{}/-/commit", url.path()));
-                    Some(url.to_string())
-                }
-                Host::Domain(constants::D_BIT_BUCKET_ORG) => {
-                    url.set_path(&format!("{}/commits", url.path()));
-                    Some(url.to_string())
-                }
-                _ => None,
-            });
-        }
-    }
-    Ok(None)
+) -> RetrieveRes {
+    convert_from_web_url!(var_source, environment, web_url_to_commit_prefix_url)
 }

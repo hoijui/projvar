@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::tools::git;
-use crate::tools::git_hosting_provs::{HostingType, PublicSite};
+use crate::tools::git_hosting_provs::HostingType;
 use crate::var::Key;
 use crate::{constants, environment::Environment};
 use chrono::{DateTime, NaiveDateTime};
@@ -221,22 +221,14 @@ fn check_empty(_environment: &mut Environment, value: &str, part_desc: &str) -> 
     }
 }
 
-fn eval_hosting_type(environment: &mut Environment, url: &Url) -> HostingType {
-    let configured_ht = environment.settings.hosting_type;
-    if let HostingType::Unknown = configured_ht {
-        HostingType::from(PublicSite::from(url.host()))
-    } else {
-        configured_ht
-    }
+fn eval_hosting_type(environment: &Environment, url: &Url) -> HostingType {
+    // manually "inline" this function (as in: get rid of it)
+    environment.settings.hosting_type(url)
 }
 
 fn eval_hosting_type_from_hosting_suffix(environment: &mut Environment, url: &Url) -> HostingType {
-    let configured_ht = environment.settings.hosting_type;
-    if let HostingType::Unknown = configured_ht {
-        HostingType::from(PublicSite::from_hosting_domain_option(url.host().as_ref()))
-    } else {
-        configured_ht
-    }
+    // manually "inline" this function (as in: get rid of it)
+    environment.settings.hosting_type_from_hosting_suffix(url)
 }
 
 fn check_url_path(value: &str, url_desc: &str, url: &Url, path_reg: Option<&Regex>) -> Result {
@@ -306,19 +298,45 @@ fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
     check_url_path(value, "versioned web", &url, host_reg)
 }
 
-// * git@bitbucket.org:Aouatef/master_arbeit.git
-// * https://hoijui@bitbucket.org/Aouatef/master_arbeit.git
+lazy_static! {
+    static ref R_GIT_HUB_CLONE_PATH: Regex =
+        Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)\.git$").unwrap();
+    static ref R_GIT_LAB_CLONE_PATH: Regex =
+        Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)\.git$").unwrap();
+    static ref R_BIT_BUCKET_CLONE_PATH: Regex = (*R_GIT_HUB_CLONE_PATH).clone();
+}
+
+// * https://git@bitbucket.org/Aouatef/master_arbeit.git
 fn validate_repo_clone_url(environment: &mut Environment, value: &str) -> Result {
+    let url = check_public_url(environment, value, false)?;
+    let hosting_type = eval_hosting_type(environment, &url);
+    let host_reg: Option<&Regex> = match hosting_type {
+        HostingType::GitHub => Some(&R_GIT_HUB_CLONE_PATH),
+        HostingType::GitLab => Some(&R_GIT_LAB_CLONE_PATH),
+        HostingType::BitBucket => Some(&R_BIT_BUCKET_CLONE_PATH),
+        _ => None, // TODO Implement the others
+    };
+    check_url_path(value, "repo clone", &url, host_reg)
+}
+
+// * git@bitbucket.org:Aouatef/master_arbeit.git
+// * ssh://bitbucket.org/Aouatef/master_arbeit.git
+fn validate_repo_clone_url_ssh(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         // NOTE We only accept the user "git", as it stands for anonymous access
         static ref R_SSH_CLONE_URL: Regex = Regex::new(r"^(?P<user>git@)?(?P<host>[^/:]+)((:|/)(?P<path>.+))?$").unwrap();
-        static ref R_GIT_HUB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)\.git$").unwrap();
-        static ref R_GIT_LAB_PATH: Regex = Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)\.git$").unwrap();
-        static ref R_BIT_BUCKET_PATH: Regex = (*R_GIT_HUB_PATH).clone();
     }
 
     let url = match check_public_url(environment, value, true) {
-        Ok(url) => url,
+        Ok(url) => {
+            if url.scheme() != "ssh" {
+                return Err(Error::AlmostUsableValue {
+                    msg: "Only protocol ssh is allowed".to_owned(),
+                    value: value.to_owned(),
+                });
+            }
+            url
+        }
         Err(err_orig) => {
             let ssh_value = R_SSH_CLONE_URL.replace(value, "ssh://$host/$path");
             match check_public_url(environment, &ssh_value, true) {
@@ -332,12 +350,12 @@ fn validate_repo_clone_url(environment: &mut Environment, value: &str) -> Result
 
     let hosting_type = eval_hosting_type(environment, &url);
     let host_reg: Option<&Regex> = match hosting_type {
-        HostingType::GitHub => Some(&R_GIT_HUB_PATH),
-        HostingType::GitLab => Some(&R_GIT_LAB_PATH),
-        HostingType::BitBucket => Some(&R_BIT_BUCKET_PATH),
+        HostingType::GitHub => Some(&R_GIT_HUB_CLONE_PATH),
+        HostingType::GitLab => Some(&R_GIT_LAB_CLONE_PATH),
+        HostingType::BitBucket => Some(&R_BIT_BUCKET_CLONE_PATH),
         _ => None, // TODO Implement the others
     };
-    check_url_path(value, "repo clone", &url, host_reg)
+    check_url_path(value, "repo clone ssh", &url, host_reg)
 }
 
 /// See also `sources::try_construct_raw_prefix_url`.

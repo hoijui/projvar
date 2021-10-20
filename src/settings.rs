@@ -6,8 +6,13 @@ use clap::lazy_static::lazy_static;
 use std::{collections::HashSet, path::PathBuf};
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, EnumString, EnumVariantNames, IntoStaticStr};
+use url::Url;
 
-use crate::{constants, tools::git_hosting_provs::HostingType, var::Key};
+use crate::{
+    constants,
+    tools::git_hosting_provs::{HostingType, PublicSite},
+    var::Key,
+};
 
 #[derive(
     Debug, EnumString, EnumVariantNames, EnumIter, IntoStaticStr, PartialEq, PartialOrd, Copy, Clone,
@@ -142,6 +147,24 @@ impl Settings {
             only_required: false,
             key_prefix: Some(constants::DEFAULT_KEY_PREFIX.to_owned()),
             verbosity: (Verbosity::None, Verbosity::None),
+        }
+    }
+
+    #[must_use]
+    pub fn hosting_type(&self, url: &Url) -> HostingType {
+        if let HostingType::Unknown = self.hosting_type {
+            HostingType::from(PublicSite::from(url.host()))
+        } else {
+            self.hosting_type
+        }
+    }
+
+    #[must_use]
+    pub fn hosting_type_from_hosting_suffix(&self, url: &Url) -> HostingType {
+        if let HostingType::Unknown = self.hosting_type {
+            HostingType::from(PublicSite::from_hosting_domain_option(url.host().as_ref()))
+        } else {
+            self.hosting_type
         }
     }
 }

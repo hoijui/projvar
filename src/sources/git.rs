@@ -5,16 +5,13 @@
 use clap::lazy_static::lazy_static;
 use regex::Regex;
 
-use crate::environment::Environment;
 use crate::var::Key;
-use std::error::Error;
+use crate::{environment::Environment, value_conversions};
 
-use super::Hierarchy;
+use super::{Hierarchy, RetrieveRes};
 pub struct VarSource;
 
-type BoxResult<T> = Result<T, Box<dyn Error>>;
-
-fn version(environment: &mut Environment) -> BoxResult<Option<String>> {
+fn version(environment: &mut Environment) -> RetrieveRes {
     Ok(match environment.repo() {
         Some(repo) => {
             let sc_version = repo.version().or_else(|err| {
@@ -28,7 +25,7 @@ fn version(environment: &mut Environment) -> BoxResult<Option<String>> {
     })
 }
 
-fn name(environment: &mut Environment) -> BoxResult<Option<String>> {
+fn name(environment: &mut Environment) -> RetrieveRes {
     lazy_static! {
         static ref R_REMOTE_NAME_SELECTOR: Regex = Regex::new(r"^.*/(?P<name>[^/]+)$").unwrap();
     }
@@ -48,14 +45,14 @@ fn name(environment: &mut Environment) -> BoxResult<Option<String>> {
     })
 }
 
-fn repo_web_url(environment: &mut Environment) -> BoxResult<Option<String>> {
+fn repo_web_url(environment: &mut Environment) -> RetrieveRes {
     Ok(match environment.repo() {
         Some(repo) => Some(repo.remote_web_url()?),
         None => None,
     })
 }
 
-fn branch(environment: &mut Environment) -> BoxResult<Option<String>> {
+fn branch(environment: &mut Environment) -> RetrieveRes {
     Ok(match environment.repo() {
         Some(repo) => {
             // Ok(repo.branch().unwrap_or_else(|err| {
@@ -68,14 +65,14 @@ fn branch(environment: &mut Environment) -> BoxResult<Option<String>> {
     })
 }
 
-fn tag(environment: &mut Environment) -> BoxResult<Option<String>> {
+fn tag(environment: &mut Environment) -> RetrieveRes {
     Ok(match environment.repo() {
         Some(repo) => repo.tag()?,
         None => None,
     })
 }
 
-fn clone_url(environment: &mut Environment) -> BoxResult<Option<String>> {
+fn clone_url(environment: &mut Environment) -> RetrieveRes {
     Ok(match environment.repo() {
         Some(repo) => {
             Some(repo.remote_clone_url()?)
@@ -88,7 +85,7 @@ fn clone_url(environment: &mut Environment) -> BoxResult<Option<String>> {
     })
 }
 
-fn issues_url(environment: &mut Environment) -> BoxResult<Option<String>> {
+fn issues_url(environment: &mut Environment) -> RetrieveRes {
     Ok(match environment.repo() {
         Some(repo) => {
             Some(repo.issues_url()?)
@@ -101,7 +98,7 @@ fn issues_url(environment: &mut Environment) -> BoxResult<Option<String>> {
     })
 }
 
-fn version_date(environment: &mut Environment) -> BoxResult<Option<String>> {
+fn version_date(environment: &mut Environment) -> RetrieveRes {
     let date_format = &environment.settings.date_format;
     Ok(match environment.repo() {
         Some(repo) => Some(repo.commit_date(date_format)?),
@@ -109,7 +106,7 @@ fn version_date(environment: &mut Environment) -> BoxResult<Option<String>> {
     })
 }
 
-fn build_hosting_url(environment: &mut Environment) -> BoxResult<Option<String>> {
+fn build_hosting_url(environment: &mut Environment) -> RetrieveRes {
     Ok(match environment.repo() {
         Some(repo) => Some(repo.build_hosting_url()?),
         None => None,
@@ -137,7 +134,7 @@ impl super::VarSource for VarSource {
     }
 
     #[remain::check]
-    fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
+    fn retrieve(&self, environment: &mut Environment, key: Key) -> RetrieveRes {
         Ok(
             #[remain::sorted]
             match key {
@@ -156,7 +153,14 @@ impl super::VarSource for VarSource {
                 Key::NameMachineReadable => {
                     super::try_construct_machine_readable_name_from_web_url(self, environment)?
                 }
-                Key::RepoCloneUrl => clone_url(environment)?,
+                Key::RepoCloneUrl => value_conversions::clone_url_conversion_option(
+                    clone_url(environment)?.as_ref(),
+                    true,
+                )?,
+                Key::RepoCloneUrlSsh => value_conversions::clone_url_conversion_option(
+                    clone_url(environment)?.as_ref(),
+                    false,
+                )?,
                 Key::RepoCommitPrefixUrl => {
                     super::try_construct_commit_prefix_url(self, environment)?
                 }

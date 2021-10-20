@@ -99,6 +99,7 @@ macro_rules! let_named_cap {
         };
     };
 }
+pub(crate) use let_named_cap;
 
 /// Converts a common web hosting URL (HTTPS)
 /// into a git remote URL (HTTPS or SSH).
@@ -133,6 +134,7 @@ macro_rules! let_named_cap {
 /// If the conversion failed,
 /// which usually happens if the `web_url` is not a github.com or gitlab.com.
 pub fn web_to_clone_url(web_url: &str, ssh: bool) -> BoxResult<String> {
+    // TODO Move to and merge with value_conversions
     lazy_static! {
         static ref R_WEB_URL: Regex = Regex::new(
             r"(?P<protocol>[0-9a-zA-Z_-]+)://((?P<protocol_user>[0-9a-zA-Z_-]+)@)?(?P<server>[0-9a-zA-Z_-]+)\.com/(?P<user>[^/]+)/(?P<project>[^/]+)/?"
@@ -208,7 +210,8 @@ pub fn web_to_clone_url(web_url: &str, ssh: bool) -> BoxResult<String> {
 ///
 /// Failed generating the "pages" URL,
 /// likely because the remote is neither "github.com" nor "gitlab.com".
-pub fn web_to_build_hosting_url(web_url: &str) -> BoxResult<String> { // TODO This and others are doubled in sources::mod.rs! This here is older, nad only suports github and gitlab urls
+pub fn web_to_build_hosting_url(web_url: &str) -> BoxResult<String> {
+    // TODO This and others are doubled in sources::mod.rs! This here is older(-> worse), and only suports github and gitlab urls
     lazy_static! {
         static ref R_WEB_URL: Regex = Regex::new(
             r"(?P<protocol>[0-9a-zA-Z_-]+)://((?P<protocol_user>[0-9a-zA-Z_-]+)@)?(?P<server>[0-9a-zA-Z_-]+)\.com/(?P<user>[^/]+)/(?P<project>[^/]+)/?"

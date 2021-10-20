@@ -4,14 +4,12 @@
 
 use crate::environment::Environment;
 use crate::var::Key;
-use std::error::Error;
 
 use super::var;
 use super::Hierarchy;
+use super::RetrieveRes;
 
 pub struct VarSource;
-
-type BoxResult<T> = Result<T, Box<dyn Error>>;
 
 impl super::VarSource for VarSource {
     fn is_usable(&self, _environment: &mut Environment) -> bool {
@@ -31,7 +29,7 @@ impl super::VarSource for VarSource {
     }
 
     #[remain::check]
-    fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
+    fn retrieve(&self, environment: &mut Environment, key: Key) -> RetrieveRes {
         Ok(
             #[remain::sorted]
             match key {

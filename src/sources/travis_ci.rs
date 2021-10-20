@@ -4,14 +4,12 @@
 
 use crate::environment::Environment;
 use crate::var::Key;
-use std::error::Error;
 
 use super::var;
 use super::Hierarchy;
+use super::RetrieveRes;
 
 pub struct VarSource;
-
-type BoxResult<T> = Result<T, Box<dyn Error>>;
 
 impl super::VarSource for VarSource {
     fn is_usable(&self, _environment: &mut Environment) -> bool {
@@ -31,7 +29,7 @@ impl super::VarSource for VarSource {
     }
 
     #[remain::check]
-    fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
+    fn retrieve(&self, environment: &mut Environment, key: Key) -> RetrieveRes {
         Ok(
             #[remain::sorted]
             match key {
@@ -55,7 +53,9 @@ impl super::VarSource for VarSource {
                 Key::BuildNumber => var(environment, "TRAVIS_BUILD_NUMBER"),
                 Key::BuildOs => var(environment, "TRAVIS_OS_NAME"),
                 Key::BuildTag => var(environment, "TRAVIS_TAG"),
-                Key::Name => super::proj_name_from_slug(environment.vars.get("TRAVIS_REPO_SLUG"))?, // usually: TRAVIS_REPO_SLUG="user/project"
+                Key::Name => crate::value_conversions::slug_to_proj_name(
+                    environment.vars.get("TRAVIS_REPO_SLUG"),
+                )?, // usually: TRAVIS_REPO_SLUG="user/project"
                 Key::NameMachineReadable => {
                     super::try_construct_machine_readable_name_from_name(self, environment)?
                 }

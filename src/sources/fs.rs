@@ -7,34 +7,32 @@ use clap::lazy_static::lazy_static;
 use regex::Regex;
 
 use crate::environment::Environment;
+use crate::std_error;
 use crate::var::Key;
 use std::env;
-use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 
-use super::Hierarchy;
+use super::{Hierarchy, RetrieveRes};
 pub struct VarSource;
 
-type BoxResult<T> = Result<T, Box<dyn Error>>;
-
-fn repo_path<'a>(environment: &'a mut Environment) -> BoxResult<&'a PathBuf> {
-    Ok(environment
+fn repo_path<'a>(environment: &'a mut Environment) -> Result<&'a PathBuf, std_error::Error> {
+    environment
         .settings
         .repo_path
         .as_ref()
-        .ok_or("No repo path provided")?)
+        .ok_or(std_error::Error::None)
 }
 
 /// Returns the name of the given path (same as `basename` on UNIX systems)
-fn dir_name(path: &Path) -> BoxResult<String> {
+fn dir_name(path: &Path) -> Result<String, std_error::Error> {
     Ok(path
         .canonicalize()?
         .file_name()
-        .ok_or_else(|| git2::Error::from_str("File ends in \"..\""))?
+        .ok_or(std_error::Error::PathNotAFile)?
         .to_str()
-        .ok_or_else(|| git2::Error::from_str("File name is not UTF-8 compatible"))?
+        .ok_or(std_error::Error::NotValidUtf8)?
         .to_owned())
 }
 
@@ -42,7 +40,7 @@ fn dir_name(path: &Path) -> BoxResult<String> {
 ///
 /// Reads the first line of a Markdown file, strips any hashes and
 /// leading/trailing whitespace, and returns the title.
-fn title_string<R>(mut rdr: R) -> BoxResult<String>
+fn title_string<R>(mut rdr: R) -> Result<String, std::io::Error>
 where
     R: BufRead,
 {
@@ -61,7 +59,7 @@ where
 }
 
 /// Read the first line of the file and use it as title.
-fn file_title(path: &Path) -> BoxResult<Option<String>> {
+fn file_title(path: &Path) -> RetrieveRes {
     Ok(if path.exists() && path.is_file() {
         let file = File::open(path)?;
         let buffer = BufReader::new(file);
@@ -71,7 +69,8 @@ fn file_title(path: &Path) -> BoxResult<Option<String>> {
     })
 }
 
-fn licenses(environment: &mut Environment) -> BoxResult<Option<Vec<String>>> {
+// fn licenses(environment: &mut Environment) -> BoxResult<Option<Vec<String>>> {
+fn licenses(environment: &mut Environment) -> Result<Option<Vec<String>>, std_error::Error> {
     lazy_static! {
         static ref R_TXT_SUFFIX: Regex = Regex::new(r"\.txt$").unwrap();
     }
@@ -81,9 +80,7 @@ fn licenses(environment: &mut Environment) -> BoxResult<Option<Vec<String>>> {
         let mut licenses = Vec::<String>::new();
         for file in licenses_dir.read_dir()? {
             let file_name = file?.file_name();
-            let file_name = file_name.to_str().ok_or_else(|| {
-                git2::Error::from_str("Supposed license file-name is not a valid UTF-8 string")
-            })?;
+            let file_name = file_name.to_str().ok_or(std_error::Error::NotValidUtf8)?;
             if R_TXT_SUFFIX.is_match(file_name) {
                 licenses.push(R_TXT_SUFFIX.replace(file_name, "").into_owned());
             }
@@ -94,7 +91,7 @@ fn licenses(environment: &mut Environment) -> BoxResult<Option<Vec<String>>> {
     }
 }
 
-fn version(environment: &mut Environment) -> BoxResult<Option<String>> {
+fn version(environment: &mut Environment) -> RetrieveRes {
     Ok(match &environment.settings.repo_path {
         Some(repo_path) => {
             let version_file = repo_path.join("VERSION");
@@ -104,7 +101,7 @@ fn version(environment: &mut Environment) -> BoxResult<Option<String>> {
     })
 }
 
-fn name(environment: &mut Environment) -> BoxResult<Option<String>> {
+fn name(environment: &mut Environment) -> RetrieveRes {
     let dir_name = dir_name(repo_path(environment)?)?;
     Ok(match dir_name.to_lowercase().as_str() {
         // Filter out some common directory names that are not likely to be the projects name
@@ -161,7 +158,7 @@ impl super::VarSource for VarSource {
     }
 
     #[remain::check]
-    fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
+    fn retrieve(&self, environment: &mut Environment, key: Key) -> RetrieveRes {
         Ok(
             #[remain::sorted]
             match key {

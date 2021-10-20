@@ -3,15 +3,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::environment::Environment;
+use crate::value_conversions;
 use crate::var::Key;
-use std::error::Error;
 
 use super::var;
 use super::Hierarchy;
+use super::RetrieveRes;
 
 pub struct VarSource;
-
-type BoxResult<T> = Result<T, Box<dyn Error>>;
 
 impl super::VarSource for VarSource {
     fn is_usable(&self, _environment: &mut Environment) -> bool {
@@ -31,7 +30,7 @@ impl super::VarSource for VarSource {
     }
 
     #[remain::check]
-    fn retrieve(&self, environment: &mut Environment, key: Key) -> BoxResult<Option<String>> {
+    fn retrieve(&self, environment: &mut Environment, key: Key) -> RetrieveRes {
         Ok(
             #[remain::sorted]
             match key {
@@ -50,7 +49,14 @@ impl super::VarSource for VarSource {
                 Key::NameMachineReadable => {
                     super::try_construct_machine_readable_name_from_web_url(self, environment)?
                 }
-                Key::RepoCloneUrl => var(environment, "CI_REPOSITORY_URL"),
+                Key::RepoCloneUrl => value_conversions::clone_url_conversion_option(
+                    var(environment, "CI_REPOSITORY_URL").as_ref(),
+                    true,
+                )?,
+                Key::RepoCloneUrlSsh => value_conversions::clone_url_conversion_option(
+                    var(environment, "CI_REPOSITORY_URL").as_ref(),
+                    false,
+                )?,
                 Key::RepoCommitPrefixUrl => {
                     super::try_construct_commit_prefix_url(self, environment)?
                 }
