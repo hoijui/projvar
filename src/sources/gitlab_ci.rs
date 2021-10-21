@@ -55,11 +55,11 @@ impl super::VarSource for VarSource {
                 // TODO PRIO make sure to cover/handle well all of this (default format of this env var): CI_REPOSITORY_URL="https://gitlab-ci-token:[masked]@example.com/gitlab-org/gitlab-foss.git"
                 Key::RepoCloneUrl => value_conversions::clone_url_conversion_option(
                     var(environment, "CI_REPOSITORY_URL").as_ref(),
-                    true,
+                    value_conversions::Protocol::Https,
                 )?,
                 Key::RepoCloneUrlSsh => value_conversions::clone_url_conversion_option(
                     var(environment, "CI_REPOSITORY_URL").as_ref(),
-                    false,
+                    value_conversions::Protocol::Ssh,
                 )?,
                 Key::RepoWebUrl => var(environment, "CI_PROJECT_URL"),
                 Key::Version => self

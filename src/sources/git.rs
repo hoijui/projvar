@@ -109,11 +109,11 @@ impl super::VarSource for VarSource {
                 Key::BuildTag => tag(environment)?,
                 Key::RepoCloneUrl => value_conversions::clone_url_conversion_option(
                     clone_url(environment)?.as_ref(),
-                    true,
+                    value_conversions::Protocol::Https,
                 )?,
                 Key::RepoCloneUrlSsh => value_conversions::clone_url_conversion_option(
                     clone_url(environment)?.as_ref(),
-                    false,
+                    value_conversions::Protocol::Ssh,
                 )?,
                 Key::Version => version(environment)?,
                 Key::VersionDate => version_date(environment)?,

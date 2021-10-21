@@ -22,5 +22,9 @@ pub enum Error {
 
     /// Represents all other cases of `std::io::Error`.
     #[error(transparent)]
+    InvalidUrl(#[from] url::ParseError),
+
+    /// Represents all other cases of `std::io::Error`.
+    #[error(transparent)]
     IO(#[from] std::io::Error),
 }
