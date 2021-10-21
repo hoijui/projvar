@@ -47,7 +47,7 @@ pub fn slug_to_proj_name(slug: Option<&String>) -> Res {
     Ok(if let Some(slug) = slug {
         Some(slug
             .split('/')
-            .nth(1) // TODO We actually need the last, not the 2nd!
+            .last()
             .ok_or(Error::BadInputValue {
                 key: Key::NameMachineReadable,
                 msg: r#"Failed splitting off the project name from the project slug, which is assumed to be "user/project" or "user/group/sub-group/project""#.to_owned(),
