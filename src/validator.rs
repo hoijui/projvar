@@ -833,8 +833,8 @@ mod tests {
             &mut environment,
             "Some Unknown License"
         )));
-        assert!(validate_license(&mut environment, "").is_err()); // TODO Rather check the details of the Err value!
-                                                                  // todo!(); // TODO Add some more bad cases; Producing different errors
+        assert!(is_missing_err(validate_license(&mut environment, "")));
+        // todo!(); // TODO Add some more bad cases; Producing different errors
     }
 
     #[test]
