@@ -40,30 +40,20 @@ impl super::VarSource for VarSource {
                 | Key::BuildOsFamily
                 | Key::Licenses
                 | Key::License
-                | Key::VersionDate => None,
+                | Key::VersionDate
+                | Key::NameMachineReadable
+                | Key::RepoCommitPrefixUrl
+                | Key::RepoIssuesUrl
+                | Key::RepoRawVersionedPrefixUrl
+                | Key::RepoVersionedDirPrefixUrl
+                | Key::RepoVersionedFilePrefixUrl => None,
                 Key::BuildBranch => var(environment, "BITBUCKET_BRANCH"),
                 Key::BuildNumber => var(environment, "BITBUCKET_BUILD_NUMBER"),
                 Key::BuildTag => var(environment, "BITBUCKET_TAG"),
                 Key::Ci => var(environment, "CI"),
                 Key::Name => var(environment, "BITBUCKET_PROJECT_KEY"),
-                Key::NameMachineReadable => {
-                    super::try_construct_machine_readable_name_from_web_url(self, environment)?
-                }
                 Key::RepoCloneUrl => var(environment, "BITBUCKET_GIT_HTTP_ORIGIN"),
                 Key::RepoCloneUrlSsh => var(environment, "BITBUCKET_GIT_SSH_ORIGIN"),
-                Key::RepoCommitPrefixUrl => {
-                    super::try_construct_commit_prefix_url(self, environment)?
-                }
-                Key::RepoIssuesUrl => super::try_construct_issues_url(self, environment)?,
-                Key::RepoRawVersionedPrefixUrl => {
-                    super::try_construct_raw_prefix_url(self, environment)?
-                }
-                Key::RepoVersionedDirPrefixUrl => {
-                    super::try_construct_dir_prefix_url(self, environment)?
-                }
-                Key::RepoVersionedFilePrefixUrl => {
-                    super::try_construct_file_prefix_url(self, environment)?
-                }
                 Key::RepoWebUrl => {
                     // BITBUCKET_REPO_FULL_NAME = The full name of the repository
                     // (everything that comes after http://bitbucket.org/).

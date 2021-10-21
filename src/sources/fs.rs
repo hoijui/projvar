@@ -177,15 +177,13 @@ impl super::VarSource for VarSource {
                 | Key::RepoVersionedDirPrefixUrl
                 | Key::RepoVersionedFilePrefixUrl
                 | Key::RepoWebUrl
-                | Key::VersionDate => None,
+                | Key::VersionDate
+                | Key::NameMachineReadable => None,
                 Key::BuildDate => Some(build_date(environment)),
                 Key::BuildOs => Some(build_os(environment)),
                 Key::BuildOsFamily => Some(build_os_family(environment)),
                 Key::Licenses => licenses(environment)?.map(|lv| lv.join(", ")),
                 Key::Name => name(environment)?,
-                Key::NameMachineReadable => {
-                    super::try_construct_machine_readable_name_from_name(self, environment)?
-                }
                 Key::Version => version(environment)?,
             },
         )

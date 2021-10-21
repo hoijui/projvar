@@ -40,6 +40,7 @@ impl super::VarSource for VarSource {
                 | Key::Ci
                 | Key::Licenses
                 | Key::License
+                | Key::NameMachineReadable
                 | Key::RepoIssuesUrl
                 | Key::RepoCloneUrl
                 | Key::RepoCloneUrlSsh
@@ -56,9 +57,6 @@ impl super::VarSource for VarSource {
                 Key::Name => crate::value_conversions::slug_to_proj_name(
                     environment.vars.get("TRAVIS_REPO_SLUG"),
                 )?, // usually: TRAVIS_REPO_SLUG="user/project"
-                Key::NameMachineReadable => {
-                    super::try_construct_machine_readable_name_from_name(self, environment)?
-                }
                 Key::Version => var(environment, "TRAVIS_COMMIT"),
             },
         )
