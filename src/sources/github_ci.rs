@@ -11,7 +11,7 @@ use super::Hierarchy;
 use super::RetrieveRes;
 pub struct VarSource;
 
-// TODO Move this elsewhere
+// TODO PRIO Move this elsewhere
 fn is_branch(environment: &mut Environment, refr: &str) -> RetrieveRes {
     let mut branch = None;
     if let Some(repo) = environment.repo() {
@@ -25,7 +25,7 @@ fn is_branch(environment: &mut Environment, refr: &str) -> RetrieveRes {
     Ok(branch.map(std::borrow::ToOwned::to_owned))
 }
 
-// TODO Move this elsewhere
+// TODO PRIO Move this elsewhere
 fn is_tag(environment: &mut Environment, refr: &str) -> RetrieveRes {
     let mut tag = None;
     if let Some(repo) = environment.repo() {

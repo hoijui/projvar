@@ -86,7 +86,8 @@ fn validate_version(environment: &mut Environment, value: &str) -> Result {
     lazy_static! {
         // The official SemVer regex as of September 2021, taken from
         // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-        // TODO Think of what to do if we have a "v" prefix, as in "v1.2.3" -> best: remove it, but where.. a kind of pre-validator function?
+        // TODO PRIO Think of what to do if we have a "v" prefix, as in "v1.2.3" -> best: remove it, but where.. a kind of pre-validator function?
+        // TODO PRIO Use this create for semver checking: https://github.com/dtolnay/semver (does not need to be with a Regex!)
         static ref R_SEM_VERS_RELEASE: Regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)$").unwrap();
         static ref R_SEM_VERS: Regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$").unwrap();
         static ref R_GIT_VERS: Regex = Regex::new(r"^((g[0-9a-f]{7})|((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)))(-(0|[1-9]\d*)-(g[0-9a-f]{7}))?((-dirty(-broken)?)|-broken(-dirty)?)?$").unwrap();
@@ -555,7 +556,7 @@ fn validate_build_tag(environment: &mut Environment, value: &str) -> Result {
 }
 
 fn validate_build_os(environment: &mut Environment, value: &str) -> Result {
-    check_empty(environment, value, "Build OS") // TODO Maybe add a list of known good, and mark the others as Ok(Some(Warning::Unknown))
+    check_empty(environment, value, "Build OS") // TODO PRIO Maybe add a list of known good, and mark the others as Ok(Some(Warning::Unknown))
 }
 
 fn validate_build_os_family(environment: &mut Environment, value: &str) -> Result {

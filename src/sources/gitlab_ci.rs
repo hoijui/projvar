@@ -52,6 +52,7 @@ impl super::VarSource for VarSource {
                 Key::BuildTag => var(environment, "CI_COMMIT_TAG"),
                 Key::Ci => var(environment, "CI"),
                 Key::Name => var(environment, "CI_PROJECT_NAME"),
+                // TODO PRIO make sure to cover/handle well all of this (default format of this env var): CI_REPOSITORY_URL="https://gitlab-ci-token:[masked]@example.com/gitlab-org/gitlab-foss.git"
                 Key::RepoCloneUrl => value_conversions::clone_url_conversion_option(
                     var(environment, "CI_REPOSITORY_URL").as_ref(),
                     true,
@@ -64,7 +65,7 @@ impl super::VarSource for VarSource {
                 Key::Version => self
                     .retrieve(environment, Key::BuildTag)?
                     .or_else(|| var(environment, "CI_COMMIT_SHORT_SHA")),
-                Key::VersionDate => var(environment, "CI_COMMIT_TIMESTAMP"), // TODO This probably has to be converted/formatted
+                Key::VersionDate => var(environment, "CI_COMMIT_TIMESTAMP"), // TODO PRIO This probably has to be converted/formatted
             },
         )
     }
