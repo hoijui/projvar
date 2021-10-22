@@ -69,6 +69,16 @@ fn file_title(path: &Path) -> RetrieveRes {
     })
 }
 
+/// Read the whole file
+fn file_content(path: &Path) -> RetrieveRes {
+    Ok(if path.exists() && path.is_file() {
+        let content = fs::read_to_string(path)?;
+        Some((C_HIGH, content))
+    } else {
+        None
+    })
+}
+
 // fn licenses(environment: &mut Environment) -> BoxResult<Option<Vec<String>>> {
 fn licenses(environment: &mut Environment) -> Result<Option<Vec<String>>, std_error::Error> {
     lazy_static! {
@@ -95,7 +105,7 @@ fn version(environment: &mut Environment) -> RetrieveRes {
     Ok(match &environment.settings.repo_path {
         Some(repo_path) => {
             let version_file = repo_path.join("VERSION");
-            file_title(&version_file)?
+            file_content(&version_file)?
         }
         _ => None,
     })
