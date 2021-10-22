@@ -5,6 +5,7 @@
 use crate::environment::Environment;
 use crate::var;
 use crate::var::Key;
+use crate::var::C_HIGH;
 
 use super::var;
 use super::Hierarchy;
@@ -30,6 +31,6 @@ impl super::VarSource for VarSource {
     }
 
     fn retrieve(&self, environment: &mut Environment, key: Key) -> RetrieveRes {
-        Ok(var(environment, &var::get(key).key(environment)))
+        Ok(var(environment, &var::get(key).key(environment), C_HIGH))
     }
 }

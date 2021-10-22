@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::environment::Environment;
-use crate::var::{self, Key, Variable};
+use crate::var::{self, Confidence, Key, Variable};
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::error::Error;
@@ -29,7 +29,7 @@ impl super::VarSink for VarSink {
     fn store(
         &self,
         environment: &Environment,
-        values: &[(Key, &Variable, &String)],
+        values: &[(Key, &Variable, &(Confidence, String))],
     ) -> BoxResult<()> {
         let previous_vars = if self.file.exists() {
             var::parse_vars_file_reader(repvar::tools::create_input_reader(self.file.to_str())?)?
@@ -39,14 +39,14 @@ impl super::VarSink for VarSink {
 
         let file = File::create(self.file.as_path())?;
         let mut file = LineWriter::new(file);
-        let mut output_values: Vec<(Cow<str>, &&String)> = values
+        let mut output_values: Vec<(Cow<str>, &&(Confidence, String))> = values
             .iter()
-            .map(|(_key, var, value)| (var.key(environment), value))
+            .map(|(_key, var, rated_value)| (var.key(environment), rated_value))
             .collect();
         output_values.sort();
-        for (key, value) in output_values {
+        for (key, rated_value) in output_values {
             if environment.settings.overwrite.main() || previous_vars.contains_key(key.as_ref()) {
-                file.write_fmt(format_args!("{}=\"{}\"\n", key, value))?;
+                file.write_fmt(format_args!("{}=\"{}\"\n", key, rated_value.1))?;
             }
         }
         Ok(())

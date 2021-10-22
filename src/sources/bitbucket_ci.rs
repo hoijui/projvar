@@ -4,6 +4,8 @@
 
 use crate::environment::Environment;
 use crate::var::Key;
+use crate::var::C_HIGH;
+use crate::var::C_LOW;
 
 use super::var;
 use super::Hierarchy;
@@ -47,20 +49,23 @@ impl super::VarSource for VarSource {
                 | Key::RepoRawVersionedPrefixUrl
                 | Key::RepoVersionedDirPrefixUrl
                 | Key::RepoVersionedFilePrefixUrl => None,
-                Key::BuildBranch => var(environment, "BITBUCKET_BRANCH"),
-                Key::BuildNumber => var(environment, "BITBUCKET_BUILD_NUMBER"),
-                Key::BuildTag => var(environment, "BITBUCKET_TAG"),
-                Key::Ci => var(environment, "CI"),
-                Key::Name => var(environment, "BITBUCKET_PROJECT_KEY"),
-                Key::RepoCloneUrl => var(environment, "BITBUCKET_GIT_HTTP_ORIGIN"),
-                Key::RepoCloneUrlSsh => var(environment, "BITBUCKET_GIT_SSH_ORIGIN"),
+                Key::BuildBranch => var(environment, "BITBUCKET_BRANCH", C_HIGH),
+                Key::BuildNumber => var(environment, "BITBUCKET_BUILD_NUMBER", C_HIGH),
+                Key::BuildTag => var(environment, "BITBUCKET_TAG", C_HIGH),
+                Key::Ci => var(environment, "CI", C_HIGH),
+                Key::Name => var(environment, "BITBUCKET_PROJECT_KEY", C_HIGH),
+                Key::RepoCloneUrl => var(environment, "BITBUCKET_GIT_HTTP_ORIGIN", C_HIGH),
+                Key::RepoCloneUrlSsh => var(environment, "BITBUCKET_GIT_SSH_ORIGIN", C_HIGH),
                 Key::RepoWebUrl => {
                     // BITBUCKET_REPO_FULL_NAME = The full name of the repository
                     // (everything that comes after http://bitbucket.org/).
-                    var(environment, "BITBUCKET_REPO_FULL_NAME")
-                        .map(|project_slug| format!("http://bitbucket.org/{}", project_slug))
+                    var(environment, "BITBUCKET_REPO_FULL_NAME", C_HIGH).map(
+                        |(confidence, project_slug)| {
+                            (confidence, format!("http://bitbucket.org/{}", project_slug))
+                        },
+                    ) // TODO Maybe use a constant here? (for "http://bitbucket.org")
                 }
-                Key::Version => var(environment, "BITBUCKET_COMMIT"),
+                Key::Version => var(environment, "BITBUCKET_COMMIT", C_LOW),
             },
         )
     }

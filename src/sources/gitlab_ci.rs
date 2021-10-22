@@ -5,6 +5,8 @@
 use crate::environment::Environment;
 use crate::value_conversions;
 use crate::var::Key;
+use crate::var::C_HIGH;
+use crate::var::C_LOW;
 
 use super::var;
 use super::Hierarchy;
@@ -46,26 +48,32 @@ impl super::VarSource for VarSource {
                 | Key::RepoRawVersionedPrefixUrl
                 | Key::RepoVersionedDirPrefixUrl
                 | Key::RepoVersionedFilePrefixUrl => None,
-                Key::BuildBranch => var(environment, "CI_COMMIT_BRANCH"),
-                Key::BuildHostingUrl => var(environment, "CI_PAGES_URL"),
-                Key::BuildOs => var(environment, "CI_RUNNER_EXECUTABLE_ARCH"), // TODO Not sure if this makes sense ... have to check in practise!
-                Key::BuildTag => var(environment, "CI_COMMIT_TAG"),
-                Key::Ci => var(environment, "CI"),
-                Key::Name => var(environment, "CI_PROJECT_NAME"),
+                Key::BuildBranch => var(environment, "CI_COMMIT_BRANCH", C_HIGH),
+                Key::BuildHostingUrl => var(environment, "CI_PAGES_URL", C_HIGH),
+                Key::BuildOs => var(environment, "CI_RUNNER_EXECUTABLE_ARCH", C_LOW), // TODO Not sure if this makes sense ... have to check in practise!
+                Key::BuildTag => var(environment, "CI_COMMIT_TAG", C_HIGH),
+                Key::Ci => var(environment, "CI", C_HIGH),
+                Key::Name => var(environment, "CI_PROJECT_NAME", C_HIGH),
                 // TODO PRIO make sure to cover/handle well all of this (default format of this env var): CI_REPOSITORY_URL="https://gitlab-ci-token:[masked]@example.com/gitlab-org/gitlab-foss.git"
                 Key::RepoCloneUrl => value_conversions::clone_url_conversion_option(
-                    var(environment, "CI_REPOSITORY_URL").as_ref(),
+                    var(environment, "CI_REPOSITORY_URL", C_HIGH)
+                        .map(|rated_value| rated_value.1)
+                        .as_ref(),
                     value_conversions::Protocol::Https,
-                )?,
+                )?
+                .map(|val| (C_HIGH, val)),
                 Key::RepoCloneUrlSsh => value_conversions::clone_url_conversion_option(
-                    var(environment, "CI_REPOSITORY_URL").as_ref(),
+                    var(environment, "CI_REPOSITORY_URL", C_HIGH)
+                        .map(|rated_value| rated_value.1)
+                        .as_ref(),
                     value_conversions::Protocol::Ssh,
-                )?,
-                Key::RepoWebUrl => var(environment, "CI_PROJECT_URL"),
+                )?
+                .map(|val| (C_HIGH, val)),
+                Key::RepoWebUrl => var(environment, "CI_PROJECT_URL", C_HIGH),
                 Key::Version => self
                     .retrieve(environment, Key::BuildTag)?
-                    .or_else(|| var(environment, "CI_COMMIT_SHORT_SHA")),
-                Key::VersionDate => var(environment, "CI_COMMIT_TIMESTAMP"), // TODO PRIO This probably has to be converted/formatted
+                    .or_else(|| var(environment, "CI_COMMIT_SHORT_SHA", C_LOW)),
+                Key::VersionDate => var(environment, "CI_COMMIT_TIMESTAMP", C_LOW), // TODO PRIO This probably has to be converted/formatted
             },
         )
     }

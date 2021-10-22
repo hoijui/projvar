@@ -4,6 +4,7 @@
 
 use crate::environment::Environment;
 use crate::var::Key;
+use crate::var::C_HIGH;
 
 use super::var;
 use super::Hierarchy;
@@ -52,10 +53,10 @@ impl super::VarSource for VarSource {
                 | Key::RepoVersionedFilePrefixUrl
                 | Key::RepoWebUrl
                 | Key::VersionDate => None,
-                Key::BuildBranch => var(environment, "BRANCH_NAME"),
-                Key::BuildNumber => var(environment, "BUILD_NUMBER"),
-                Key::Name => var(environment, "APP_NAME"),
-                Key::Version => var(environment, "VERSION"), // Alternatively (but makes no sense to use): var(environment, "PULL_BASE_SHA")
+                Key::BuildBranch => var(environment, "BRANCH_NAME", C_HIGH),
+                Key::BuildNumber => var(environment, "BUILD_NUMBER", C_HIGH),
+                Key::Name => var(environment, "APP_NAME", C_HIGH),
+                Key::Version => var(environment, "VERSION", C_HIGH), // Alternatively (but makes no sense to use): var(environment, "PULL_BASE_SHA")
             },
         )
     }

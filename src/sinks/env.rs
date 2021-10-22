@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::environment::Environment;
-use crate::var::{Key, Variable};
+use crate::var::{Confidence, Key, Variable};
 use std::error::Error;
 use std::{env, fmt};
 
@@ -20,12 +20,12 @@ impl super::VarSink for VarSink {
     fn store(
         &self,
         environment: &Environment,
-        values: &[(Key, &Variable, &String)],
+        values: &[(Key, &Variable, &(Confidence, String))],
     ) -> BoxResult<()> {
-        for (_key, var, value) in values {
+        for (_key, var, rated_value) in values {
             let key = var.key(environment);
             if environment.settings.overwrite.main() || env::var(&*key).is_err() {
-                env::set_var(&*key, &value);
+                env::set_var(&*key, &rated_value.1);
             }
         }
         Ok(())

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::var::Key;
+use crate::var::{Key, C_HIGH};
 use crate::{environment::Environment, value_conversions};
 
 use super::{Hierarchy, RetrieveRes};
@@ -16,7 +16,7 @@ fn version(environment: &mut Environment) -> RetrieveRes {
                 repo.sha()
                     .and_then(|v| v.ok_or_else(|| "No SHA available to serve as version".into()))
             })?;
-            Some(sc_version)
+            Some((C_HIGH, sc_version))
         }
         None => None,
     })
@@ -29,7 +29,7 @@ fn branch(environment: &mut Environment) -> RetrieveRes {
             //     log::warn!("Failed fetching git branch - {}", err);
             //     None
             // }))
-            repo.branch()?
+            repo.branch()?.map(|val| (C_HIGH, val))
         }
         None => None,
     })
@@ -37,7 +37,7 @@ fn branch(environment: &mut Environment) -> RetrieveRes {
 
 fn tag(environment: &mut Environment) -> RetrieveRes {
     Ok(match environment.repo() {
-        Some(repo) => repo.tag()?,
+        Some(repo) => repo.tag()?.map(|val| (C_HIGH, val)),
         None => None,
     })
 }
@@ -45,7 +45,7 @@ fn tag(environment: &mut Environment) -> RetrieveRes {
 fn clone_url(environment: &mut Environment) -> RetrieveRes {
     Ok(match environment.repo() {
         Some(repo) => {
-            Some(repo.remote_clone_url()?)
+            Some((C_HIGH, repo.remote_clone_url()?))
             // repo.remote_clone_url().or_else(|err| {
             //     log::warn!("Failed fetching git repo clone URL - {}", err);
             //     None
@@ -58,7 +58,7 @@ fn clone_url(environment: &mut Environment) -> RetrieveRes {
 fn version_date(environment: &mut Environment) -> RetrieveRes {
     let date_format = &environment.settings.date_format;
     Ok(match environment.repo() {
-        Some(repo) => Some(repo.commit_date(date_format)?),
+        Some(repo) => Some((C_HIGH, repo.commit_date(date_format)?)),
         None => None,
     })
 }
@@ -108,13 +108,19 @@ impl super::VarSource for VarSource {
                 Key::BuildBranch => branch(environment)?,
                 Key::BuildTag => tag(environment)?,
                 Key::RepoCloneUrl => value_conversions::clone_url_conversion_option(
-                    clone_url(environment)?.as_ref(),
+                    clone_url(environment)?
+                        .map(|rated_value| rated_value.1)
+                        .as_ref(),
                     value_conversions::Protocol::Https,
-                )?,
+                )?
+                .map(|val| (C_HIGH, val)),
                 Key::RepoCloneUrlSsh => value_conversions::clone_url_conversion_option(
-                    clone_url(environment)?.as_ref(),
+                    clone_url(environment)?
+                        .map(|rated_value| rated_value.1)
+                        .as_ref(),
                     value_conversions::Protocol::Ssh,
-                )?,
+                )?
+                .map(|val| (C_HIGH, val)),
                 Key::Version => version(environment)?,
                 Key::VersionDate => version_date(environment)?,
             },

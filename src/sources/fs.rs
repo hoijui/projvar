@@ -8,11 +8,11 @@ use regex::Regex;
 
 use crate::environment::Environment;
 use crate::std_error;
-use crate::var::Key;
-use std::env;
+use crate::var::{Confidence, Key, C_HIGH, C_LOW, C_MIDDLE};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
+use std::{env, fs};
 
 use super::{Hierarchy, RetrieveRes};
 pub struct VarSource;
@@ -63,7 +63,7 @@ fn file_title(path: &Path) -> RetrieveRes {
     Ok(if path.exists() && path.is_file() {
         let file = File::open(path)?;
         let buffer = BufReader::new(file);
-        Some(title_string(buffer)?)
+        Some((C_MIDDLE, title_string(buffer)?))
     } else {
         None
     })
@@ -107,7 +107,7 @@ fn name(environment: &mut Environment) -> RetrieveRes {
         // Filter out some common directory names that are not likely to be the projects name
         "src" | "target" | "build" | "master" | "main" | "develop" | "git" | "repo" | "repos"
         | "scm" | "trunk" => None,
-        _other => Some(dir_name),
+        _ => Some((C_LOW, dir_name)),
     })
 }
 
@@ -116,25 +116,25 @@ fn build_date(environment: &mut Environment) -> String {
     now.format(&environment.settings.date_format).to_string()
 }
 
-fn build_os(_environment: &mut Environment) -> String {
+fn build_os(_environment: &mut Environment) -> (Confidence, String) {
     // See here for possible values:
     // <https://doc.rust-lang.org/std/env/consts/constant.OS.html>
     // Most common values: "linux", "macos", "windows"
-    env::consts::OS.to_owned() // TODO Maybe move to a new source "env.rs"?
+    (C_LOW, env::consts::OS.to_owned()) // TODO Maybe move to a new source "env.rs"? AND Map to our own values!
 }
 
-fn build_os_family(_environment: &mut Environment) -> String {
+fn build_os_family(_environment: &mut Environment) -> (Confidence, String) {
     // Possible values: "unix", "windows"
     // <https://doc.rust-lang.org/std/env/consts/constant.FAMILY.html>
     // format!("{}", env::consts::FAMILY)
-    env::consts::FAMILY.to_owned() // TODO Maybe move to a new source "env.rs"?
+    (C_LOW, env::consts::FAMILY.to_owned()) // TODO Maybe move to a new source "env.rs"?
 }
 
-fn build_arch(_environment: &mut Environment) -> String {
+fn build_arch(_environment: &mut Environment) -> (Confidence, String) {
     // See here for possible values:
     // <https://doc.rust-lang.org/std/env/consts/constant.ARCH.html>
     // Most common values: "x86", "x86_64"
-    env::consts::ARCH.to_owned() // TODO Maybe move to a new source "env.rs"?
+    (C_LOW, env::consts::ARCH.to_owned()) // TODO Maybe move to a new source "env.rs"?
 }
 
 /// This uses an alternative method to fetch certain specific variable keys values.
@@ -179,10 +179,10 @@ impl super::VarSource for VarSource {
                 | Key::RepoWebUrl
                 | Key::VersionDate
                 | Key::NameMachineReadable => None,
-                Key::BuildDate => Some(build_date(environment)),
+                Key::BuildDate => Some((C_HIGH, build_date(environment))),
                 Key::BuildOs => Some(build_os(environment)),
                 Key::BuildOsFamily => Some(build_os_family(environment)),
-                Key::Licenses => licenses(environment)?.map(|lv| lv.join(", ")),
+                Key::Licenses => licenses(environment)?.map(|lv| (C_HIGH, lv.join(", "))),
                 Key::Name => name(environment)?,
                 Key::Version => version(environment)?,
             },

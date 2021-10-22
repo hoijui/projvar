@@ -4,7 +4,10 @@
 
 use crate::environment::Environment;
 use crate::value_conversions::slug_to_proj_name;
+use crate::var::Confidence;
 use crate::var::Key;
+use crate::var::C_HIGH;
+use crate::var::C_LOW;
 
 use super::var;
 use super::Hierarchy;
@@ -22,7 +25,7 @@ fn is_branch(environment: &mut Environment, refr: &str) -> RetrieveRes {
             }
         }
     }
-    Ok(branch.map(std::borrow::ToOwned::to_owned))
+    Ok(branch.map(|val| (C_HIGH, val.to_owned())))
 }
 
 // TODO PRIO Move this elsewhere
@@ -36,28 +39,28 @@ fn is_tag(environment: &mut Environment, refr: &str) -> RetrieveRes {
             }
         }
     }
-    Ok(tag.map(std::borrow::ToOwned::to_owned))
+    Ok(tag.map(|val| (C_HIGH, val.to_owned())))
 }
 
 fn build_branch(environment: &mut Environment) -> RetrieveRes {
-    let refr = var(environment, "GITHUB_REF");
+    let refr = var(environment, "GITHUB_REF", C_HIGH);
     Ok(if let Some(refr) = refr {
-        is_branch(environment, &refr)?
+        is_branch(environment, &refr.1)?
     } else {
         None
     })
 }
 
 fn build_tag(environment: &mut Environment) -> RetrieveRes {
-    let refr = var(environment, "GITHUB_REF");
+    let refr = var(environment, "GITHUB_REF", C_HIGH);
     Ok(if let Some(refr) = refr {
-        is_tag(environment, &refr)?
+        is_tag(environment, &refr.1)?
     } else {
         None
     })
 }
 
-fn repo_web_url(environment: &mut Environment) -> Option<String> {
+fn repo_web_url(environment: &mut Environment) -> Option<(Confidence, String)> {
     match (
         environment.vars.get("GITHUB_SERVER_URL"),
         environment.vars.get("GITHUB_REPOSITORY"),
@@ -67,7 +70,7 @@ fn repo_web_url(environment: &mut Environment) -> Option<String> {
             // usually:
             // GITHUB_SERVER_URL="https://github.com/"
             // GITHUB_REPOSITORY="user/project"
-            Some(format!("{}/{}", server, repo))
+            Some((C_HIGH, format!("{}/{}", server, repo)))
         }
         (_, _) => None,
     }
@@ -112,12 +115,17 @@ impl super::VarSource for VarSource {
                 | Key::RepoVersionedDirPrefixUrl
                 | Key::RepoVersionedFilePrefixUrl => None,
                 Key::BuildBranch => build_branch(environment)?,
-                Key::BuildOs => var(environment, "RUNNER_OS"), // TODO Not sure if this makes sense ... have to check in practise!
+                Key::BuildOs => var(environment, "RUNNER_OS", C_LOW), // TODO PRIO Not sure if this makes sense ... have to check in practise, and probably map values to our set of accepted values!
                 Key::BuildTag => build_tag(environment)?,
-                Key::Ci => var(environment, "CI"),
-                Key::Name => slug_to_proj_name(environment.vars.get("GITHUB_REPOSITORY"))?, // usually: GITHUB_REPOSITORY="user/project"
+                Key::Ci => var(environment, "CI", C_HIGH),
+                Key::Name => match var(environment, "GITHUB_REPOSITORY", C_HIGH) {
+                    Some(rated_val) => {
+                        slug_to_proj_name(Some(&rated_val.1))?.map(|val| (rated_val.0, val))
+                    }
+                    None => None,
+                }, // usually: GITHUB_REPOSITORY="user/project"
                 Key::RepoWebUrl => repo_web_url(environment),
-                Key::Version => var(environment, "GITHUB_SHA"),
+                Key::Version => var(environment, "GITHUB_SHA", C_LOW),
             },
         )
     }

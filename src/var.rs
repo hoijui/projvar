@@ -23,6 +23,11 @@ use crate::environment::Environment;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 
+pub type Confidence = u8;
+pub const C_HIGH: Confidence = 75;
+pub const C_MIDDLE: Confidence = 50;
+pub const C_LOW: Confidence = 25;
+
 // #[derive(Clone)]
 // #[derive(Debug)]
 #[derive(Default)]

@@ -16,7 +16,7 @@ use thiserror::Error;
 use clap::lazy_static::lazy_static;
 
 use crate::environment::Environment;
-use crate::var::Key;
+use crate::var::{Confidence, Key};
 use crate::{std_error, value_conversions};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
@@ -51,7 +51,7 @@ pub enum Error {
     Other(#[from] Box<dyn std::error::Error>),
 }
 
-type RetrieveRes = Result<Option<String>, Error>;
+type RetrieveRes = Result<Option<(Confidence, String)>, Error>;
 
 pub trait VarSource {
     /// Indicates whether this source of variables is usable.
@@ -90,9 +90,14 @@ pub trait VarSource {
     fn retrieve(&self, environment: &mut Environment, key: Key) -> RetrieveRes;
 }
 
-pub fn var(environment: &Environment, key: &str) -> Option<String> {
+#[must_use]
+pub fn var(
+    environment: &Environment,
+    key: &str,
+    confidence: Confidence,
+) -> Option<(Confidence, String)> {
     environment
         .vars
         .get(key)
-        .map(std::borrow::ToOwned::to_owned)
+        .map(|val| (confidence, val.clone()))
 }

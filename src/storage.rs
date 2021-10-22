@@ -10,15 +10,15 @@ use regex::Regex;
 use crate::{
     environment::Environment,
     sources::VarSource,
-    var::{self, Key, Variable},
+    var::{self, Confidence, Key, Variable},
 };
 
 /// Stores the property values gathered from all the sources.
 #[derive(Clone)]
 pub struct Storage {
     // key_values: HashMap<Key, Vec<(usize, String)>>,
-    key_values: HashMap<Key, HashMap<usize, String>>,
-    key_primary: HashMap<Key, String>,
+    key_values: HashMap<Key, HashMap<usize, (Confidence, String)>>,
+    key_primary: HashMap<Key, (Confidence, String)>,
 }
 
 impl Storage {
@@ -78,7 +78,7 @@ impl Storage {
             table.push_str(" |");
             for source_index in 0..sources.len() {
                 table.push(' ');
-                table.push_str(values.get(&source_index).map_or("", |v| v));
+                table.push_str(values.get(&source_index).map_or("", |(_c, v)| v));
                 table.push_str(" |");
             }
             table.push('\n');
@@ -99,7 +99,7 @@ impl Storage {
             key_strs.insert(*key, key_str.as_ref().to_owned());
         }
         let mut list = Vec::with_capacity(values.len() * 7); // because the loob below adds 7 strings for each entry
-        for (key, _variable, value) in &values {
+        for (key, _variable, (_confidence, value)) in &values {
             list.push("* ");
             list.push(key.into());
             list.push(" - ");
@@ -113,7 +113,7 @@ impl Storage {
 
     /// Returns the primary value associated to a specific key,
     /// if it is in store.
-    pub fn get(&self, key: Key) -> Option<&String> {
+    pub fn get(&self, key: Key) -> Option<&(Confidence, String)> {
         // The last entry contains the value of the source
         // with the highest `sources::Hierarchy`
         // that provided a value at all.
@@ -123,13 +123,13 @@ impl Storage {
 
     /// Returns all value by any source
     /// which is associated to the provided key.
-    pub fn get_all(&self, key: Key) -> Option<&HashMap<usize, String>> {
+    pub fn get_all(&self, key: Key) -> Option<&HashMap<usize, (Confidence, String)>> {
         self.key_values.get(&key)
     }
 
     /// Builds a list of all the keys with associated values,
     /// their variable meta-data and the primary value.
-    pub fn get_wrapup(&self) -> Vec<(Key, &'static Variable, &String)> {
+    pub fn get_wrapup(&self) -> Vec<(Key, &'static Variable, &(Confidence, String))> {
         self.key_primary
             .iter()
             .map(|key_value| {
@@ -142,16 +142,16 @@ impl Storage {
     }
 
     /// Adds the value found for a specific key by a certain source.
-    pub fn add(&mut self, key: Key, source_index: usize, value: String) {
+    pub fn add(&mut self, key: Key, source_index: usize, confidence: Confidence, value: String) {
         // ... PUH! :O
         // This returns the Vec for key,
         // or creates, inserts and returns a new one,
         // if none is present yet.
         // See: <https://stackoverflow.com/a/41418147>
         (*self.key_values.entry(key).or_insert_with(HashMap::new))
-            .insert(source_index, value.clone());
+            .insert(source_index, (confidence, value.clone()));
         // here, the last to add, wins (should be the source with the highest hierarchy)
-        self.key_primary.insert(key, value);
+        self.key_primary.insert(key, (confidence, value));
     }
 }
 

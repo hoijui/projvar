@@ -10,7 +10,7 @@ use std::error::Error;
 use std::fmt;
 
 use crate::environment::Environment;
-use crate::var::{Key, Variable};
+use crate::var::{Confidence, Key, Variable};
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 
@@ -31,7 +31,7 @@ pub trait VarSink: fmt::Display {
     fn store(
         &self,
         environment: &Environment,
-        values: &[(Key, &Variable, &String)],
+        values: &[(Key, &Variable, &(Confidence, String))],
         // values: Iter<'a, (&Key, &Variable, String)>,
     ) -> BoxResult<()>;
 }

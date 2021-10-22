@@ -4,6 +4,7 @@
 
 use crate::environment::Environment;
 use crate::var::Key;
+use crate::var::C_HIGH;
 
 use super::var;
 use super::Hierarchy;
@@ -50,14 +51,15 @@ impl super::VarSource for VarSource {
                 | Key::RepoVersionedFilePrefixUrl
                 | Key::RepoWebUrl
                 | Key::VersionDate => None,
-                Key::BuildBranch => var(environment, "TRAVIS_BRANCH"),
-                Key::BuildNumber => var(environment, "TRAVIS_BUILD_NUMBER"),
-                Key::BuildOs => var(environment, "TRAVIS_OS_NAME"),
-                Key::BuildTag => var(environment, "TRAVIS_TAG"),
+                Key::BuildBranch => var(environment, "TRAVIS_BRANCH", C_HIGH),
+                Key::BuildNumber => var(environment, "TRAVIS_BUILD_NUMBER", C_HIGH),
+                Key::BuildOs => var(environment, "TRAVIS_OS_NAME", C_HIGH),
+                Key::BuildTag => var(environment, "TRAVIS_TAG", C_HIGH),
                 Key::Name => crate::value_conversions::slug_to_proj_name(
                     environment.vars.get("TRAVIS_REPO_SLUG"),
-                )?, // usually: TRAVIS_REPO_SLUG="user/project"
-                Key::Version => var(environment, "TRAVIS_COMMIT"),
+                )?
+                .map(|val| (C_HIGH, val)), // usually: TRAVIS_REPO_SLUG="user/project"
+                Key::Version => var(environment, "TRAVIS_COMMIT", C_HIGH),
             },
         )
     }

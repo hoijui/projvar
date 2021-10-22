@@ -7,7 +7,7 @@ use crate::settings::FailOn;
 use crate::sinks::VarSink;
 use crate::sources::VarSource;
 use crate::validator;
-use crate::var::{Key, Variable};
+use crate::var::Key;
 use std::cmp::Ordering;
 use std::error::Error;
 use strum::IntoEnumIterator;
@@ -57,10 +57,10 @@ pub fn prepare_project_vars(
                     log::trace!("\tSkip fetching {:?} because it is not required", key);
                     continue;
                 }
-                let value = source.retrieve(environment, key)?;
-                if let Some(value) = value {
+                let rated_value = source.retrieve(environment, key)?;
+                if let Some((confidence, value)) = rated_value {
                     log::trace!("\tFetched {:?}='{}'", key, value);
-                    environment.output.add(key, source_index, value);
+                    environment.output.add(key, source_index, confidence, value);
                 }
             }
         }
@@ -87,7 +87,7 @@ pub fn prepare_project_vars(
     for key in Key::iter() {
         let required = environment.settings.required_keys.contains(&key);
         match output.get(key) {
-            Some(value) => {
+            Some((_confidence, value)) => {
                 log::trace!("Validating value for key '{:?}': '{}'", key, value);
                 let validation_res = validator::get(key)(environment, value);
                 match validation_res {
@@ -116,10 +116,17 @@ pub fn prepare_project_vars(
     }
 
     log::trace!("Evaluated variables ...");
-    let values: Vec<(Key, &'static Variable, &String)> = environment.output.get_wrapup();
+    // let values: Vec<(Key, &'static Variable, &String)> = environment.output.get_wrapup();
+    let values = environment.output.get_wrapup();
     if log::log_enabled!(log::Level::Trace) {
-        for (key, variable, value) in &values {
-            log::trace!("\t{:?}:{}='{}'", key, variable.key(environment), &value);
+        for (key, variable, (confidence, value)) in &values {
+            log::trace!(
+                "\t{:?}:{}:{}='{}' ",
+                key,
+                variable.key(environment),
+                confidence,
+                &value
+            );
         }
     }
 
