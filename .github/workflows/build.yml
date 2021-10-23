@@ -17,7 +17,7 @@ jobs:
     name: Compile
     runs-on: ubuntu-latest
     steps:
-      - name: Check out the repo
+      - name: "Check out the repo"
         uses: actions/checkout@v2
         with:
           submodules: true
@@ -27,16 +27,19 @@ jobs:
           args: spdx
       - name: REUSE - Add the tools bin dir to PATH
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-      - name: Get the Rust toolchain
+      - name: "Get the Rust toolchain"
         uses: actions-rs/toolchain@v1
         with:
             toolchain: stable
             override: true
             components: rustfmt, clippy
-      # Smart caching for rust/cargo projects with sensible defaults.
-      - uses: Swatinem/rust-cache@v1
-      - name: Build
+
+      - name: "Smart caching for rust/cargo"
+        uses: Swatinem/rust-cache@v1
+
+      - name: "Build"
         run: scripts/build
-      - name: Test & Check
+
+      - name: "Test & Check"
         run: scripts/test
 
