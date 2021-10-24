@@ -17,11 +17,21 @@ jobs:
   push_to_registry:
     name: Compile
     runs-on: ubuntu-latest
+    env:
+      STOML_VERSION: "v0.7.0"
     steps:
       - name: "Check out the repo"
         uses: actions/checkout@v2
         with:
           submodules: true
+
+      - name: "Install STOML (BASH TOML parser)"
+        run: |
+          mkdir -p "target/tools"
+          wget "https://github.com/freshautomations/stoml/releases/download/${{ env.STOML_VERSION }}/stoml_linux_amd64" \
+              -O "target/tools/stoml"
+          chmod +x "target/tools/stoml"
+
       - name: REUSE - Fetch tool and BoM
         uses: fsfe/reuse-action@v1
         with:
