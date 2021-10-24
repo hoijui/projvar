@@ -9,6 +9,7 @@ pub mod git;
 pub mod github_ci;
 pub mod gitlab_ci;
 pub mod jenkins_ci;
+pub mod selector;
 pub mod travis_ci;
 
 use thiserror::Error;
@@ -25,6 +26,7 @@ pub enum Hierarchy {
     Middle,
     High,
     Higher,
+    EvenHigher,
 }
 
 lazy_static! {

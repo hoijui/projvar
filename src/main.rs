@@ -558,6 +558,7 @@ fn sources(_args: &ArgMatches, repo_path: &Path) -> Vec<Box<dyn VarSource>> {
     sources.push(Box::new(sources::jenkins_ci::VarSource {}));
     sources.push(Box::new(sources::travis_ci::VarSource {}));
     sources.push(Box::new(sources::env::VarSource {}));
+    sources.push(Box::new(sources::selector::VarSource {}));
     if log::log_enabled!(log::Level::Trace) {
         for source in &sources {
             log::trace!("Registered source {}.", source.display());
