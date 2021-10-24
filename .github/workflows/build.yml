@@ -32,12 +32,17 @@ jobs:
               -O "target/tools/stoml"
           chmod +x "target/tools/stoml"
 
-      - name: REUSE - Fetch tool and BoM
-        uses: fsfe/reuse-action@v1
+      - name: "Setup Python 3"
+        uses: actions/setup-python@v2
         with:
-          args: spdx
-      - name: REUSE - Add the tools bin dir to PATH
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+            python-version: '3.x'
+
+      - name: "Install the RESUE tool"
+        uses: BSFishy/pip-action@v1
+        with:
+          packages: |
+            reuse
+
       - name: "Get the Rust toolchain"
         uses: actions-rs/toolchain@v1
         with:
