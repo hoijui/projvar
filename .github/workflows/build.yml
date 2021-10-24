@@ -10,6 +10,7 @@ on:
       - 'src/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
+      - '.github/workflows/build.yml'
   release:
     types: [ published ]
 jobs:
