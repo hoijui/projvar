@@ -10,6 +10,8 @@ use crate::var::Key;
 use super::Hierarchy;
 use super::RetrieveRes;
 
+use std::convert::TryFrom;
+
 /// Does not source any new values,
 /// but selects out of the previously sourced ones those with highest validity
 /// (= the return of validation function),
@@ -36,8 +38,38 @@ fn to_confidence(validity: &validator::Result) -> u8 {
     }
 }
 
-fn valor(confidence: Confidence, validity: &validator::Result) -> u16 {
-    u16::from(confidence) + (u16::from(to_confidence(validity)) * 256)
+fn source_index_to_confidence(source_index: usize) -> u8 {
+    u8::try_from(source_index).unwrap_or_else(|_err| {
+        log::warn!("Sorting during value selection has a small chance to be imprecise because more then {} sources (at least {}) are in use.", u8::MAX, source_index + 1);
+        u8::MAX
+    })
+}
+
+fn confidence_combiner(
+    most_important: u8,
+    highly_important: u8,
+    less_important: u8,
+    least_important: u8,
+) -> u32 {
+    let mut conf_comb: u32 = 0;
+    for conf in [
+        most_important,
+        highly_important,
+        less_important,
+        least_important,
+    ] {
+        conf_comb = (conf_comb * u32::from(u8::MAX)) + u32::from(conf);
+    }
+    conf_comb
+}
+
+fn valor(validity: &validator::Result, confidence: Confidence, source_index: usize) -> u32 {
+    confidence_combiner(
+        0,
+        to_confidence(validity),
+        confidence,
+        source_index_to_confidence(source_index),
+    )
 }
 
 impl super::VarSource for VarSource {
@@ -69,7 +101,7 @@ impl super::VarSource for VarSource {
                     let validity = specific_validator(environment, &value);
                     enriched_values.push((src_index, (confidence, value), validity));
                 }
-                enriched_values.sort_by_cached_key(|entry| valor(entry.1 .0, &entry.2));
+                enriched_values.sort_by_cached_key(|entry| valor(&entry.2, entry.1 .0, entry.0));
                 // enriched_values.iter().next().map(|entry| entry.1.clone())
                 enriched_values.get(0).map(|entry| entry.1.clone())
             }
