@@ -624,19 +624,22 @@ fn validate_name_machine_readable(environment: &mut Environment, value: &str) ->
 
 fn check_date(environment: &mut Environment, value: &str, date_desc: &str) -> Result {
     if value.is_empty() {
-        Err(Error::BadValue {
+        return Err(Error::BadValue {
             // TODO Maybe replace with a call to missing(...) ?
             msg: format!("{} date can not be empty", date_desc),
             value: value.to_owned(),
-        })
-    } else if NaiveDateTime::parse_from_str(value, &environment.settings.date_format).is_err()
-        && DateTime::parse_from_str(value, &environment.settings.date_format).is_err()
-    {
+        });
+    }
+
+    let parse_err = NaiveDateTime::parse_from_str(value, &environment.settings.date_format)
+        .err()
+        .and_then(|_err| DateTime::parse_from_str(value, &environment.settings.date_format).err());
+    if let Some(err) = parse_err {
         // log::error!("XXX {}", NaiveDateTime::parse_from_str(value, &environment.settings.date_format).unwrap_err());
         Err(Error::BadValue {
             msg: format!(
-                r#"Not a {} date according to the date-format "{}""#,
-                date_desc, environment.settings.date_format
+                r#"Not a {} date according to the date-format "{}": {}"#,
+                date_desc, environment.settings.date_format, err
             ),
             value: value.to_owned(),
         })
