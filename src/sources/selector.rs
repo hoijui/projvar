@@ -81,7 +81,21 @@ impl super::VarSource for VarSource {
                     let validity = specific_validator(environment, &value);
                     enriched_values.push((src_index, (confidence, value), validity));
                 }
-                enriched_values.sort_by_cached_key(|entry| valor(&entry.2, entry.1 .0, entry.0));
+                enriched_values.sort_by_cached_key(|entry| {
+                    let valor = valor(&entry.2, entry.1 .0, entry.0);
+                    log::trace!("Valor evaluated for {:?} from source {}, value '{}' is {:?}.",
+                        key,
+                        entry.0,
+                        entry.1.1,
+                        valor
+                    );
+                    log::trace!("    ... evaluated from (validity, confidence, source_index): ({:?}, {}, {})",
+                        &entry.2,
+                        entry.1 .0,
+                        entry.0
+                    );
+                    valor
+                });
                 enriched_values.last().map(|entry| entry.1.clone())
             }
             None => None,
