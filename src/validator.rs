@@ -118,6 +118,7 @@ pub enum Error {
     IO(#[from] std::io::Error),
 }
 
+/// Creates a result that indicates that the given `key` is missing
 fn missing(environment: &mut Environment, key: Key) -> Result {
     if environment.settings.required_keys.contains(&key) {
         Err(Error::Missing)
