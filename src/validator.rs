@@ -106,7 +106,7 @@ pub enum Error {
     /// so it might contain a typo, one small part is missing or too much,
     /// or something similar.
     #[error("The value '{value}' is unfit for this key, but only just - {msg}")]
-    AlmostUsableValue { msg: String, value: String },
+    AlmostUsableValue { msg: String, value: String }, // TODO remove value here and everywhere in this enum
 
     /// The evaluated value is not usable.
     /// It makes no sense for this property.
@@ -226,6 +226,7 @@ fn validate_licenses(environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
         missing(environment, Key::Licenses)
     } else {
+        // TODO PRIO Implement SPDX expressions detection, not just (as is now) single identifiers; see: TODO
         for license in value.split(',') {
             let license = license.trim();
             if !constants::SPDX_IDENTS.contains(&license) {
@@ -624,6 +625,7 @@ fn validate_name_machine_readable(environment: &mut Environment, value: &str) ->
 fn check_date(environment: &mut Environment, value: &str, date_desc: &str) -> Result {
     if value.is_empty() {
         Err(Error::BadValue {
+            // TODO Maybe replace with a call to missing(...) ?
             msg: format!("{} date can not be empty", date_desc),
             value: value.to_owned(),
         })
@@ -665,7 +667,7 @@ fn validate_build_tag(environment: &mut Environment, value: &str) -> Result {
 }
 
 fn validate_build_os(environment: &mut Environment, value: &str) -> Result {
-    check_empty(environment, value, "Build OS") // TODO PRIO Maybe add a list of known good, and mark the others as Ok(Some(Warning::Unknown))
+    check_empty(environment, value, "Build OS") // TODO Maybe add a list of known good (just like for OsFamily), and mark the others as Ok(Validity::Unknown)
 }
 
 fn validate_build_os_family(environment: &mut Environment, value: &str) -> Result {

@@ -194,7 +194,7 @@ impl super::VarSource for VarSource {
                 Key::BuildDate => Some((C_HIGH, build_date(environment))),
                 Key::BuildOs => Some(build_os(environment)),
                 Key::BuildOsFamily => Some(build_os_family(environment)),
-                Key::Licenses => licenses(environment)?.map(|lv| (C_HIGH, lv.join(", "))),
+                Key::Licenses => licenses(environment)?.map(|lv| (C_HIGH, lv.join(", "))), // TODO Later on, rather create an SPDX expressions, maybe by using OR instead of ',' to join ... but can we really?
                 Key::Name => name(environment)?,
                 Key::Version => version(environment)?,
             },
