@@ -10,6 +10,10 @@ use super::var;
 use super::Hierarchy;
 use super::RetrieveRes;
 
+/// This sources values from the environment variables
+/// set by the CI provider Travis,
+/// which was the go-to CI for Github projects
+/// until Github Actions were introduced in October 2018.
 pub struct VarSource;
 
 impl super::VarSource for VarSource {

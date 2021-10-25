@@ -6,6 +6,9 @@ use crate::var::{Key, C_HIGH};
 use crate::{environment::Environment, value_conversions};
 
 use super::{Hierarchy, RetrieveRes};
+
+/// Sources values by querrying the `git` CLI tool.
+/// In reality, we use a git library, but the effect is the same.
 pub struct VarSource;
 
 fn version(environment: &mut Environment) -> RetrieveRes {

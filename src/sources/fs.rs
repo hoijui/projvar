@@ -15,6 +15,8 @@ use std::path::{Path, PathBuf};
 use std::{env, fs};
 
 use super::{Hierarchy, RetrieveRes};
+
+/// Sources values from the file-system and OS supplied environment variables.
 pub struct VarSource;
 
 fn repo_path<'a>(environment: &'a mut Environment) -> Result<&'a PathBuf, std_error::Error> {

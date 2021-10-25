@@ -11,6 +11,8 @@ use super::var;
 use super::Hierarchy;
 use super::RetrieveRes;
 
+/// This sources values from the environment variables set by the CI in
+/// [`crate::tools::git_hosting_provs::HostingType::BitBucket`].
 pub struct VarSource;
 
 impl super::VarSource for VarSource {

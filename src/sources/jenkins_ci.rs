@@ -10,6 +10,7 @@ use super::var;
 use super::Hierarchy;
 use super::RetrieveRes;
 
+/// This sources values from the environment variables set by the CI provider Jenkins.
 pub struct VarSource;
 
 impl super::VarSource for VarSource {
