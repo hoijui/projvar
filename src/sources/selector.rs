@@ -94,15 +94,12 @@ impl super::VarSource for VarSource {
         Ok(match values {
             Some(values) => {
                 let mut enriched_values = vec![];
-                // for src_index in
-                // for (source_index, source) in sources.iter().enumerate()
                 for (src_index, (confidence, value)) in (*values).clone() {
                     let specific_validator = validator::get(key);
                     let validity = specific_validator(environment, &value);
                     enriched_values.push((src_index, (confidence, value), validity));
                 }
                 enriched_values.sort_by_cached_key(|entry| valor(&entry.2, entry.1 .0, entry.0));
-                // enriched_values.iter().next().map(|entry| entry.1.clone())
                 enriched_values.get(0).map(|entry| entry.1.clone())
             }
             None => None,

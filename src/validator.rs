@@ -94,7 +94,6 @@ fn validate_version(environment: &mut Environment, value: &str) -> Result {
         static ref R_GIT_SHA: Regex = Regex::new(r"^g?[0-9a-f]{7,40}$").unwrap();
         static ref R_UNKNOWN_VERS: Regex = Regex::new(r"^($|#|//)").unwrap();
     }
-    // log::info!("Validating version: '{}' ...", value);
     if R_SEM_VERS_RELEASE.is_match(value) {
         Ok(None)
     } else if git::is_git_dirty_version(value) {
