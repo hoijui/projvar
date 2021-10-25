@@ -100,7 +100,7 @@ impl super::VarSource for VarSource {
                     enriched_values.push((src_index, (confidence, value), validity));
                 }
                 enriched_values.sort_by_cached_key(|entry| valor(&entry.2, entry.1 .0, entry.0));
-                enriched_values.get(0).map(|entry| entry.1.clone())
+                enriched_values.last().map(|entry| entry.1.clone())
             }
             None => None,
         })
