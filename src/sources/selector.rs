@@ -19,25 +19,6 @@ use std::convert::TryFrom;
 /// those with higher confidence.
 pub struct VarSource;
 
-fn to_confidence(validity: &validator::Result) -> u8 {
-    match validity {
-        Ok(warning_opt) => match warning_opt {
-            None => 255,
-            Some(warning) => match warning {
-                validator::Warning::Missing => 150,
-                validator::Warning::SuboptimalValue { msg: _, value: _ } => 200,
-                validator::Warning::Unknown { value: _ } => 140,
-            },
-        },
-        Err(error) => match error {
-            validator::Error::Missing => 40,
-            validator::Error::AlmostUsableValue { msg: _, value: _ } => 100,
-            validator::Error::BadValue { msg: _, value: _ } => 50,
-            validator::Error::IO(_) => 30,
-        },
-    }
-}
-
 fn source_index_to_confidence(source_index: usize) -> u8 {
     u8::try_from(source_index).unwrap_or_else(|_err| {
         log::warn!("Sorting during value selection has a small chance to be imprecise because more then {} sources (at least {}) are in use.", u8::MAX, source_index + 1);
@@ -45,10 +26,11 @@ fn source_index_to_confidence(source_index: usize) -> u8 {
     })
 }
 
-fn valor(validity: &validator::Result, confidence: Confidence, source_index: usize) -> [u8; 3] {
+fn valor(validity: &validator::Result, confidence: Confidence, source_index: usize) -> [u8; 4] {
+    let res_confs = validator::res_to_confidences(validity);
     [
-        //0,
-        to_confidence(validity),
+        res_confs[0],
+        res_confs[1],
         confidence,
         source_index_to_confidence(source_index),
     ]

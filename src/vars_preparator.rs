@@ -91,9 +91,8 @@ pub fn prepare_project_vars(
                 log::trace!("Validating value for key '{:?}': '{}'", key, value);
                 let validation_res = validator::get(key)(environment, value);
                 match validation_res {
-                    Ok(None) => log::trace!("Validation result for key '{:?}': Good", key),
-                    Ok(Some(warning)) => {
-                        log::info!("Validation result for key '{:?}': {:?}", key, warning);
+                    Ok(validity) => {
+                        log::info!("Validation result for key '{:?}': {:?}", key, validity);
                     }
                     Err(err) => {
                         log::error!("Validation result for key '{:?}': {:?}", key, err);

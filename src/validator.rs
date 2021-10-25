@@ -4,7 +4,7 @@
 
 use crate::tools::git;
 use crate::tools::git_hosting_provs::HostingType;
-use crate::var::Key;
+use crate::var::{Confidence, Key};
 use crate::{constants, environment::Environment};
 use chrono::{DateTime, NaiveDateTime};
 use clap::lazy_static::lazy_static;
@@ -12,8 +12,24 @@ use regex::Regex;
 use thiserror::Error;
 use url::Url;
 
-pub type Result = std::result::Result<Option<Warning>, Error>;
+pub type Result = std::result::Result<Validity, Error>;
 pub type Validator = fn(&mut Environment, &str) -> Result;
+
+#[must_use]
+pub fn res_to_confidences(res: &Result) -> [Confidence; 2] {
+    match &res {
+        Ok(validity) => [validity.confidence(), 0],
+        Err(error) => [
+            0,
+            match error {
+                Error::Missing => 40,
+                Error::AlmostUsableValue { msg: _, value: _ } => 100,
+                Error::BadValue { msg: _, value: _ } => 50,
+                Error::IO(_) => 30,
+            },
+        ],
+    }
+}
 
 // See these resources for implement our own, custom errors
 // accoridng to rust best practises for errors (and error handling):
@@ -23,21 +39,49 @@ pub type Validator = fn(&mut Environment, &str) -> Result;
 //   https://www.lpalmieri.com/posts/error-handling-rust/#removing-the-boilerplate-with-thiserror
 
 /// This enumerates all possible errors returned by this module.
-#[derive(Error, Debug)]
-pub enum Warning {
+#[derive(Debug)]
+pub enum Validity {
+    /// The value is very valid
+    High { msg: Option<String> },
+
+    /// The value is quite valid
+    Middle { msg: String },
+
+    /// The value is just barely valid
+    Low { msg: String },
+
     /// A non-required properties value could not be evaluated;
     /// no source returned a (valid) value for it.
-    #[error("No value found for a property")]
     Missing,
 
     /// The evaluated value is usable, but not optimal.
-    #[error("The value '{value}' is usable, but not optimal - {msg}")]
-    SuboptimalValue { msg: String, value: String },
+    Suboptimal { msg: String },
 
     /// We have no way to check this value for validity,
     /// but at least were not able to prove it invalid.
-    #[error("No method to check validity of value '{value}'")]
-    Unknown { value: String },
+    Unknown,
+}
+
+impl Validity {
+    #[must_use]
+    pub fn confidence(&self) -> Confidence {
+        match self {
+            Self::High { msg: _ } => 250,
+            Self::Middle { msg: _ } => 230,
+            Self::Low { msg: _ } => 210,
+            Self::Missing => 150,
+            Self::Suboptimal { msg: _ } => 200,
+            Self::Unknown => 140,
+        }
+    }
+
+    #[must_use]
+    pub fn is_good(&self) -> bool {
+        match self {
+            Self::High { msg: _ } | Self::Middle { msg: _ } | Self::Low { msg: _ } => true,
+            Self::Missing | Self::Suboptimal { msg: _ } | Self::Unknown => false,
+        }
+    }
 }
 
 /// This enumerates all possible errors returned by this module.
@@ -78,7 +122,7 @@ fn missing(environment: &mut Environment, key: Key) -> Result {
     if environment.settings.required_keys.contains(&key) {
         Err(Error::Missing)
     } else {
-        Ok(Some(Warning::Missing))
+        Ok(Validity::Missing)
     }
 }
 
@@ -92,28 +136,68 @@ fn validate_version(environment: &mut Environment, value: &str) -> Result {
         static ref R_SEM_VERS: Regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$").unwrap();
         static ref R_GIT_VERS: Regex = Regex::new(r"^((g[0-9a-f]{7})|((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)))(-(0|[1-9]\d*)-(g[0-9a-f]{7}))?((-dirty(-broken)?)|-broken(-dirty)?)?$").unwrap();
         static ref R_GIT_SHA: Regex = Regex::new(r"^g?[0-9a-f]{7,40}$").unwrap();
+        static ref R_GIT_SHA_PREFIX: Regex = Regex::new(r"^g[0-9a-f]{7}").unwrap();
         static ref R_UNKNOWN_VERS: Regex = Regex::new(r"^($|#|//)").unwrap();
     }
+    if git::is_git_dirty_version(value) {
+        log::warn!(
+            "Dirty project version '{}'; you have uncommitted changes in your project",
+            value
+        );
+    }
     if R_SEM_VERS_RELEASE.is_match(value) {
-        Ok(None)
+        Ok(Validity::Low { msg: "This is a release version, which indicate seither that we are on a release (commit), or that it is imprecise, and actually a left-over from the previous release.".to_owned() })
     } else if git::is_git_dirty_version(value) {
-        // Err(Error::AlmostUsableValue {
-        Ok(Some(Warning::SuboptimalValue {
-            msg: "Dirty project version; you have uncommitted changes in your project".to_owned(),
-            value: value.to_owned(),
-        }))
-    } else if R_SEM_VERS.is_match(value) || R_GIT_VERS.is_match(value) {
-        Ok(Some(Warning::SuboptimalValue {
-            msg: "This version is technically good, but not a release-version (i.e., does not look so nice)".to_owned(),
-            value: value.to_owned(),
-        }))
+        log::warn!(
+            "Dirty project version '{}'; you have uncommitted changes in your project",
+            value
+        );
+        if R_GIT_SHA_PREFIX.is_match(value) {
+            Ok(Validity::Middle {
+                msg:
+                    "This version (a raw git SHA) is technically ok, but not a release-version, and not human-readable; We trust it because it is dirty, though."
+                        .to_owned(),
+            })
+        } else {
+            Ok(Validity::High {
+                msg: Some("A git dirty version starting with a tag".to_owned()),
+            })
+        }
     } else if R_GIT_SHA.is_match(value) {
-        Ok(Some(Warning::SuboptimalValue {
+        Ok(Validity::Suboptimal {
             msg:
-                "This version is technically ok, but not a release-version, and not human-readable"
+                "This version (a raw git SHA) is technically ok, but not a release-version, and not human-readable"
                     .to_owned(),
-            value: value.to_owned(),
-        }))
+        })
+    } else if R_GIT_VERS.is_match(value) {
+        // This version is technically good,
+        // but not a release-version
+        // (i.e., does not look so nice).
+        match R_GIT_SHA_PREFIX.find(value) {
+            Some(mtch) if mtch.range().len() == value.len() =>
+                // The version consists only of a SHA
+                Ok(Validity::Suboptimal {
+                    msg:
+                        "This version (a git SHA) is technically ok, but not a release-version, and not human-readable"
+                            .to_owned(),
+                }),
+            Some(_) => {
+                // The version starts with a SHA
+                Ok(Validity::Suboptimal { msg: "git version starting with a SHA (instead of a tag, which would be preffered)".to_owned() } )
+            },
+            None => {
+                // It is a detailed git version starting with a tag
+                Ok(Validity::High { msg: Some("A git version starting with/consisting of a tag".to_owned()) } )
+            },
+        }
+    } else if R_SEM_VERS.is_match(value) {
+        // This version is technically good,
+        // but not a release-version
+        // (i.e., does not look so nice).
+        // Ok(Validity::High)
+        Ok(Validity::Low {
+            msg: "semver".to_owned(),
+        })
     } else if R_UNKNOWN_VERS.is_match(value) {
         missing(environment, Key::Version)
     } else {
@@ -128,12 +212,13 @@ fn validate_license(environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
         missing(environment, Key::License)
     } else if constants::SPDX_IDENTS.contains(&value) {
-        Ok(None)
+        Ok(Validity::High {
+            msg: Some("Consists of an SPDX license identifier".to_owned()),
+        })
     } else {
-        Ok(Some(Warning::SuboptimalValue {
+        Ok(Validity::Suboptimal {
             msg: "Not a recognized SPDX license identifier".to_owned(),
-            value: value.to_owned(),
-        }))
+        })
     }
 }
 
@@ -144,16 +229,20 @@ fn validate_licenses(environment: &mut Environment, value: &str) -> Result {
         for license in value.split(',') {
             let license = license.trim();
             if !constants::SPDX_IDENTS.contains(&license) {
-                return Ok(Some(Warning::SuboptimalValue {
+                return Ok(Validity::Suboptimal {
                     msg: format!(
-                        "Not all of these are recognized SPDX license identifiers: {}",
+                        "Not all of these are recognized SPDX license identifiers: {}\n\tspecifically '{}'",
+                        value,
                         license
                     ),
-                    value: value.to_owned(),
-                }));
+                });
             }
         }
-        Ok(None)
+        Ok(Validity::High {
+            msg: Some(
+                "Consists of a list of SPDX license identifiers, separated by ','".to_owned(),
+            ),
+        })
     }
 }
 
@@ -217,7 +306,9 @@ fn check_empty(_environment: &mut Environment, value: &str, part_desc: &str) -> 
             value: value.to_owned(),
         })
     } else {
-        Ok(None)
+        Ok(Validity::Low {
+            msg: "at least not empty".to_owned(),
+        })
     }
 }
 
@@ -234,7 +325,15 @@ fn eval_hosting_type_from_hosting_suffix(environment: &mut Environment, url: &Ur
 fn check_url_path(value: &str, url_desc: &str, url: &Url, path_reg: Option<&Regex>) -> Result {
     if let (Some(path_reg), Some(host)) = (path_reg, url.host().as_ref()) {
         if path_reg.is_match(url.path()) {
-            Ok(None)
+            Ok(Validity::High {
+                msg: Some(format!(
+                    r#"For {}, the path part of the {} URL ("{}") matches regex "{}""#,
+                    host,
+                    url_desc,
+                    url.path(),
+                    path_reg.as_str()
+                )),
+            })
         } else {
             Err(Error::AlmostUsableValue {
                 msg: format!(
@@ -248,9 +347,7 @@ fn check_url_path(value: &str, url_desc: &str, url: &Url, path_reg: Option<&Rege
             })
         }
     } else {
-        Ok(Some(Warning::Unknown {
-            value: value.to_owned(),
-        }))
+        Ok(Validity::Unknown)
     }
 }
 
@@ -258,7 +355,15 @@ fn check_url_host(value: &str, url_desc: &str, url: &Url, host_reg: Option<&Rege
     if let (Some(host_reg), Some(host)) = (host_reg, url.host().as_ref()) {
         let host_str = host.to_string();
         if host_reg.is_match(&host_str) {
-            Ok(None)
+            Ok(Validity::High {
+                msg: Some(format!(
+                    r#"For {}, the host part of the {} URL ("{}") matches regex "{}""#,
+                    host,
+                    url_desc,
+                    host_str,
+                    host_reg.as_str()
+                )),
+            })
         } else {
             Err(Error::AlmostUsableValue {
                 msg: format!(
@@ -272,9 +377,7 @@ fn check_url_host(value: &str, url_desc: &str, url: &Url, host_reg: Option<&Rege
             })
         }
     } else {
-        Ok(Some(Warning::Unknown {
-            value: value.to_owned(),
-        }))
+        Ok(Validity::Unknown)
     }
 }
 
@@ -504,7 +607,9 @@ fn validate_name_machine_readable(environment: &mut Environment, value: &str) ->
 
     check_empty(environment, value, "Project name (machine-readable)")?;
     if R_MACHINE_READABLE.is_match(value) {
-        Ok(None)
+        Ok(Validity::High {
+            msg: Some(format!("Matches regex '{}'", R_MACHINE_READABLE.as_str())),
+        })
     } else {
         Err(Error::BadValue {
             msg: format!(
@@ -534,7 +639,12 @@ fn check_date(environment: &mut Environment, value: &str, date_desc: &str) -> Re
             value: value.to_owned(),
         })
     } else {
-        Ok(None)
+        Ok(Validity::High {
+            msg: Some(format!(
+                "Matches the date format '{}'",
+                environment.settings.date_format
+            )),
+        })
     }
 }
 
@@ -561,7 +671,7 @@ fn validate_build_os(environment: &mut Environment, value: &str) -> Result {
 fn validate_build_os_family(environment: &mut Environment, value: &str) -> Result {
     check_empty(environment, value, "Build OS Family")?;
     if constants::VALID_OS_FAMILIES.contains(&value) {
-        Ok(None)
+        Ok(Validity::High { msg: None })
     } else {
         // todo!();
         // Err(Error::SuboptimalValue {
@@ -581,7 +691,7 @@ fn validate_build_os_family(environment: &mut Environment, value: &str) -> Resul
 fn validate_build_arch(environment: &mut Environment, value: &str) -> Result {
     check_empty(environment, value, "Build arch")?;
     if constants::VALID_ARCHS.contains(&value) {
-        Ok(None)
+        Ok(Validity::High { msg: None })
     } else {
         // todo!();
         // Err(Error::SuboptimalValue {
@@ -601,22 +711,20 @@ fn validate_build_arch(environment: &mut Environment, value: &str) -> Result {
 fn validate_build_number(environment: &mut Environment, value: &str) -> Result {
     check_empty(environment, value, "Build number")?;
     match value.parse::<i32>() {
-        Err(_err) => Ok(Some(Warning::SuboptimalValue {
+        Err(_err) => Ok(Validity::Suboptimal {
             msg: "It is generally recommended and assumed that the build number is an integer (a positive, whole number)".to_owned(),
-            value: value.to_owned(),
-            })),
-        Ok(_int_value) => Ok(None)
+        }),
+        Ok(_int_value) => Ok(Validity::High { msg: Some("Is a build number (positive integer)".to_owned()) })
     }
 }
 
 fn validate_ci(environment: &mut Environment, value: &str) -> Result {
     check_empty(environment, value, "CI")?;
     match value {
-        "true" => Ok(None),
-        &_ => Ok(Some(Warning::SuboptimalValue {
+        "true" => Ok(Validity::High { msg: None }),
+        &_ => Ok(Validity::Suboptimal {
             msg: r#"CI should either be unset or set to "true""#.to_owned(),
-            value: value.to_owned(),
-        })),
+        }),
     }
 }
 
@@ -668,9 +776,17 @@ mod tests {
             msg: String::default(),
             value: String::default(),
         };
-        static ref VW_SUBOPTIMAL_VALUE: Warning = Warning::SuboptimalValue {
+        static ref V_HIGH: Validity = Validity::High {
+            msg: None,
+        };
+        static ref V_MIDDLE: Validity = Validity::Middle {
+            msg: String::default(), // TODO Createa macro for this
+        };
+        static ref V_LOW: Validity = Validity::Low {
             msg: String::default(),
-            value: String::default(),
+        };
+        static ref V_SUBOPTIMAL: Validity = Validity::Suboptimal {
+            msg: String::default(),
         };
     }
 
@@ -690,15 +806,23 @@ mod tests {
     // }
 
     fn is_optimal(res: Result) -> bool {
-        variant_eq(&res.unwrap(), &None)
+        res.unwrap().is_good()
+    }
+
+    fn is_high(res: Result) -> bool {
+        variant_eq(&res.unwrap(), &V_HIGH)
+    }
+
+    fn is_middle(res: Result) -> bool {
+        variant_eq(&res.unwrap(), &V_MIDDLE)
+    }
+
+    fn is_low(res: Result) -> bool {
+        variant_eq(&res.unwrap(), &V_LOW)
     }
 
     fn is_suboptimal(res: Result) -> bool {
-        if let Some(err) = res.unwrap() {
-            variant_eq(&err, &VW_SUBOPTIMAL_VALUE)
-        } else {
-            false
-        }
+        variant_eq(&res.unwrap(), &V_SUBOPTIMAL)
     }
 
     // fn is_almost_usable(res: Result) -> bool {
@@ -731,7 +855,7 @@ mod tests {
             &mut environment,
             "gad8f844"
         )));
-        assert!(is_suboptimal(validate_version(
+        assert!(is_middle(validate_version(
             &mut environment,
             "gad8f844-dirty"
         )));
@@ -739,48 +863,42 @@ mod tests {
             &mut environment,
             "gad8f844-broken"
         )));
-        assert!(is_suboptimal(validate_version(
+        assert!(is_middle(validate_version(
             &mut environment,
             "gad8f844-dirty-broken"
         )));
-        assert!(is_suboptimal(validate_version(
+        assert!(is_middle(validate_version(
             &mut environment,
             "gad8f844-broken-dirty"
         )));
-        assert!(is_suboptimal(validate_version(
+        assert!(is_high(validate_version(
             &mut environment,
             "0.1.19-12-gad8f844"
         )));
-        assert!(is_suboptimal(validate_version(
+        assert!(is_high(validate_version(
             &mut environment,
             "0.1.19-12-gad8f844-dirty"
         )));
-        assert!(is_suboptimal(validate_version(
+        assert!(is_high(validate_version(
             &mut environment,
             "0.1.19-12-gad8f844-broken"
         )));
-        assert!(is_suboptimal(validate_version(
+        assert!(is_high(validate_version(
             &mut environment,
             "0.1.19-12-gad8f844-dirty-broken"
         )));
-        assert!(is_suboptimal(validate_version(
+        assert!(is_high(validate_version(
             &mut environment,
             "0.1.19-12-gad8f844-broken-dirty"
         )));
         assert!(is_optimal(validate_version(&mut environment, "0.1.19")));
-        assert!(is_suboptimal(validate_version(
-            &mut environment,
-            "0.1.19-dirty"
-        )));
-        assert!(is_suboptimal(validate_version(
-            &mut environment,
-            "0.1.19-broken"
-        )));
-        assert!(is_suboptimal(validate_version(
+        assert!(is_high(validate_version(&mut environment, "0.1.19-dirty")));
+        assert!(is_high(validate_version(&mut environment, "0.1.19-broken")));
+        assert!(is_high(validate_version(
             &mut environment,
             "0.1.19-dirty-broken"
         )));
-        assert!(is_suboptimal(validate_version(
+        assert!(is_high(validate_version(
             &mut environment,
             "0.1.19-broken-dirty"
         )));
