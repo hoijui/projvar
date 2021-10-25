@@ -45,31 +45,13 @@ fn source_index_to_confidence(source_index: usize) -> u8 {
     })
 }
 
-fn confidence_combiner(
-    most_important: u8,
-    highly_important: u8,
-    less_important: u8,
-    least_important: u8,
-) -> u32 {
-    let mut conf_comb: u32 = 0;
-    for conf in [
-        most_important,
-        highly_important,
-        less_important,
-        least_important,
-    ] {
-        conf_comb = (conf_comb * u32::from(u8::MAX)) + u32::from(conf);
-    }
-    conf_comb
-}
-
-fn valor(validity: &validator::Result, confidence: Confidence, source_index: usize) -> u32 {
-    confidence_combiner(
-        0,
+fn valor(validity: &validator::Result, confidence: Confidence, source_index: usize) -> [u8; 3] {
+    [
+        //0,
         to_confidence(validity),
         confidence,
         source_index_to_confidence(source_index),
-    )
+    ]
 }
 
 impl super::VarSource for VarSource {
