@@ -371,7 +371,7 @@ fn check_url_host(value: &str, url_desc: &str, url: &Url, host_reg: Option<&Rege
                     r#"For {}, this host part of the {} URL is invalid: "{}"; it should match "{}""#,
                     host,
                     url_desc,
-                    url.path(),
+                    host_str,
                     host_reg.as_str()
                 ),
                 value: value.to_owned(),
