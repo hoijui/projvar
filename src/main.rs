@@ -27,6 +27,7 @@ use strum::VariantNames;
 mod constants;
 mod environment;
 mod logger;
+mod process;
 pub mod settings;
 pub mod sinks;
 pub mod sources;
@@ -36,7 +37,6 @@ pub mod tools;
 mod validator;
 mod value_conversions;
 mod var;
-mod vars_preparator;
 
 use crate::environment::Environment;
 use crate::settings::{Settings, Verbosity};
@@ -730,6 +730,6 @@ fn main() -> BoxResult<()> {
     //     }
     // }
 
-    vars_preparator::prepare_project_vars(&mut environment, sources, sinks)
+    process::prepare_project_vars(&mut environment, sources, sinks)
     // Ok(())
 }

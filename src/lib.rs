@@ -10,6 +10,7 @@ extern crate url;
 
 mod constants;
 pub mod environment;
+pub mod process;
 pub mod settings;
 pub mod sinks;
 pub mod sources;
@@ -19,4 +20,3 @@ pub mod tools;
 pub mod validator;
 pub mod value_conversions;
 pub mod var;
-pub mod vars_preparator;
