@@ -135,10 +135,11 @@ impl Storage {
         self.key_values.get(&key)
     }
 
-    /// Builds a list of all the keys with associated values,
+    /// Builds a sorted list of all the keys with associated values,
     /// their variable meta-data and the primary value.
     pub fn get_wrapup(&self) -> Vec<(Key, &'static Variable, &(Confidence, String))> {
-        self.key_primary
+        let mut wrapup: Vec<(Key, &'static Variable, &(Confidence, String))> = self
+            .key_primary
             .iter()
             .map(|key_value| {
                 let key = *key_value.0;
@@ -146,7 +147,9 @@ impl Storage {
                 let value = key_value.1;
                 (key, variable, value)
             })
-            .collect()
+            .collect();
+        wrapup.sort_unstable_by_key(|entry| entry.0);
+        wrapup
     }
 
     /// Adds the value found for a specific key by a certain source.
