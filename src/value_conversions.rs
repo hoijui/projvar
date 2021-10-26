@@ -531,6 +531,7 @@ pub fn clone_url_conversion(any_clone_url: &str, protocol: Protocol) -> Res {
 ///
 /// If the user in the URL suggests a non-public access URL.
 pub fn clone_url_conversion_option(any_clone_url: Option<&String>, protocol: Protocol) -> Res {
+    // TODO Can probably be removed by clever usage of map, ok, and*, or*, Into, From, ... something!
     Ok(match any_clone_url {
         Some(clone_url) => clone_url_conversion(clone_url, protocol)?,
         None => None,
