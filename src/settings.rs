@@ -108,11 +108,11 @@ impl From<bool> for FailOn {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub enum ShowRetrieved {
     No,
-    Primary,
-    All,
+    Primary(Option<PathBuf>),
+    All(Option<PathBuf>),
 }
 
 pub struct Settings /*<S: ::std::hash::BuildHasher>*/ {

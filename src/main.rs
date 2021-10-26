@@ -403,8 +403,12 @@ fn arg_date_format() -> Arg<'static> {
 fn arg_show_all_retrieved() -> Arg<'static> {
     Arg::new(A_L_SHOW_ALL_RETRIEVED)
         .about("Shows a table of all values retrieved from sources")
-        .long_about("Shows a table (in Markdown syntax) of all properties and the values retrieved for each from each individual source.")
-        .takes_value(false)
+        .long_about("Shows a table (in Markdown syntax) of all properties and the values retrieved for each from each individual source. Writes to log(Info), if no target file is given as argument.")
+        .takes_value(true)
+        .value_hint(ValueHint::FilePath)
+        .value_name("MD-FILE")
+        .min_values(0)
+        .forbid_empty_values(true)
         .short(A_S_SHOW_ALL_RETRIEVED)
         .long(A_L_SHOW_ALL_RETRIEVED)
         .multiple_occurrences(false)
@@ -414,8 +418,12 @@ fn arg_show_all_retrieved() -> Arg<'static> {
 fn arg_show_primary_retrieved() -> Arg<'static> {
     Arg::new(A_L_SHOW_PRIMARY_RETRIEVED)
         .about("Shows a list of the primary values retrieved from sources")
-        .long_about("Shows a list (in Markdown syntax) of all properties and the primary values retrieved for each, accumulated over the sources.")
-        .takes_value(false)
+        .long_about("Shows a list (in Markdown syntax) of all properties and the primary values retrieved for each, accumulated over the sources. Writes to log(Info), if no target file is given as argument.")
+        .takes_value(true)
+        .value_hint(ValueHint::FilePath)
+        .value_name("MD-FILE")
+        .min_values(0)
+        .forbid_empty_values(true)
         .short(A_S_SHOW_PRIMARY_RETRIEVED)
         .long(A_L_SHOW_PRIMARY_RETRIEVED)
         .multiple_occurrences(false)
@@ -664,9 +672,15 @@ fn main() -> BoxResult<()> {
     let key_prefix = args.value_of(A_L_KEY_PREFIX);
     let required_keys = required_keys(key_prefix, &args)?;
     let show_retrieved: settings::ShowRetrieved = if args.is_present(A_L_SHOW_ALL_RETRIEVED) {
-        settings::ShowRetrieved::All
+        settings::ShowRetrieved::All(
+            args.value_of(A_L_SHOW_ALL_RETRIEVED)
+                .map(|file| file.into()),
+        )
     } else if args.is_present(A_L_SHOW_PRIMARY_RETRIEVED) {
-        settings::ShowRetrieved::Primary
+        settings::ShowRetrieved::Primary(
+            args.value_of(A_L_SHOW_PRIMARY_RETRIEVED)
+                .map(|file| file.into()),
+        )
     } else {
         settings::ShowRetrieved::No
     };

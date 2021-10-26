@@ -10,9 +10,36 @@ use crate::validator;
 use crate::var::Key;
 use std::cmp::Ordering;
 use std::error::Error;
+use std::fs;
 use strum::IntoEnumIterator;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
+
+/// Reports the raw values retrieved from the sources, if requested
+fn report_retrieved(environment: &Environment, sources: &[Box<dyn VarSource>]) -> BoxResult<()> {
+    let retrieved = match &environment.settings.show_retrieved {
+        crate::settings::ShowRetrieved::No => (None, None),
+        crate::settings::ShowRetrieved::Primary(target) => (
+            Some(environment.output.to_list(environment)),
+            target.as_ref(),
+        ),
+        crate::settings::ShowRetrieved::All(target) => (
+            Some(environment.output.to_table(environment, sources)),
+            target.as_ref(),
+        ),
+    };
+    if let (Some(retr_content), target) = retrieved {
+        match target {
+            None => {
+                log::info!("Raw, Retrieved values from sources:\n\n{}", retr_content,);
+            }
+            Some(path) => {
+                fs::write(path, retr_content)?;
+            }
+        }
+    }
+    Ok(())
+}
 
 /// The main function of this crate,
 /// gathering data as good as it can,
@@ -65,21 +92,7 @@ pub fn run(
         }
     }
 
-    // Report raw values retrieved from the sources,
-    // if requested
-    let retrieved_display = match environment.settings.show_retrieved {
-        crate::settings::ShowRetrieved::No => None,
-        crate::settings::ShowRetrieved::Primary => Some(environment.output.to_list(environment)),
-        crate::settings::ShowRetrieved::All => {
-            Some(environment.output.to_table(environment, &sources))
-        }
-    };
-    if let Some(retrieved_display) = retrieved_display {
-        log::info!(
-            "Raw, Retrieved values from sources:\n\n{}",
-            retrieved_display
-        );
-    }
+    report_retrieved(environment, &sources)?;
 
     log::trace!("Validate each variables precense and value ...");
     let output = environment.output.clone();
