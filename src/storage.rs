@@ -80,9 +80,9 @@ impl Storage {
                 let variable = var::get(key);
                 table.push_str("| ");
                 table.push_str(key.into());
-                table.push_str(" | ");
+                table.push_str(" | `");
                 table.push_str(&variable.key(environment));
-                table.push_str(" |");
+                table.push_str("` |");
                 for source_index in 0..sources.len() {
                     table.push(' ');
                     table.push_str(values.get(&source_index).map_or("", |(_c, v)| v));
@@ -110,9 +110,9 @@ impl Storage {
         for (key, _variable, (_confidence, value)) in &values {
             list.push("* ");
             list.push(key.into());
-            list.push(" - ");
+            list.push(" - `");
             list.push(&key_strs[key]);
-            list.push(" - ");
+            list.push("` - ");
             list.push(value);
             list.push("\n");
         }
