@@ -37,6 +37,8 @@ impl Storage {
     pub fn to_table(&self, environment: &Environment, sources: &[Box<dyn VarSource>]) -> String {
         lazy_static! {
             static ref R_COMMON_SOURCE_PREFIX: Regex = Regex::new(r"^projvar::sources::").unwrap();
+            static ref R_COMMON_SOURCE_NAME: Regex = Regex::new(r"::VarSource").unwrap();
+            static ref R_EMPTY_PROPERTIES: Regex = Regex::new(r"\[\]$").unwrap();
         }
         static HEADER_PREFIX: &str = "| Property | Env-Key |";
         static SOURCE_NAME_ESTIMATE: usize = 32;
@@ -55,6 +57,8 @@ impl Storage {
         for source in sources {
             let display = source.display();
             let display = R_COMMON_SOURCE_PREFIX.replace(&display, "");
+            let display = R_COMMON_SOURCE_NAME.replace(&display, "");
+            let display = R_EMPTY_PROPERTIES.replace(&display, "");
             table.push(' ');
             table.push_str(&display);
             table.push_str(" |");
