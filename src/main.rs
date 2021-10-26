@@ -4,6 +4,7 @@
 
 extern crate clap;
 extern crate enum_map;
+extern crate human_panic;
 extern crate log;
 extern crate remain;
 extern crate url;
@@ -645,6 +646,8 @@ fn required_keys(key_prefix: Option<&str>, args: &ArgMatches) -> BoxResult<HashS
 }
 
 fn main() -> BoxResult<()> {
+    human_panic::setup_panic!();
+
     let args = arg_matcher().get_matches();
 
     let verbosity = verbosity(&args)?;
