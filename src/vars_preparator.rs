@@ -92,7 +92,7 @@ pub fn prepare_project_vars(
                 let validation_res = validator::get(key)(environment, value);
                 match validation_res {
                     Ok(validity) => {
-                        log::info!("Validation result for key '{:?}': {:?}", key, validity);
+                        log::debug!("Validation result for key '{:?}': {:?}", key, validity);
                     }
                     Err(err) => {
                         log::error!("Validation result for key '{:?}': {:?}", key, err);
