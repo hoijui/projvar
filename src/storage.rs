@@ -6,6 +6,7 @@ use std::collections::HashMap;
 
 use clap::lazy_static::lazy_static;
 use regex::Regex;
+use strum::IntoEnumIterator;
 
 use crate::{
     environment::Environment,
@@ -72,20 +73,23 @@ impl Storage {
         }
         table.push('\n');
 
-        // table content
-        for (key, values) in &self.key_values {
-            let variable = var::get(*key);
-            table.push_str("| ");
-            table.push_str(key.into());
-            table.push_str(" | ");
-            table.push_str(&variable.key(environment));
-            table.push_str(" |");
-            for source_index in 0..sources.len() {
-                table.push(' ');
-                table.push_str(values.get(&source_index).map_or("", |(_c, v)| v));
+        // table content (`Key::iter()` is sorted)
+        for key in Key::iter() {
+            let values = self.key_values.get(&key);
+            if let Some(values) = values {
+                let variable = var::get(key);
+                table.push_str("| ");
+                table.push_str(key.into());
+                table.push_str(" | ");
+                table.push_str(&variable.key(environment));
                 table.push_str(" |");
+                for source_index in 0..sources.len() {
+                    table.push(' ');
+                    table.push_str(values.get(&source_index).map_or("", |(_c, v)| v));
+                    table.push_str(" |");
+                }
+                table.push('\n');
             }
-            table.push('\n');
         }
         log::trace!("Table size (in chars), estimated: {}", table_chars_estimate);
         log::trace!("Table size (in chars), actual:    {}", table.len());
