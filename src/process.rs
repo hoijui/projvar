@@ -26,7 +26,7 @@ type BoxResult<T> = Result<T, Box<dyn Error>>;
 /// for a specific key fails.
 ///
 /// Writing to the environment fails.
-pub fn prepare_project_vars(
+pub fn run(
     environment: &mut Environment,
     mut sources: Vec<Box<dyn VarSource>>,
     sinks: Vec<Box<dyn VarSink>>,

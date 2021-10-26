@@ -718,5 +718,5 @@ fn main() -> BoxResult<()> {
         }
     }
 
-    process::prepare_project_vars(&mut environment, sources, sinks)
+    process::run(&mut environment, sources, sinks)
 }
