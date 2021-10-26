@@ -42,6 +42,7 @@ impl Storage {
             static ref R_EMPTY_PROPERTIES: Regex = Regex::new(r"\[\]$").unwrap();
         }
         static HEADER_PREFIX: &str = "| Property | Env-Key |";
+        static HEADER_SUFFIX: &str = " Final Value |";
         static SOURCE_NAME_ESTIMATE: usize = 32;
         // "| `Key::name()` | `variable.key` |"
         static CONTENT_LINE_PREFIX_EST: usize = 40;
@@ -64,11 +65,12 @@ impl Storage {
             table.push_str(&display);
             table.push_str(" |");
         }
+        table.push_str(HEADER_SUFFIX);
         table.push('\n');
 
         // header separator
         table.push('|');
-        for _table_sep_index in 0..(sources.len() + 2) {
+        for _table_sep_index in 0..(sources.len() + 3) {
             table.push_str(" --- |");
         }
         table.push('\n');
@@ -88,6 +90,9 @@ impl Storage {
                     table.push_str(values.get(&source_index).map_or("", |(_c, v)| v));
                     table.push_str(" |");
                 }
+                table.push_str(" **");
+                table.push_str(self.get(key).map_or("", |(_c, v)| v));
+                table.push_str("** |");
                 table.push('\n');
             }
         }
