@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 pub mod bitbucket_ci;
+pub mod deriver;
 pub mod env;
 pub mod fs;
 pub mod git;
@@ -27,6 +28,7 @@ pub enum Hierarchy {
     High,
     Higher,
     EvenHigher,
+    Top,
 }
 
 lazy_static! {

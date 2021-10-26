@@ -559,6 +559,10 @@ fn sources(_args: &ArgMatches, repo_path: &Path) -> Vec<Box<dyn VarSource>> {
     sources.push(Box::new(sources::travis_ci::VarSource {}));
     sources.push(Box::new(sources::env::VarSource {}));
     sources.push(Box::new(sources::selector::VarSource {}));
+    sources.push(Box::new(sources::deriver::VarSource {}));
+    // NOTE We add the deriver a second time,
+    //      so it may derive from values created in the first run.
+    sources.push(Box::new(sources::deriver::VarSource {}));
     if log::log_enabled!(log::Level::Trace) {
         for source in &sources {
             log::trace!("Registered source {}.", source.display());
