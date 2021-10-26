@@ -18,7 +18,7 @@ use thiserror::Error;
 use clap::lazy_static::lazy_static;
 
 use crate::environment::Environment;
-use crate::var::{Confidence, Key};
+use crate::var::{Confidence, Key, C_HIGH};
 use crate::{std_error, value_conversions};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
@@ -38,6 +38,12 @@ lazy_static! {
 /// This enumerates all possible errors returned by this module.
 #[derive(Error, Debug)]
 pub enum Error {
+    #[error("The value '{low_level_value}' - fetched from the underlying source - was bad: {msg}")]
+    BadLowLevelValue {
+        msg: String,
+        low_level_value: String,
+    },
+
     /// Represents all other cases of `std::io::Error`.
     #[error(transparent)]
     ConversionError(#[from] value_conversions::Error),
@@ -104,4 +110,53 @@ pub fn var(
         .vars
         .get(key)
         .map(|val| (confidence, val.clone()))
+}
+
+fn ref_ok_or_err<'t>(refr: &str, part: Option<&'t str>) -> Result<&'t str, Error> {
+    part.ok_or_else(|| Error::BadLowLevelValue {
+        msg: "Invalid git reference, should be 'refs/<TYPE>/<NAME>'".to_owned(),
+        low_level_value: refr.to_owned(),
+    })
+}
+
+fn ref_extract_name_if_type_matches(refr: &str, required_ref_type: &str) -> RetrieveRes {
+    let mut parts = refr.split('/');
+    let extracted_ref_type = ref_ok_or_err(refr, parts.nth(1))?;
+    Ok(if extracted_ref_type == required_ref_type {
+        // it *is* a branch
+        let branch_name = ref_ok_or_err(refr, parts.next())?;
+        Some((C_HIGH, branch_name.to_owned()))
+    } else {
+        None
+    })
+}
+
+/// Given a git reference, returns the branch name,
+/// if `refr` reffers to a branch; None otherwise.
+/// `refr` references should look like:
+/// * "refs/tags/v1.2.3"
+/// * "refs/heads/master"
+/// * "refs/pull/:prNumber/merge"
+///
+/// # Errors
+///
+/// If the given ref is ill-formatted, meaning it does not split
+/// into at least 3 parts with the '/' separator)
+pub fn ref_extract_branch(refr: &str) -> RetrieveRes {
+    ref_extract_name_if_type_matches(refr, "heads")
+}
+
+/// Given a git reference, returns the tag name,
+/// if it reffers to a tag; None otherwise.
+/// `refr` references should look like:
+/// * "refs/tags/v1.2.3"
+/// * "refs/heads/master"
+/// * "refs/pull/:prNumber/merge"
+///
+/// # Errors
+///
+/// If the given ref is ill-formatted, meaning it does not split
+/// into at least 3 parts with the '/' separator)
+pub fn ref_extract_tag(refr: &str) -> RetrieveRes {
+    ref_extract_name_if_type_matches(refr, "tags")
 }

@@ -17,38 +17,10 @@ use super::RetrieveRes;
 /// [`crate::tools::git_hosting_provs::HostingType::GitHub`].
 pub struct VarSource;
 
-// TODO PRIO Move this elsewhere
-fn is_branch(environment: &mut Environment, refr: &str) -> RetrieveRes {
-    let mut branch = None;
-    if let Some(repo) = environment.repo() {
-        let checked_out_branch = repo.branch()?;
-        if let Some(checked_out_branch) = checked_out_branch {
-            if refr.ends_with(&format!("/{}", &checked_out_branch)) {
-                branch = Some(refr);
-            }
-        }
-    }
-    Ok(branch.map(|val| (C_HIGH, val.to_owned())))
-}
-
-// TODO PRIO Move this elsewhere
-fn is_tag(environment: &mut Environment, refr: &str) -> RetrieveRes {
-    let mut tag = None;
-    if let Some(repo) = environment.repo() {
-        let checked_out_branch = repo.tag()?;
-        if let Some(checked_out_branch) = checked_out_branch {
-            if refr.ends_with(&format!("/{}", &checked_out_branch)) {
-                tag = Some(refr);
-            }
-        }
-    }
-    Ok(tag.map(|val| (C_HIGH, val.to_owned())))
-}
-
 fn build_branch(environment: &mut Environment) -> RetrieveRes {
     let refr = var(environment, "GITHUB_REF", C_HIGH);
     Ok(if let Some(refr) = refr {
-        is_branch(environment, &refr.1)?
+        super::ref_extract_branch(&refr.1)?
     } else {
         None
     })
@@ -57,7 +29,7 @@ fn build_branch(environment: &mut Environment) -> RetrieveRes {
 fn build_tag(environment: &mut Environment) -> RetrieveRes {
     let refr = var(environment, "GITHUB_REF", C_HIGH);
     Ok(if let Some(refr) = refr {
-        is_tag(environment, &refr.1)?
+        super::ref_extract_tag(&refr.1)?
     } else {
         None
     })
