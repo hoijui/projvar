@@ -643,7 +643,6 @@ fn main() -> BoxResult<()> {
 
     let log_file = args.value_of(A_L_LOG_FILE).map(Path::new);
     logger::init(log_file, verbosity);
-    // logger::init2(log_file)?;
 
     if args.is_present(A_L_LIST) {
         let environment = Environment::stub();

@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 extern crate simplelog;
-// extern crate flexi_logger;
 
 use std::fs::File;
 use std::path::Path;
@@ -13,7 +12,6 @@ use simplelog::{
     ColorChoice, CombinedLogger, Config, LevelFilter, SharedLogger, TermLogger, TerminalMode,
     WriteLogger,
 };
-// use flexi_logger::{Duplicate, Logger};
 
 fn verbosity_to_level(verbosity: Verbosity) -> LevelFilter {
     match verbosity {
@@ -47,14 +45,3 @@ pub fn init(file: Option<&Path>, verbosity: (Verbosity, Verbosity)) {
         log::info!("Logging to file '{:?}'.", file_path);
     }
 }
-
-// pub fn init2(file: Option<&Path>) -> Result<(), Box<dyn std::error::Error>> {
-
-//     Logger::try_with_env_or_str("info")?
-//         .log_to_stdout()
-//         // .log_to_stderr()
-//         // .duplicate_to_stderr(Duplicate::Warn)
-//         .duplicate_to_stderr(Duplicate::Info)
-//         .start()?;
-//     Ok(())
-// }

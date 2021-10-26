@@ -26,7 +26,6 @@ git2 = "0.13"
 chrono = "0.4.19"
 log = "0.4.14"
 simplelog = "0.10.0"
-flexi_logger = "0.18.0"
 strum = "0.21"
 strum_macros = "0.21"
 # Until this is merged, we have to use the pull-requesters- version:
