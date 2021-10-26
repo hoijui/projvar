@@ -115,7 +115,6 @@ pub fn prepare_project_vars(
     }
 
     log::trace!("Evaluated variables ...");
-    // let values: Vec<(Key, &'static Variable, &String)> = environment.output.get_wrapup();
     let values = environment.output.get_wrapup();
     if log::log_enabled!(log::Level::Trace) {
         for (key, variable, (confidence, value)) in &values {
