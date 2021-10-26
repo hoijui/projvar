@@ -31,7 +31,6 @@ pub fn prepare_project_vars(
     mut sources: Vec<Box<dyn VarSource>>,
     sinks: Vec<Box<dyn VarSink>>,
 ) -> BoxResult<()> {
-    // sources.sort_unstable_by_key(|s| (s.hierarchy(), s.type_name(), s.properties().clone()));
     sources.sort_unstable_by(|s1, s2| {
         let o_hierarchy = s1.hierarchy().cmp(&s2.hierarchy());
         if let Ordering::Equal = o_hierarchy {

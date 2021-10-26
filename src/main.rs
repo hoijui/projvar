@@ -605,8 +605,6 @@ fn required_keys(key_prefix: Option<&str>, args: &ArgMatches) -> BoxResult<HashS
     let require_all: bool = args.is_present(A_L_REQUIRE_ALL);
     let require_none: bool = args.is_present(A_L_REQUIRE_NONE);
     let mut required_keys = if require_all {
-        // EnumSet::<Key>::all()
-        // HashSet::<Key>::allj()
         let mut all = HashSet::<Key>::new();
         all.extend(Key::iter());
         all
@@ -689,7 +687,7 @@ fn main() -> BoxResult<()> {
         verbosity,
     };
     log::trace!("Created Settings.");
-    let mut environment = Environment::new(&settings /*, sources, sinks*/);
+    let mut environment = Environment::new(&settings);
     log::trace!("Created Environment.");
 
     // fetch environment variables
@@ -720,16 +718,5 @@ fn main() -> BoxResult<()> {
         }
     }
 
-    // // enlist variables provided on the CLI
-    // if args.occurrences_of("variable") > 0 {
-    //     for kvp in args
-    //         .values_of_t::<repvar::key_value::Pair>("variable")
-    //         .unwrap_or_else(|e| e.exit())
-    //     {
-    //         vars.insert(kvp.key, kvp.value);
-    //     }
-    // }
-
     process::prepare_project_vars(&mut environment, sources, sinks)
-    // Ok(())
 }
