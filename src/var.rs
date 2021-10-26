@@ -71,7 +71,20 @@ impl<'a> Default for &'a Variable {
 #[remain::sorted]
 // #[derive(Debug, EnumString, EnumIter, IntoStaticStr, PartialEq, Eq, Hash, Copy, Clone, Enum)]
 // #[derive(Debug, EnumString, EnumIter, IntoStaticStr, Hash, Enum, EnumSetType)]
-#[derive(Debug, EnumString, EnumIter, IntoStaticStr, Hash, Enum, PartialEq, Eq, Clone, Copy)]
+#[derive(
+    Debug,
+    EnumString,
+    EnumIter,
+    IntoStaticStr,
+    Hash,
+    Enum,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Clone,
+    Copy,
+)]
 pub enum Key {
     BuildArch,
     BuildBranch,
