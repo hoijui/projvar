@@ -120,7 +120,9 @@ impl super::VarSource for VarSource {
                 Key::BuildBranch => build_branch(environment)?,
                 Key::BuildOs => var(environment, "RUNNER_OS", C_LOW), // TODO PRIO Not sure if this makes sense ... have to check in practise, and probably map values to our set of accepted values!
                 Key::BuildTag => build_tag(environment)?,
-                Key::Ci => var(environment, "CI", C_HIGH),
+                Key::Ci => {
+                    var(environment, "CI", C_HIGH).or_else(|| Some((C_LOW, "false".to_owned())))
+                }
                 Key::Name => match var(environment, "GITHUB_REPOSITORY", C_HIGH) {
                     Some(rated_val) => {
                         slug_to_proj_name(Some(&rated_val.1))?.map(|val| (rated_val.0, val))

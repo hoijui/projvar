@@ -54,7 +54,9 @@ impl super::VarSource for VarSource {
                 Key::BuildBranch => var(environment, "BITBUCKET_BRANCH", C_HIGH),
                 Key::BuildNumber => var(environment, "BITBUCKET_BUILD_NUMBER", C_HIGH),
                 Key::BuildTag => var(environment, "BITBUCKET_TAG", C_HIGH),
-                Key::Ci => var(environment, "CI", C_HIGH),
+                Key::Ci => {
+                    var(environment, "CI", C_HIGH).or_else(|| Some((C_LOW, "false".to_owned())))
+                }
                 Key::Name => var(environment, "BITBUCKET_PROJECT_KEY", C_HIGH),
                 Key::RepoCloneUrl => var(environment, "BITBUCKET_GIT_HTTP_ORIGIN", C_HIGH),
                 Key::RepoCloneUrlSsh => var(environment, "BITBUCKET_GIT_SSH_ORIGIN", C_HIGH),

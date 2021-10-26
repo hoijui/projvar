@@ -728,8 +728,10 @@ fn validate_ci(environment: &mut Environment, value: &str) -> Result {
     check_empty(environment, value, "CI")?;
     match value {
         "true" => Ok(Validity::High { msg: None }),
-        &_ => Ok(Validity::Suboptimal {
-            msg: r#"CI should either be unset or set to "true""#.to_owned(),
+        "false" => Ok(Validity::Middle { msg: "Nothing wrong with that, but any 'true' value will get prefference over 'false'".to_owned() }),
+        &_ => Err(Error::BadValue {
+            msg: r#"CI can be 'true', 'false' or be ommitted (None), which get interpreted as 'false'"#.to_owned(),
+            value: value.to_owned(),
         }),
     }
 }

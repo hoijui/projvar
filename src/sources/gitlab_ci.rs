@@ -54,7 +54,9 @@ impl super::VarSource for VarSource {
                 Key::BuildHostingUrl => var(environment, "CI_PAGES_URL", C_HIGH),
                 Key::BuildOs => var(environment, "CI_RUNNER_EXECUTABLE_ARCH", C_LOW), // TODO Not sure if this makes sense ... have to check in practise!
                 Key::BuildTag => var(environment, "CI_COMMIT_TAG", C_HIGH),
-                Key::Ci => var(environment, "CI", C_HIGH),
+                Key::Ci => {
+                    var(environment, "CI", C_HIGH).or_else(|| Some((C_LOW, "false".to_owned())))
+                }
                 Key::Name => var(environment, "CI_PROJECT_NAME", C_HIGH),
                 // TODO PRIO make sure to cover/handle well all of this (default format of this env var): CI_REPOSITORY_URL="https://gitlab-ci-token:[masked]@example.com/gitlab-org/gitlab-foss.git"
                 Key::RepoCloneUrl => value_conversions::clone_url_conversion_option(
