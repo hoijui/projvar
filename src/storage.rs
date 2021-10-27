@@ -111,7 +111,8 @@ impl Storage {
             let key_str = variable.key(environment);
             key_strs.insert(*key, key_str.as_ref().to_owned());
         }
-        let mut list = Vec::with_capacity(values.len() * 7); // because the loob below adds 7 strings for each entry
+        // because the loop below adds 7 strings for each entry
+        let mut list = Vec::with_capacity(values.len() * 7);
         for (key, _variable, (_confidence, value)) in &values {
             list.push("* ");
             list.push(key.into());
