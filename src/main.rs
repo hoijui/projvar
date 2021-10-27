@@ -657,7 +657,8 @@ fn main() -> BoxResult<()> {
 
     if args.is_present(A_L_LIST) {
         let environment = Environment::stub();
-        var::list_keys(&environment);
+        let list = var::list_keys(&environment);
+        log::info!("{}", list);
         return Ok(());
     }
 

@@ -14,8 +14,8 @@ use std::{
     io::BufRead,
     iter::Iterator,
 };
-use strum::IntoEnumIterator;
-use strum_macros::{EnumIter, EnumString, IntoStaticStr};
+use strum::{EnumCount, IntoEnumIterator};
+use strum_macros::{EnumCount, EnumIter, EnumString, IntoStaticStr};
 
 use std::str::FromStr;
 
@@ -73,6 +73,7 @@ impl<'a> Default for &'a Variable {
 // #[derive(Debug, EnumString, EnumIter, IntoStaticStr, Hash, Enum, EnumSetType)]
 #[derive(
     Debug,
+    EnumCount,
     EnumString,
     EnumIter,
     IntoStaticStr,
@@ -285,19 +286,35 @@ pub fn is_key_value_str_valid(key_value: &str) -> Result<(), String> {
         .map_err(|_err| String::from("Not a valid key=value pair"))
 }
 
-pub fn list_keys(environment: &Environment) {
-    log::info!("| {} | {} | {} |", "Def. Req.", "Key", "Description");
-    log::info!("| - | --- | ------------ |");
+#[must_use]
+pub fn list_keys(environment: &Environment) -> String {
+    static HEADER: &str = "| D | Key | Description |\n";
+    static HEADER_SEP: &str = "| - | --- | ------------ |\n";
+    static ROW_LEN_ESTIMATE: usize = 135;
+
+    // the estimated size of the table in chars
+    let table_chars_estimate = HEADER.len() + HEADER_SEP.len() + (Key::COUNT * ROW_LEN_ESTIMATE);
+    let mut table = String::with_capacity(table_chars_estimate);
+
+    table.push_str("\n\n");
+    table.push_str(HEADER);
+    table.push_str(HEADER_SEP);
     for key in Key::iter() {
         let var = get(key);
         let def = if var.default_required { "[x]" } else { "[ ]" };
-        log::info!(
-            "| {} | {} | {} |",
+        table.push_str(&format!(
+            "| {} | {} | {} |\n",
             def,
             var.key(environment),
             var.description
-        );
+        ));
     }
+    table.push('\n');
+
+    log::trace!("Table size (in chars), estimated: {}", table_chars_estimate);
+    log::trace!("Table size (in chars), actual:    {}", table.len());
+    //assert!(table_chars_estimate >= table.len());
+    table
 }
 
 pub const KEY_BUILD_ARCH: &str = "BUILD_ARCH";
