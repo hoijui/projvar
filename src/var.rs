@@ -290,7 +290,7 @@ pub fn is_key_value_str_valid(key_value: &str) -> Result<(), String> {
 pub fn list_keys(environment: &Environment) -> String {
     static HEADER: &str = "| D | Key | Description |\n";
     static HEADER_SEP: &str = "| - | --- | ------------ |\n";
-    static ROW_LEN_ESTIMATE: usize = 135;
+    static ROW_LEN_ESTIMATE: usize = 140;
 
     // the estimated size of the table in chars
     let table_chars_estimate = HEADER.len() + HEADER_SEP.len() + (Key::COUNT * ROW_LEN_ESTIMATE);
@@ -303,7 +303,7 @@ pub fn list_keys(environment: &Environment) -> String {
         let var = get(key);
         let def = if var.default_required { "[x]" } else { "[ ]" };
         table.push_str(&format!(
-            "| {} | {} | {} |\n",
+            "| {} | `{}` | {} |\n",
             def,
             var.key(environment),
             var.description
