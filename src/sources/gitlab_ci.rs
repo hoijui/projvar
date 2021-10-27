@@ -77,7 +77,16 @@ impl super::VarSource for VarSource {
                 Key::Version => self
                     .retrieve(environment, Key::BuildTag)?
                     .or_else(|| var(environment, "CI_COMMIT_SHORT_SHA", C_LOW)),
-                Key::VersionDate => var(environment, "CI_COMMIT_TIMESTAMP", C_LOW), // TODO PRIO This probably has to be converted/formatted
+                Key::VersionDate => {
+                    // This comes in the ISO 8601 time format
+                    let gitlab_commit_date = var(environment, "CI_COMMIT_TIMESTAMP", C_HIGH);
+                    if let Some((confidence, val)) = gitlab_commit_date {
+                        value_conversions::date_iso8601_to_our_format(environment, &val)?
+                            .map(|out_date| (confidence, out_date))
+                    } else {
+                        None
+                    }
+                }
             },
         )
     }

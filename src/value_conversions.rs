@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use crate::tools::git_hosting_provs::{HostingType, PublicSite};
+use chrono::DateTime;
 use thiserror::Error;
 
 use clap::lazy_static::lazy_static;
@@ -43,6 +44,10 @@ pub enum Error {
     /// Represents all other cases of `std_error::Error`.
     #[error(transparent)]
     Std(#[from] std_error::Error),
+
+    /// Represents time parsing errors
+    #[error(transparent)]
+    DateTime(#[from] chrono::ParseError),
 
     /// Represents all other cases of `std::error::Error`.
     #[error(transparent)]
@@ -870,4 +875,18 @@ pub fn clone_url_to_web_url(environment: &Environment, any_clone_url: &str) -> R
         }
         None => Ok(None),
     }
+}
+
+/// Converts an ISO 8601 formatted date string
+/// into the date frmat in our settings.
+///
+/// # Errors
+///
+/// If `in_date` is not a valid ISO 8601 date,
+/// or the date format in our settings is invalid.
+pub fn date_iso8601_to_our_format(environment: &Environment, in_date: &str) -> Res {
+    let parsed = DateTime::parse_from_rfc3339(in_date)?;
+    Ok(Some(
+        parsed.format(&environment.settings.date_format).to_string(),
+    ))
 }
