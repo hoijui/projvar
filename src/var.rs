@@ -286,7 +286,7 @@ pub fn is_key_value_str_valid(key_value: &str) -> Result<(), String> {
 }
 
 pub fn list_keys(environment: &Environment) {
-    log::info!("| {} | {} | {} |", "D", "Key", "Description");
+    log::info!("| {} | {} | {} |", "Def. Req.", "Key", "Description");
     log::info!("| - | --- | ------------ |");
     for key in Key::iter() {
         let var = get(key);
