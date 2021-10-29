@@ -202,3 +202,30 @@ OPTIONS:
             Disable the use of environment variables as input
 ```
 
+The list of all supported keys/properties (as shown by `--list`):
+
+| Default Required | Key | Description |
+| - | --- | ------------ |
+| [ ] | `PROJECT_BUILD_ARCH` | The computer hardware architecture we are building on. (common values: 'x86', 'x86_64') |
+| [ ] | `PROJECT_BUILD_BRANCH` | The development branch name, for example: "master", "develop" |
+| [ ] | `PROJECT_BUILD_DATE` | Date of this build, for example: "2021-12-31 23:59:59" (see --date-format) |
+| [ ] | `PROJECT_BUILD_HOSTING_URL` | Web URL under which the generated output will be available, for example: https://osegermany.gitlab.io/OHS-3105 |
+| [ ] | `PROJECT_BUILD_NUMBER` | The build number (1, 2, 3) starts at 1 for each repo and branch. |
+| [ ] | `PROJECT_BUILD_OS` | The operating system we are building on. (common values: 'linux', 'macos', 'windows') |
+| [ ] | `PROJECT_BUILD_OS_FAMILY` | The operating system family we are building on. (should be either 'unix' or 'windows') |
+| [ ] | `PROJECT_BUILD_TAG` | The tag of a commit that kicked off the build. This value is only available on tags. Not available for builds against branches. |
+| [ ] | `PROJECT_CI` | 'true' if running on a CI/build-bot; unset otherwise. |
+| [x] | `PROJECT_LICENSE` | The main License identifier of the sources, prefferably from the SPDX specs, for example: "AGPL-3.0-or-later", "CC-BY-SA-4.0" |
+| [x] | `PROJECT_LICENSES` | The identifiers of all the licenses of this project, prefferably from the SPDX specs, comma separated, for example: "AGPL-3.0-or-later, CC0-1.0, Unlicense" |
+| [x] | `PROJECT_NAME` | The human focused name of the project. |
+| [x] | `PROJECT_NAME_MACHINE_READABLE` | The machine readable name of the project. |
+| [x] | `PROJECT_REPO_CLONE_URL` | The repo clone URL, HTTP(S) version. This is commonly used for anonymous fetch-only access. |
+| [ ] | `PROJECT_REPO_CLONE_URL_SSH` | The repo clone URL, SSH version. This is commonly used for authenticated, fetch and push access. |
+| [x] | `PROJECT_REPO_COMMIT_PREFIX_URL` | The repo commit prefix URL. Add commit SHA. The part in []: [https://github.com/hoijui/nim-ci/commit]/23f84b91] |
+| [x] | `PROJECT_REPO_ISSUES_URL` | The repo issues URL, for example: https://gitlab.com/openflexure/openflexure-microscope/issues |
+| [x] | `PROJECT_REPO_RAW_VERSIONED_PREFIX_URL` | The repo raw prefix URL. Add version (tag, branch, SHA) and file path. The part in []: [https://raw.githubusercontent.com/hoijui/nim-ci]/master/.github/workflows/docker.yml] |
+| [x] | `PROJECT_REPO_VERSIONED_DIR_PREFIX_URL` | The repo directory prefix URL. Add version (tag, branch, SHA) and directory path. The part in []: [https://github.com/hoijui/nim-ci]/master/.github/workflows/docker.yml] |
+| [x] | `PROJECT_REPO_VERSIONED_FILE_PREFIX_URL` | The repo file prefix URL. Add version (tag, branch, SHA) and file path. The part in []: [https://github.com/hoijui/nim-ci]/master/.github/workflows/docker.yml] |
+| [x] | `PROJECT_REPO_WEB_URL` | The repo web UI URL, for example: https://gitlab.com/OSEGermany/OHS-3105 |
+| [x] | `PROJECT_VERSION` | The project version, for example: "1.10.3", "0.2.0-1-ga5387ac-dirty" |
+| [x] | `PROJECT_VERSION_DATE` | Date this version was committed to source control, for example: "2021-12-31 23:59:59" (see --date-format) |
