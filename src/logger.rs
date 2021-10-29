@@ -9,8 +9,8 @@ use std::path::Path;
 
 use crate::settings::Verbosity;
 use simplelog::{
-    ColorChoice, CombinedLogger, Config, LevelFilter, SharedLogger, TermLogger, TerminalMode,
-    WriteLogger,
+    ColorChoice, CombinedLogger, ConfigBuilder, LevelFilter, SharedLogger, TermLogger,
+    TerminalMode, WriteLogger,
 };
 
 fn verbosity_to_level(verbosity: Verbosity) -> LevelFilter {
@@ -25,17 +25,25 @@ fn verbosity_to_level(verbosity: Verbosity) -> LevelFilter {
 }
 
 pub fn init(file: Option<&Path>, verbosity: (Verbosity, Verbosity)) {
+    // only show the log-level (no time, no source-code location, ...)
+    let config = ConfigBuilder::new()
+        .set_max_level(LevelFilter::Error)
+        .set_time_level(LevelFilter::Off)
+        .set_thread_level(LevelFilter::Off)
+        .set_target_level(LevelFilter::Off)
+        .set_location_level(LevelFilter::Off)
+        .build();
     let mut loggers: Vec<Box<(dyn SharedLogger + 'static)>> = vec![TermLogger::new(
         // LevelFilter::Info,
         verbosity_to_level(verbosity.0),
-        Config::default(),
+        config.clone(),
         TerminalMode::Mixed,
         ColorChoice::Auto,
     )];
     if let Some(file_path) = file {
         loggers.push(WriteLogger::new(
             verbosity_to_level(verbosity.1),
-            Config::default(),
+            config,
             File::create(file_path).unwrap(),
         ));
     };
