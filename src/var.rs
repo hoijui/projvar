@@ -288,7 +288,7 @@ pub fn is_key_value_str_valid(key_value: &str) -> Result<(), String> {
 
 #[must_use]
 pub fn list_keys(environment: &Environment) -> String {
-    static HEADER: &str = "| D | Key | Description |\n";
+    static HEADER: &str = "| Default Required | Key | Description |\n";
     static HEADER_SEP: &str = "| - | --- | ------------ |\n";
     static ROW_LEN_ESTIMATE: usize = 140;
 
