@@ -4,7 +4,7 @@ SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
 SPDX-License-Identifier: CC0-1.0
 -->
 
-# **Proj**ect **Var**iables
+# *Proj*ect *Var*iables
 
 [![License: GPL-3.0-or-later](
     https://img.shields.io/badge/License-GPL%203.0+-blue.svg)](
