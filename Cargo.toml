@@ -19,22 +19,22 @@ categories = ["command-line-utilities", "text-processing"]
 edition = "2018"
 
 [dependencies]
-clap = "3.0.0-beta.2"
-regex = "1.5"
-repvar = { git = "https://github.com/hoijui/repvar.git" }
-git2 = "0.13"
+anyhow = "1"
 chrono = "0.4.19"
-log = "0.4.14"
-simplelog = "0.10.0"
-strum = "0.21"
-strum_macros = "0.21"
+clap = "3.0.0-beta.2"
 # Until this is merged, we have to use the pull-requesters- version:
 # https://gitlab.com/KonradBorowski/enum-map/-/merge_requests/40
 #enum-map = "1.1.1"
 enum-map = { git = "https://gitlab.com/bit_network/enum-map.git", branch = "impl_fromiter" }
+git2 = "0.13"
+human-panic = "1.0.3"
+log = "0.4.14"
+regex = "1.5"
+remain = "0.2.2"
+repvar = { git = "https://github.com/hoijui/repvar.git" }
+simplelog = "0.10.0"
+strum = "0.21"
+strum_macros = "0.21"
 #enumset = "1.0.7"
 thiserror = "1"
-anyhow = "1"
 url = "2.2.2"
-remain = "0.2.2"
-human-panic = "1.0.3"
