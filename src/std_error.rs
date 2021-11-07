@@ -16,7 +16,7 @@ pub enum Error {
     PathNotAFile,
 
     #[error(
-        "The string is not valid UTF-8, and cna thus not be represented by a normal rust string."
+        "The string is not valid UTF-8, and can thus not be represented by a normal rust string."
     )]
     NotValidUtf8,
 
