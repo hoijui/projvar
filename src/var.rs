@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 use clap::lazy_static::lazy_static;
 use enum_map::Enum;

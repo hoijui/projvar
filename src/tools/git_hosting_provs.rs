@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 /// This deals with things related to different git hosting providers,
 /// both the actual hosters (github.com, gitlab.com, bitbucket.org, ...),

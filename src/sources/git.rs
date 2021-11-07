@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
 //
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::var::{Key, C_HIGH};
 use crate::{environment::Environment, value_conversions};
