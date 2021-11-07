@@ -463,6 +463,7 @@ dependencies = [
  "remain",
  "repvar",
  "simplelog",
+ "spdx",
  "strum",
  "strum_macros",
  "thiserror",
@@ -548,6 +549,21 @@ dependencies = [
  "chrono",
  "log",
  "termcolor",
+]
+
+[[package]]
+name = "smallvec"
+version = "1.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ecab6c735a6bb4139c0caafd0cc3635748bbb3acf4550e8138122099251f309"
+
+[[package]]
+name = "spdx"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e1bff9c842210e48eb85ce4c24983b34a481af4ba4b6140b41737e432f4030b"
+dependencies = [
+ "smallvec",
 ]
 
 [[package]]

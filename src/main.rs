@@ -27,6 +27,7 @@ use strum::VariantNames;
 
 mod constants;
 mod environment;
+mod license;
 mod logger;
 mod process;
 pub mod settings;

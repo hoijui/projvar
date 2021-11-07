@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use crate::license;
 use crate::tools::git;
 use crate::tools::git_hosting_provs::HostingType;
 use crate::var::{Confidence, Key};
@@ -55,7 +56,10 @@ pub enum Validity {
     Missing,
 
     /// The evaluated value is usable, but not optimal.
-    Suboptimal { msg: String },
+    Suboptimal {
+        msg: String,
+        source: Option<Box<dyn std::error::Error + Sync>>,
+    },
 
     /// We have no way to check this value for validity,
     /// but at least were not able to prove it invalid.
@@ -70,7 +74,7 @@ impl Validity {
             Self::Middle { msg: _ } => 230,
             Self::Low { msg: _ } => 210,
             Self::Missing => 150,
-            Self::Suboptimal { msg: _ } => 200,
+            Self::Suboptimal { msg: _, source: _ } => 200,
             Self::Unknown => 140,
         }
     }
@@ -79,7 +83,7 @@ impl Validity {
     pub fn is_good(&self) -> bool {
         match self {
             Self::High { msg: _ } | Self::Middle { msg: _ } | Self::Low { msg: _ } => true,
-            Self::Missing | Self::Suboptimal { msg: _ } | Self::Unknown => false,
+            Self::Missing | Self::Suboptimal { msg: _, source: _ } | Self::Unknown => false,
         }
     }
 }
@@ -169,6 +173,7 @@ fn validate_version(environment: &mut Environment, value: &str) -> Result {
             msg:
                 "This version (a raw git SHA) is technically ok, but not a release-version, and not human-readable"
                     .to_owned(),
+            source: None,
         })
     } else if R_GIT_VERS.is_match(value) {
         // This version is technically good,
@@ -181,14 +186,20 @@ fn validate_version(environment: &mut Environment, value: &str) -> Result {
                     msg:
                         "This version (a git SHA) is technically ok, but not a release-version, and not human-readable"
                             .to_owned(),
+                    source: None,
                 }),
             Some(_) => {
                 // The version starts with a SHA
-                Ok(Validity::Suboptimal { msg: "git version starting with a SHA (instead of a tag, which would be preffered)".to_owned() } )
+                Ok(Validity::Suboptimal {
+                    msg: "git version starting with a SHA (instead of a tag, which would be preffered)".to_owned(),
+                    source: None,
+                })
             },
             None => {
                 // It is a detailed git version starting with a tag
-                Ok(Validity::High { msg: Some("A git version starting with/consisting of a tag".to_owned()) } )
+                Ok(Validity::High {
+                    msg: Some("A git version starting with/consisting of a tag".to_owned()),
+                })
             },
         }
     } else if R_SEM_VERS.is_match(value) {
@@ -212,14 +223,30 @@ fn validate_version(environment: &mut Environment, value: &str) -> Result {
 fn validate_license(environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
         missing(environment, Key::License)
-    } else if constants::SPDX_IDENTS.contains(&value) {
-        Ok(Validity::High {
-            msg: Some("Consists of an SPDX license identifier".to_owned()),
-        })
     } else {
-        Ok(Validity::Suboptimal {
-            msg: "Not a recognized SPDX license identifier".to_owned(),
-        })
+        license::validate_spdx_expr(value).map_or_else(
+            |err| {
+                match err {
+                    license::Error::NoLicense => Ok(Validity::Suboptimal {
+                        msg: "Not a recognized SPDX license identifier".to_owned(),
+                        source: Some(Box::new(err)),
+                    }),
+                    license::Error::ParsingFailed(_) => Ok(Validity::Suboptimal {
+                        msg: "Not a valid SPDX license expression".to_owned(),
+                        source: Some(Box::new(err)),
+                    }),
+                    license::Error::NotApproved(_) => Ok(Validity::Low {
+                        // TODO We are loosing the detailed info here!
+                        msg: "Not only approved licenses".to_owned(),
+                    }),
+                }
+            },
+            |_| {
+                Ok(Validity::High {
+                    msg: Some("Consists of an SPDX license identifier".to_owned()),
+                })
+            },
+        )
     }
 }
 
@@ -230,13 +257,15 @@ fn validate_licenses(environment: &mut Environment, value: &str) -> Result {
         // TODO PRIO Implement SPDX expressions detection, not just (as is now) single identifiers; see: TODO
         for license in value.split(',') {
             let license = license.trim();
-            if !constants::SPDX_IDENTS.contains(&license) {
+            let res = validate_license(environment, license);
+            if let Err(err) = res {
                 return Ok(Validity::Suboptimal {
                     msg: format!(
                         "Not all of these are recognized SPDX license identifiers: {}\n\tspecifically '{}'",
                         value,
                         license
                     ),
+                    source: Some(Box::new(err)),
                 });
             }
         }
@@ -719,6 +748,7 @@ fn validate_build_number(environment: &mut Environment, value: &str) -> Result {
     match value.parse::<i32>() {
         Err(_err) => Ok(Validity::Suboptimal {
             msg: "It is generally recommended and assumed that the build number is an integer (a positive, whole number)".to_owned(),
+            source: None,
         }),
         Ok(_int_value) => Ok(Validity::High { msg: Some("Is a build number (positive integer)".to_owned()) })
     }
@@ -795,6 +825,7 @@ mod tests {
         };
         static ref V_SUBOPTIMAL: Validity = Validity::Suboptimal {
             msg: String::default(),
+            source: None,
         };
     }
 
@@ -935,6 +966,7 @@ mod tests {
     fn test_validate_license() {
         let mut environment = Environment::stub();
         assert!(is_good(validate_license(&mut environment, "GPL-3.0")));
+        assert!(is_high(validate_license(&mut environment, "GPL-3.0")));
         assert!(is_good(validate_license(
             &mut environment,
             "GPL-3.0-or-later"
@@ -950,6 +982,7 @@ mod tests {
             "AGPL-3.0-or-later"
         )));
         assert!(is_good(validate_license(&mut environment, "CC0-1.0")));
+        assert!(is_low(validate_license(&mut environment, "CC0-1.0")));
         assert!(is_suboptimal(validate_license(&mut environment, "CC0-2.0")));
         assert!(is_suboptimal(validate_license(&mut environment, "CC02.0")));
         assert!(is_suboptimal(validate_license(&mut environment, "GPL")));

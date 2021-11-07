@@ -10,6 +10,7 @@ extern crate url;
 
 mod constants;
 pub mod environment;
+mod license;
 pub mod process;
 pub mod settings;
 pub mod sinks;
