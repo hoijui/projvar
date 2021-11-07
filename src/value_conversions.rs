@@ -64,9 +64,13 @@ pub enum Error {
 
 #[derive(Clone, Copy)]
 pub enum Protocol {
-    /// https://gitlab.com/hoijui/kicad-text-injector.git
+    /// HTTP(S) - Hyper-Text Transfer Protocol (Secure)
+    /// Example:
+    /// "https://gitlab.com/hoijui/kicad-text-injector.git"
     Https,
-    /// git@gitlab.com/hoijui/kicad-text-injector.git
+    /// SSH - Secure SHell
+    /// Example:
+    /// "git@gitlab.com/hoijui/kicad-text-injector.git"
     Ssh,
     // /// ssh://gitlab.com/hoijui/kicad-text-injector.git
     // SshUrl,

@@ -13,19 +13,19 @@ use crate::constants;
 
 #[derive(Debug, EnumString, EnumVariantNames, IntoStaticStr, PartialEq, Eq, Clone, Copy)]
 pub enum PublicSite {
-    /// https://github.com - commercial, free OS hosting, software is proprietary
+    /// <https://github.com> - commercial, free OS hosting, software is proprietary
     GitHubCom,
-    /// https://gitlab.com - commercial, free OS hosting, software is OSS
+    /// <https://gitlab.com> - commercial, free OS hosting, software is OSS
     GitLabCom,
-    /// https://bitbucket.org - commercial, free OS hosting, software is proprietary
+    /// <https://bitbucket.org> - commercial, free OS hosting, software is proprietary
     BitBucketOrg,
-    /// https://git.sr.ht - free OS hosting, software is OSS: SourceHut
+    /// <https://git.sr.ht> - free OS hosting, software is OSS: SourceHut
     SourceHut,
-    /// https://codeberg.org - hosts only OS, software is OSS: Gitea
+    /// <https://codeberg.org> - hosts only OS, software is OSS: Gitea
     CodeBergOrg,
-    /// https://repo.or.cz - hosts only OS, software is OSS: Girocco
+    /// <https://repo.or.cz> - hosts only OS, software is OSS: Girocco
     RepoOrCz,
-    /// https://sourceforge.net - hosts only OS, software is OSS: Allura
+    /// <https://sourceforge.net> - hosts only OS, software is OSS: Allura
     SourceForgeNet,
     /// NOTE: The rust masters said, this is better then Option<None>!
     Unknown,
@@ -85,21 +85,21 @@ impl From<Option<Host<&str>>> for PublicSite {
 
 #[derive(Debug, EnumString, EnumVariantNames, IntoStaticStr, PartialEq, Eq, Clone, Copy)]
 pub enum HostingType {
-    /// proprietary
+    /// <https://github.com> - proprietary
     GitHub,
-    /// https://about.gitlab.com - OSS
+    /// <https://about.gitlab.com> - OSS
     GitLab,
-    /// proprietary
+    /// <https://bitbucket.org> - proprietary
     BitBucket,
-    /// https://sr.ht/~sircmpwn/sourcehut - OSS - LowTech (no JS) hacker tool, (almost) suckless style
+    /// <https://sr.ht/~sircmpwn/sourcehut> - OSS - LowTech (no JS) hacker tool, (almost) suckless style
     SourceHut,
-    /// https://gitea.io - OSS
+    /// <https://gitea.io> - OSS
     Gitea,
-    /// https://repo.or.cz/girocco.git - OSS
+    /// <https://repo.or.cz/girocco.git> - OSS
     Girocco,
-    /// https://rocketgit.com - OSS
+    /// <https://rocketgit.com> - OSS
     RocketGit,
-    /// https://allura.apache.org - OSS
+    /// <https://allura.apache.org> - OSS
     Allura,
     /// NOTE: The rust masters said, this is better then Option<None>!
     Unknown,
