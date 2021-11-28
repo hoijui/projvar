@@ -484,8 +484,6 @@ fn arg_matcher() -> App<'static> {
         .version(crate_version!())
         .author(crate_authors!())
         .license(crate_license!())
-        .setting(AppSettings::ColoredHelp)
-        .setting(AppSettings::UnifiedHelpMessage)
         .bin_name("osh")
         .args(ARGS.iter());
     let duplicate_short_options = find_duplicate_short_options();
