@@ -20,10 +20,15 @@
 # This file was copied from the ripgrep project, and then adjusted
 
 name: release
+
 on:
   push:
     tags:
     - "[0-9]+.[0-9]+.[0-9]+"
+
+env:
+  STOML_VERSION: "v0.7.0"
+
 jobs:
   create-release:
     name: create-release
