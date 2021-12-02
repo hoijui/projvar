@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Unlicense
 
 name: build
+
 on:
   push:
     branches: [ master ]
@@ -13,12 +14,14 @@ on:
       - '.github/workflows/build.yml'
   release:
     types: [ published ]
+
+env:
+  STOML_VERSION: "v0.7.0"
+
 jobs:
   push_to_registry:
     name: Compile
     runs-on: ubuntu-latest
-    env:
-      STOML_VERSION: "v0.7.0"
     steps:
       - name: "Check out the repo"
         uses: actions/checkout@v2
