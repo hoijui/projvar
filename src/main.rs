@@ -554,7 +554,7 @@ fn date_format(args: &ArgMatches) -> &str {
     date_format
 }
 
-fn sources(_args: &ArgMatches, repo_path: &Path) -> Vec<Box<dyn VarSource>> {
+fn sources(repo_path: &Path) -> Vec<Box<dyn VarSource>> {
     let mut sources: Vec<Box<dyn VarSource>> = vec![];
     if is_git_repo_root(Some(repo_path)) {
         sources.push(Box::new(sources::git::VarSource {}));
@@ -579,26 +579,26 @@ fn sources(_args: &ArgMatches, repo_path: &Path) -> Vec<Box<dyn VarSource>> {
     sources
 }
 
-fn sinks(args: &ArgMatches) -> BoxResult<Vec<Box<dyn VarSink>>> {
+fn sinks(
+    env_out: bool,
+    dry: bool,
+    default_out_file: bool,
+    additional_out_files: Vec<PathBuf>,
+) -> BoxResult<Vec<Box<dyn VarSink>>> {
     let mut sinks: Vec<Box<dyn VarSink>> = vec![];
-    if args.is_present(A_L_ENV_OUT) {
+    if env_out {
         sinks.push(Box::new(sinks::env::VarSink {}));
     }
-    if args.is_present(A_L_FILE_OUT) {
-        if args.occurrences_of(A_L_FILE_OUT) == 0 {
-            log::info!("Using the default out file: {}", DEFAULT_FILE_OUT);
-            sinks.push(Box::new(sinks::file::VarSink {
-                file: PathBuf::from_str(DEFAULT_FILE_OUT)?,
-            }));
-        } else if let Some(out_files) = args.values_of(A_L_FILE_OUT) {
-            for out_file in out_files {
-                sinks.push(Box::new(sinks::file::VarSink {
-                    file: PathBuf::from_str(out_file)?,
-                }));
-            }
-        }
+    if default_out_file {
+        log::info!("Using the default out file: {}", DEFAULT_FILE_OUT);
+        sinks.push(Box::new(sinks::file::VarSink {
+            file: PathBuf::from_str(DEFAULT_FILE_OUT)?,
+        }));
     }
-    if args.is_present(A_L_DRY) {
+    for out_file in additional_out_files {
+        sinks.push(Box::new(sinks::file::VarSink { file: out_file }));
+    }
+    if dry {
         sinks.clear();
     } else if sinks.is_empty() {
         log::warn!("No sinks registered! The results of this run will not be stored anywhere.");
@@ -607,6 +607,25 @@ fn sinks(args: &ArgMatches) -> BoxResult<Vec<Box<dyn VarSink>>> {
         log::trace!("Registered sink {}.", sink);
     }
     Ok(sinks)
+}
+
+fn sinks_cli(args: &ArgMatches) -> BoxResult<Vec<Box<dyn VarSink>>> {
+    let env_out = args.is_present(A_L_ENV_OUT);
+    let dry = args.is_present(A_L_DRY);
+
+    let mut default_out_file = false;
+    let mut additional_out_files = vec![];
+    if args.is_present(A_L_FILE_OUT) {
+        if args.occurrences_of(A_L_FILE_OUT) == 0 {
+            default_out_file = true;
+        } else if let Some(out_files) = args.values_of(A_L_FILE_OUT) {
+            for out_file in out_files {
+                additional_out_files.push(PathBuf::from_str(out_file)?);
+            }
+        }
+    }
+
+    sinks(env_out, dry, default_out_file, additional_out_files)
 }
 
 fn required_keys(key_prefix: Option<&str>, args: &ArgMatches) -> BoxResult<HashSet<Key>> {
@@ -667,9 +686,9 @@ fn main() -> BoxResult<()> {
     let overwrite = settings::Overwrite::from_str(args.value_of(A_L_OVERWRITE).unwrap())?;
     log::debug!("Overwriting output variable values? -> {:?}", overwrite);
 
-    let sources = sources(&args, &repo_path);
+    let sources = sources(&repo_path);
 
-    let sinks = sinks(&args)?;
+    let sinks = sinks_cli(&args)?;
 
     let fail_on_missing: bool = args.is_present(A_L_FAIL_ON_MISSING_VALUE);
     let key_prefix = args.value_of(A_L_KEY_PREFIX);
