@@ -16,7 +16,6 @@ use clap::{
 };
 use regex::Regex;
 use std::collections::HashSet;
-// use enumset::EnumSet;
 use std::convert::{TryFrom, TryInto};
 use std::env;
 use std::path::{Path, PathBuf};

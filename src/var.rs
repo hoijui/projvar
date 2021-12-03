@@ -4,7 +4,6 @@
 
 use clap::lazy_static::lazy_static;
 use enum_map::Enum;
-// use enumset::{EnumSet, EnumSetType};
 use regex::Regex;
 use std::{
     borrow::Cow,
