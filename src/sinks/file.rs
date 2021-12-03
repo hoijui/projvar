@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use crate::BoxResult;
 use crate::environment::Environment;
-use crate::var::{self, Confidence, Key, Variable};
+use crate::var::{self, Confidence};
+use crate::{storage, BoxResult};
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fmt;
@@ -24,11 +24,7 @@ impl super::VarSink for VarSink {
         true
     }
 
-    fn store(
-        &self,
-        environment: &Environment,
-        values: &[(Key, &Variable, &(Confidence, String))],
-    ) -> BoxResult<()> {
+    fn store(&self, environment: &Environment, values: &[storage::Value]) -> BoxResult<()> {
         let previous_vars = if self.file.exists() {
             var::parse_vars_file_reader(repvar::tools::create_input_reader(self.file.to_str())?)?
         } else {

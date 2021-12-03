@@ -14,6 +14,9 @@ use crate::{
     var::{self, Confidence, Key, Variable},
 };
 
+/// Key, associated variable meta-data, confidence, primary value.
+pub type Value<'a> = (Key, &'static Variable, &'a (Confidence, String));
+
 /// Stores the property values gathered from all the sources.
 #[derive(Clone)]
 pub struct Storage {
@@ -141,10 +144,10 @@ impl Storage {
         self.key_values.get(&key)
     }
 
-    /// Builds a sorted list of all the keys with associated values,
-    /// their variable meta-data and the primary value.
-    pub fn get_wrapup(&self) -> Vec<(Key, &'static Variable, &(Confidence, String))> {
-        let mut wrapup: Vec<(Key, &'static Variable, &(Confidence, String))> = self
+    /// Builds a sorted list of all the keys with associated:
+    /// variable meta-data, confidence, primary value
+    pub fn get_wrapup(&self) -> Vec<Value> {
+        let mut wrapup: Vec<Value> = self
             .key_primary
             .iter()
             .map(|key_value| {

@@ -2,9 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use crate::BoxResult;
 use crate::environment::Environment;
-use crate::var::{Confidence, Key, Variable};
+use crate::{storage, BoxResult};
 use std::{env, fmt};
 
 pub struct VarSink;
@@ -15,15 +14,11 @@ impl super::VarSink for VarSink {
         true
     }
 
-    fn store(
-        &self,
-        environment: &Environment,
-        values: &[(Key, &Variable, &(Confidence, String))],
-    ) -> BoxResult<()> {
-        for (_key, var, rated_value) in values {
+    fn store(&self, environment: &Environment, values: &[storage::Value]) -> BoxResult<()> {
+        for (_key, var, (_confidence, value)) in values {
             let key = var.key(environment);
             if environment.settings.overwrite.main() || env::var(&*key).is_err() {
-                env::set_var(&*key, &rated_value.1);
+                env::set_var(&*key, value);
             }
         }
         Ok(())

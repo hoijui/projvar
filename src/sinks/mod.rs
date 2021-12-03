@@ -7,9 +7,8 @@ pub mod file;
 
 use std::fmt;
 
-use crate::BoxResult;
 use crate::environment::Environment;
-use crate::var::{Confidence, Key, Variable};
+use crate::{storage, BoxResult};
 
 pub trait VarSink: fmt::Display {
     /// Indicates whether this sink of variables is usable.
@@ -28,7 +27,7 @@ pub trait VarSink: fmt::Display {
     fn store(
         &self,
         environment: &Environment,
-        values: &[(Key, &Variable, &(Confidence, String))],
+        values: &[storage::Value],
         // values: Box<dyn Iterator<Item = (Key, &Variable, &(Confidence, String))>>,
     ) -> BoxResult<()>;
 }
