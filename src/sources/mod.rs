@@ -13,13 +13,15 @@ pub mod jenkins_ci;
 pub mod selector;
 pub mod travis_ci;
 
+use std::path::Path;
+
 use thiserror::Error;
 
 use clap::lazy_static::lazy_static;
 
 use crate::environment::Environment;
 use crate::var::{Confidence, Key, C_HIGH};
-use crate::{std_error, value_conversions};
+use crate::{std_error, tools, value_conversions};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub enum Hierarchy {
@@ -159,4 +161,34 @@ pub fn ref_extract_branch(refr: &str) -> RetrieveRes {
 /// into at least 3 parts with the '/' separator)
 pub fn ref_extract_tag(refr: &str) -> RetrieveRes {
     ref_extract_name_if_type_matches(refr, "tags")
+}
+
+fn is_git_repo_root(repo_path: Option<&Path>) -> bool {
+    tools::git::Repo::try_from(repo_path).is_ok()
+}
+
+#[must_use]
+pub fn default_list(repo_path: &Path) -> Vec<Box<dyn VarSource>> {
+    let mut sources: Vec<Box<dyn VarSource>> = vec![];
+    if is_git_repo_root(Some(repo_path)) {
+        sources.push(Box::new(git::VarSource {}));
+    }
+    sources.push(Box::new(fs::VarSource {}));
+    sources.push(Box::new(bitbucket_ci::VarSource {}));
+    sources.push(Box::new(github_ci::VarSource {}));
+    sources.push(Box::new(gitlab_ci::VarSource {}));
+    sources.push(Box::new(jenkins_ci::VarSource {}));
+    sources.push(Box::new(travis_ci::VarSource {}));
+    sources.push(Box::new(env::VarSource {}));
+    sources.push(Box::new(selector::VarSource {}));
+    sources.push(Box::new(deriver::VarSource {}));
+    // NOTE We add the deriver a second time,
+    //      so it may derive from values created in the first run.
+    sources.push(Box::new(deriver::VarSource {}));
+    if log::log_enabled!(log::Level::Trace) {
+        for source in &sources {
+            log::trace!("Registered source {}.", source.display());
+        }
+    }
+    sources
 }

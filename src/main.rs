@@ -16,7 +16,7 @@ use clap::{
 };
 use regex::Regex;
 use std::collections::HashSet;
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryInto;
 use std::env;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -41,17 +41,10 @@ mod var;
 use crate::environment::Environment;
 use crate::settings::{Settings, Verbosity};
 use crate::sinks::VarSink;
-use crate::sources::VarSource;
 use crate::tools::git_hosting_provs::{self, HostingType};
 use crate::var::Key;
 
 pub(crate) type BoxResult<T> = Result<T, Box<dyn std::error::Error>>;
-
-fn is_git_repo_root(repo_path: Option<&Path>) -> bool {
-    tools::git::Repo::try_from(repo_path).is_ok()
-}
-
-const DEFAULT_FILE_OUT: &str = ".projvars.env.txt";
 
 const A_S_PROJECT_ROOT: char = 'C';
 const A_L_PROJECT_ROOT: &str = "project-root";
@@ -179,7 +172,7 @@ fn arg_out_file() -> Arg<'static> {
         .short(A_S_FILE_OUT)
         .long(A_L_FILE_OUT)
         .multiple_occurrences(true)
-        .default_value(DEFAULT_FILE_OUT)
+        .default_value(sinks::DEFAULT_FILE_OUT)
         .required(false)
 }
 
@@ -552,61 +545,6 @@ fn date_format(args: &ArgMatches) -> &str {
     date_format
 }
 
-fn sources(repo_path: &Path) -> Vec<Box<dyn VarSource>> {
-    let mut sources: Vec<Box<dyn VarSource>> = vec![];
-    if is_git_repo_root(Some(repo_path)) {
-        sources.push(Box::new(sources::git::VarSource {}));
-    }
-    sources.push(Box::new(sources::fs::VarSource {}));
-    sources.push(Box::new(sources::bitbucket_ci::VarSource {}));
-    sources.push(Box::new(sources::github_ci::VarSource {}));
-    sources.push(Box::new(sources::gitlab_ci::VarSource {}));
-    sources.push(Box::new(sources::jenkins_ci::VarSource {}));
-    sources.push(Box::new(sources::travis_ci::VarSource {}));
-    sources.push(Box::new(sources::env::VarSource {}));
-    sources.push(Box::new(sources::selector::VarSource {}));
-    sources.push(Box::new(sources::deriver::VarSource {}));
-    // NOTE We add the deriver a second time,
-    //      so it may derive from values created in the first run.
-    sources.push(Box::new(sources::deriver::VarSource {}));
-    if log::log_enabled!(log::Level::Trace) {
-        for source in &sources {
-            log::trace!("Registered source {}.", source.display());
-        }
-    }
-    sources
-}
-
-fn sinks(
-    env_out: bool,
-    dry: bool,
-    default_out_file: bool,
-    additional_out_files: Vec<PathBuf>,
-) -> BoxResult<Vec<Box<dyn VarSink>>> {
-    let mut sinks: Vec<Box<dyn VarSink>> = vec![];
-    if env_out {
-        sinks.push(Box::new(sinks::env::VarSink {}));
-    }
-    if default_out_file {
-        log::info!("Using the default out file: {}", DEFAULT_FILE_OUT);
-        sinks.push(Box::new(sinks::file::VarSink {
-            file: PathBuf::from_str(DEFAULT_FILE_OUT)?,
-        }));
-    }
-    for out_file in additional_out_files {
-        sinks.push(Box::new(sinks::file::VarSink { file: out_file }));
-    }
-    if dry {
-        sinks.clear();
-    } else if sinks.is_empty() {
-        log::warn!("No sinks registered! The results of this run will not be stored anywhere.");
-    }
-    for sink in &sinks {
-        log::trace!("Registered sink {}.", sink);
-    }
-    Ok(sinks)
-}
-
 fn sinks_cli(args: &ArgMatches) -> BoxResult<Vec<Box<dyn VarSink>>> {
     let env_out = args.is_present(A_L_ENV_OUT);
     let dry = args.is_present(A_L_DRY);
@@ -623,7 +561,12 @@ fn sinks_cli(args: &ArgMatches) -> BoxResult<Vec<Box<dyn VarSink>>> {
         }
     }
 
-    sinks(env_out, dry, default_out_file, additional_out_files)
+    Ok(sinks::cli_list(
+        env_out,
+        dry,
+        default_out_file,
+        additional_out_files,
+    ))
 }
 
 fn required_keys(key_prefix: Option<&str>, args: &ArgMatches) -> BoxResult<HashSet<Key>> {
@@ -684,7 +627,7 @@ fn main() -> BoxResult<()> {
     let overwrite = settings::Overwrite::from_str(args.value_of(A_L_OVERWRITE).unwrap())?;
     log::debug!("Overwriting output variable values? -> {:?}", overwrite);
 
-    let sources = sources(&repo_path);
+    let sources = sources::default_list(&repo_path);
 
     let sinks = sinks_cli(&args)?;
 
