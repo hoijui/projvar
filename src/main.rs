@@ -11,8 +11,8 @@ extern crate url;
 
 use clap::lazy_static::lazy_static;
 use clap::{
-    crate_authors, crate_description, crate_license, crate_name, crate_version, App, AppSettings,
-    Arg, ArgMatches, ValueHint,
+    crate_authors, crate_description, crate_license, crate_name, crate_version, App, Arg,
+    ArgMatches, ValueHint,
 };
 use regex::Regex;
 use std::collections::HashSet;
