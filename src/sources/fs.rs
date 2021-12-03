@@ -9,8 +9,6 @@ use regex::Regex;
 use crate::environment::Environment;
 use crate::std_error;
 use crate::var::{Confidence, Key, C_HIGH, C_LOW, C_MIDDLE};
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::{env, fs};
 
@@ -38,39 +36,6 @@ fn dir_name(path: &Path) -> Result<String, std_error::Error> {
         .to_owned())
 }
 
-/// Get the title of a Markdown file.
-///
-/// Reads the first line of a Markdown file, strips any hashes and
-/// leading/trailing whitespace, and returns the title.
-fn title_string<R>(mut rdr: R) -> Result<String, std::io::Error>
-where
-    R: BufRead,
-{
-    let mut first_line = String::new();
-
-    rdr.read_line(&mut first_line)?;
-
-    // Where do the leading hashes stop?
-    let last_hash = first_line
-        .char_indices()
-        .find(|&(_, c)| c != '#')
-        .map_or(0, |(idx, _)| idx);
-
-    // Trim the leading hashes and any whitespace
-    Ok(first_line[last_hash..].trim().into())
-}
-
-/// Read the first line of the file and use it as title.
-fn file_title(path: &Path) -> RetrieveRes {
-    Ok(if path.exists() && path.is_file() {
-        let file = File::open(path)?;
-        let buffer = BufReader::new(file);
-        Some((C_MIDDLE, title_string(buffer)?))
-    } else {
-        None
-    })
-}
-
 /// Read the whole file
 fn file_content(path: &Path) -> RetrieveRes {
     Ok(if path.exists() && path.is_file() {
@@ -81,7 +46,6 @@ fn file_content(path: &Path) -> RetrieveRes {
     })
 }
 
-// fn licenses(environment: &mut Environment) -> BoxResult<Option<Vec<String>>> {
 fn licenses(environment: &mut Environment) -> Result<Option<Vec<String>>, std_error::Error> {
     lazy_static! {
         static ref R_TXT_SUFFIX: Regex = Regex::new(r"\.txt$").unwrap();
