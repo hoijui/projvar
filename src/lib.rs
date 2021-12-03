@@ -21,3 +21,5 @@ pub mod tools;
 pub mod validator;
 pub mod value_conversions;
 pub mod var;
+
+pub(crate) type BoxResult<T> = Result<T, Box<dyn std::error::Error>>;

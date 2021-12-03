@@ -2,14 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use crate::BoxResult;
 use crate::environment::Environment;
 use crate::var::{Confidence, Key, Variable};
-use std::error::Error;
 use std::{env, fmt};
 
 pub struct VarSink;
-
-type BoxResult<T> = Result<T, Box<dyn Error>>;
 
 /// Stores evaluated values (output) into environment variables.
 impl super::VarSink for VarSink {

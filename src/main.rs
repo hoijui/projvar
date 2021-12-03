@@ -19,7 +19,6 @@ use std::collections::HashSet;
 // use enumset::EnumSet;
 use std::convert::{TryFrom, TryInto};
 use std::env;
-use std::error::Error;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use strum::IntoEnumIterator;
@@ -47,7 +46,7 @@ use crate::sources::VarSource;
 use crate::tools::git_hosting_provs::{self, HostingType};
 use crate::var::Key;
 
-type BoxResult<T> = Result<T, Box<dyn Error>>;
+pub(crate) type BoxResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 fn is_git_repo_root(repo_path: Option<&Path>) -> bool {
     tools::git::Repo::try_from(repo_path).is_ok()

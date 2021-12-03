@@ -6,14 +6,11 @@ use crate::environment::Environment;
 use crate::settings::FailOn;
 use crate::sinks::VarSink;
 use crate::sources::VarSource;
-use crate::validator;
 use crate::var::Key;
+use crate::{validator, BoxResult};
 use std::cmp::Ordering;
-use std::error::Error;
 use std::fs;
 use strum::IntoEnumIterator;
-
-type BoxResult<T> = Result<T, Box<dyn Error>>;
 
 /// Reports the raw values retrieved from the sources, if requested
 fn report_retrieved(environment: &Environment, sources: &[Box<dyn VarSource>]) -> BoxResult<()> {

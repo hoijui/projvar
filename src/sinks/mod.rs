@@ -5,14 +5,11 @@
 pub mod env;
 pub mod file;
 
-// use std::collections::HashMap;
-use std::error::Error;
 use std::fmt;
 
+use crate::BoxResult;
 use crate::environment::Environment;
 use crate::var::{Confidence, Key, Variable};
-
-type BoxResult<T> = Result<T, Box<dyn Error>>;
 
 pub trait VarSink: fmt::Display {
     /// Indicates whether this sink of variables is usable.
@@ -32,6 +29,6 @@ pub trait VarSink: fmt::Display {
         &self,
         environment: &Environment,
         values: &[(Key, &Variable, &(Confidence, String))],
-        // values: Iter<'a, (&Key, &Variable, String)>,
+        // values: Box<dyn Iterator<Item = (Key, &Variable, &(Confidence, String))>>,
     ) -> BoxResult<()>;
 }

@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use crate::BoxResult;
 use crate::environment::Environment;
 use crate::var::{self, Confidence, Key, Variable};
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::error::Error;
 use std::fmt;
 use std::fs::File;
 use std::io::LineWriter;
@@ -16,8 +16,6 @@ use std::path::PathBuf;
 pub struct VarSink {
     pub file: PathBuf,
 }
-
-type BoxResult<T> = Result<T, Box<dyn Error>>;
 
 /// Stores evaluated values (output) into a file
 /// in a BASH compatible way ("KEY=VALUE\n").

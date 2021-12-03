@@ -9,7 +9,6 @@ use regex::Regex;
 use std::{
     borrow::Cow,
     collections::{HashMap, HashSet},
-    error::Error,
     fmt::Display,
     io::BufRead,
     iter::Iterator,
@@ -19,9 +18,7 @@ use strum_macros::{EnumCount, EnumIter, EnumString, IntoStaticStr};
 
 use std::str::FromStr;
 
-use crate::environment::Environment;
-
-type BoxResult<T> = Result<T, Box<dyn Error>>;
+use crate::{environment::Environment, BoxResult};
 
 pub type Confidence = u8;
 pub const C_HIGH: Confidence = 75;
@@ -519,7 +516,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_camel_to_upper_snake_case() -> std::result::Result<(), Box<dyn Error>> {
+    fn test_camel_to_upper_snake_case() -> BoxResult<()> {
         assert_eq!(camel_to_upper_snake_case("Version"), "VERSION");
         assert_eq!(camel_to_upper_snake_case("version"), "VERSION");
         assert_eq!(
@@ -537,7 +534,7 @@ mod tests {
     }
 
     #[test]
-    fn test_from_name_or_var_key() -> std::result::Result<(), Box<dyn Error>> {
+    fn test_from_name_or_var_key() -> BoxResult<()> {
         let r_prefix_none = Regex::new("^").unwrap();
         let r_prefix_project = Regex::new("^PROJECT_").unwrap();
 

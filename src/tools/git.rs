@@ -9,12 +9,11 @@ use clap::lazy_static::lazy_static;
 use git2::{self, Repository};
 use regex::Regex;
 use std::convert::TryFrom;
-use std::error::Error;
 use std::path::Path;
 use std::path::PathBuf;
 use std::str;
 
-type BoxResult<T> = Result<T, Box<dyn Error>>;
+use crate::BoxResult;
 
 /// The default date format.
 /// For formatting specifiers, see:
