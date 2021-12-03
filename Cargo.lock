@@ -134,18 +134,7 @@ name = "enum-map"
 version = "2.0.0-1"
 source = "git+https://gitlab.com/bit_network/enum-map.git?branch=impl_fromiter#deca464c68029240788c0da895fc6f0a52cd644d"
 dependencies = [
- "enum-map-derive 0.7.0 (git+https://gitlab.com/bit_network/enum-map.git?branch=impl_fromiter)",
-]
-
-[[package]]
-name = "enum-map-derive"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8182c0d26a908f001a23adc388fcef7fde884fbaf668874126cd5a3c13ca299e"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
+ "enum-map-derive",
 ]
 
 [[package]]
@@ -470,7 +459,6 @@ dependencies = [
  "chrono",
  "clap",
  "enum-map",
- "enum-map-derive 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "git2",
  "human-panic",
  "log",
