@@ -41,4 +41,4 @@ thiserror = "1"
 url = "2.2.2"
 
 [build-dependencies]
-reqwest = { version = "0.11.7", features = ["blocking"] }
+reqwest = { version = "0", features = ["blocking"] }
