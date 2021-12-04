@@ -637,12 +637,12 @@ fn main() -> BoxResult<()> {
     let show_retrieved: settings::ShowRetrieved = if args.is_present(A_L_SHOW_ALL_RETRIEVED) {
         settings::ShowRetrieved::All(
             args.value_of(A_L_SHOW_ALL_RETRIEVED)
-                .map(|file| file.into()),
+                .map(std::convert::Into::into),
         )
     } else if args.is_present(A_L_SHOW_PRIMARY_RETRIEVED) {
         settings::ShowRetrieved::Primary(
             args.value_of(A_L_SHOW_PRIMARY_RETRIEVED)
-                .map(|file| file.into()),
+                .map(std::convert::Into::into),
         )
     } else {
         settings::ShowRetrieved::No
