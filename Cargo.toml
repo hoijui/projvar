@@ -19,7 +19,7 @@ categories = ["command-line-utilities", "text-processing"]
 edition = "2021"
 
 [dependencies]
-anyhow = "1"
+askalono = "0.4.4"
 chrono = "0.4.19"
 clap = "3.0.0-beta.2"
 # Until this is merged, we have to use the pull-requesters- version:
@@ -39,3 +39,6 @@ strum_macros = "0.23"
 #enumset = "1.0.7"
 thiserror = "1"
 url = "2.2.2"
+
+[build-dependencies]
+reqwest = { version = "0.11.7", features = ["blocking"] }
