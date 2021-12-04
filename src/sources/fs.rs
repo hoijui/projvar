@@ -7,6 +7,7 @@ use clap::lazy_static::lazy_static;
 use regex::Regex;
 
 use crate::environment::Environment;
+use crate::license;
 use crate::std_error;
 use crate::var::{Confidence, Key, C_HIGH, C_LOW, C_MIDDLE};
 use std::path::{Path, PathBuf};
@@ -46,11 +47,13 @@ fn file_content(path: &Path) -> RetrieveRes {
     })
 }
 
-fn licenses(environment: &mut Environment) -> Result<Option<Vec<String>>, std_error::Error> {
+/// Returns a list of SPDX license identifiers.
+/// It looks for the REUSE "LICENSES" dir in the project root,
+/// and returns the file names of the containing "*.txt" files.
+fn licenses_from_dir(repo_path: &Path) -> Result<Option<Vec<String>>, std_error::Error> {
     lazy_static! {
         static ref R_TXT_SUFFIX: Regex = Regex::new(r"\.txt$").unwrap();
     }
-    let repo_path = repo_path(environment)?;
     let licenses_dir = repo_path.join("LICENSES");
     if licenses_dir.is_dir() {
         let mut licenses = Vec::<String>::new();
@@ -65,6 +68,43 @@ fn licenses(environment: &mut Environment) -> Result<Option<Vec<String>>, std_er
     } else {
         Ok(None)
     }
+}
+
+/// Returns a list of SPDX license identifiers.
+/// It searches for "(LICEN[CS]E|COPYING).*"" files in the project root dir,
+/// and figures out which license it contains.
+fn licenses_from_files(repo_path: &Path) -> Result<Option<Vec<String>>, std_error::Error> {
+    Ok(license::get_licenses(&repo_path.display().to_string()).map(Some)?)
+}
+
+fn licenses(
+    environment: &mut Environment,
+    files_first: bool,
+) -> Result<Option<Vec<String>>, std_error::Error> {
+    let repo_path = repo_path(environment)?;
+    let fetcher_functions = if files_first {
+        &[licenses_from_files, licenses_from_dir]
+    } else {
+        &[licenses_from_dir, licenses_from_files]
+    };
+    for lff in fetcher_functions {
+        let licenses = lff(repo_path)?;
+        if licenses.is_some() {
+            return Ok(licenses);
+        }
+    }
+    Ok(None)
+}
+
+/// Extracts a single license if there is only a single license,
+/// otherwise returns `None`.
+fn license(environment: &mut Environment) -> Result<Option<String>, std_error::Error> {
+    if let Some(licenses) = licenses(environment, true)? {
+        if licenses.len() == 1 {
+            return Ok(licenses.get(0).map(ToOwned::to_owned));
+        }
+    }
+    Ok(None)
 }
 
 fn version(environment: &mut Environment) -> RetrieveRes {
@@ -144,7 +184,6 @@ impl super::VarSource for VarSource {
                 | Key::BuildNumber
                 | Key::BuildTag
                 | Key::Ci
-                | Key::License
                 | Key::RepoCloneUrl
                 | Key::RepoCloneUrlSsh
                 | Key::RepoCommitPrefixUrl
@@ -158,7 +197,8 @@ impl super::VarSource for VarSource {
                 Key::BuildDate => Some((C_HIGH, build_date(environment))),
                 Key::BuildOs => Some(build_os(environment)),
                 Key::BuildOsFamily => Some(build_os_family(environment)),
-                Key::Licenses => licenses(environment)?.map(|lv| (C_HIGH, lv.join(", "))), // TODO Later on, rather create an SPDX expressions, maybe by using OR instead of ',' to join ... but can we really?
+                Key::License => license(environment)?.map(|val| (C_HIGH, val)),
+                Key::Licenses => licenses(environment, false)?.map(|lv| (C_HIGH, lv.join(", "))), // TODO Later on, rather create an SPDX expressions, maybe by using OR instead of ',' to join ... but can we really?
                 Key::Name => name(environment)?,
                 Key::Version => version(environment)?,
             },
