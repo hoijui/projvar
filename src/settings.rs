@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use clap::lazy_static::lazy_static;
+use lazy_static::lazy_static;
 use std::{collections::HashSet, path::PathBuf};
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, EnumString, EnumVariantNames, IntoStaticStr};

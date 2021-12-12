@@ -28,6 +28,7 @@ clap = "3.0.0-beta.2"
 enum-map = { git = "https://gitlab.com/bit_network/enum-map.git", branch = "impl_fromiter" }
 git2 = "0.13"
 human-panic = "1.0.3"
+lazy_static = "1.4.0"
 log = "0.4.14"
 regex = "1.5"
 remain = "0.2.2"

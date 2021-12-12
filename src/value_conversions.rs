@@ -6,7 +6,7 @@ use crate::tools::git_hosting_provs::{HostingType, PublicSite};
 use chrono::DateTime;
 use thiserror::Error;
 
-use clap::lazy_static::lazy_static;
+use lazy_static::lazy_static;
 use regex::Regex;
 use url::Url;
 

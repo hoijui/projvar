@@ -9,11 +9,11 @@ extern crate log;
 extern crate remain;
 extern crate url;
 
-use clap::lazy_static::lazy_static;
 use clap::{
     crate_authors, crate_description, crate_license, crate_name, crate_version, App, Arg,
     ArgMatches, ValueHint,
 };
+use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashSet;
 use std::convert::TryInto;

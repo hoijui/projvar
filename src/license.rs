@@ -5,7 +5,7 @@
 use std::fmt;
 
 use askalono::{Store, TextData};
-use clap::lazy_static::lazy_static;
+use lazy_static::lazy_static;
 use std::{ffi::OsStr, fs};
 
 const LICENSE_FILE_PREFIXES: [&str; 3] = ["LICENSE", "LICENCE", "COPYING"];

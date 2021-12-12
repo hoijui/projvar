@@ -4,7 +4,7 @@
 
 use std::collections::HashMap;
 
-use clap::lazy_static::lazy_static;
+use lazy_static::lazy_static;
 use regex::Regex;
 use strum::IntoEnumIterator;
 

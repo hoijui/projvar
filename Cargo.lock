@@ -892,6 +892,7 @@ dependencies = [
  "enum-map",
  "git2",
  "human-panic",
+ "lazy_static",
  "log",
  "regex",
  "remain",

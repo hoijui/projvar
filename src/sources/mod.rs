@@ -17,7 +17,7 @@ use std::path::Path;
 
 use thiserror::Error;
 
-use clap::lazy_static::lazy_static;
+use lazy_static::lazy_static;
 
 use crate::environment::Environment;
 use crate::var::{Confidence, Key, C_HIGH};

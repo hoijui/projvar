@@ -5,8 +5,8 @@
 use chrono::DateTime;
 use chrono::NaiveDateTime;
 use chrono::Utc;
-use clap::lazy_static::lazy_static;
 use git2::{self, Repository};
+use lazy_static::lazy_static;
 use regex::Regex;
 use std::convert::TryFrom;
 use std::path::Path;

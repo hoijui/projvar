@@ -8,7 +8,7 @@ use crate::tools::git_hosting_provs::HostingType;
 use crate::var::{Confidence, Key};
 use crate::{constants, environment::Environment};
 use chrono::{DateTime, NaiveDateTime};
-use clap::lazy_static::lazy_static;
+use lazy_static::lazy_static;
 use regex::Regex;
 use thiserror::Error;
 use url::Url;

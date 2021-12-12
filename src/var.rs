@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use clap::lazy_static::lazy_static;
 use enum_map::Enum;
+use lazy_static::lazy_static;
 use regex::Regex;
 use std::{
     borrow::Cow,
