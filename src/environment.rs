@@ -8,8 +8,8 @@ use crate::tools::git;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 
-pub struct Environment<'t> {
-    pub settings: &'t Settings,
+pub struct Environment {
+    pub settings: Settings,
     /// The input variables, as supplied by the environment,
     /// on the command line or through input files.
     pub vars: HashMap<String, String>,
@@ -18,9 +18,9 @@ pub struct Environment<'t> {
     repo: Option<git::Repo>,
 }
 
-impl<'t> Environment<'t> {
+impl Environment {
     #[must_use]
-    pub fn new(settings: &Settings) -> Environment {
+    pub fn new(settings: Settings) -> Environment {
         let vars = HashMap::<String, String>::new();
         let output = Storage::new();
         Environment {
@@ -32,8 +32,8 @@ impl<'t> Environment<'t> {
     }
 
     #[must_use]
-    pub fn stub() -> Environment<'static> {
-        Self::new(&STUB)
+    pub fn stub() -> Environment {
+        Self::new(STUB.clone())
     }
 
     pub fn repo(&mut self) -> Option<&git::Repo> {

@@ -59,9 +59,9 @@ fn clone_url(environment: &mut Environment) -> RetrieveRes {
 }
 
 fn version_date(environment: &mut Environment) -> RetrieveRes {
-    let date_format = &environment.settings.date_format;
-    Ok(match environment.repo() {
-        Some(repo) => Some((C_HIGH, repo.commit_date(date_format)?)),
+    let date_format = environment.settings.date_format.clone();
+    Ok(match &environment.repo() {
+        Some(repo) => Some((C_HIGH, repo.commit_date(&date_format)?)),
         None => None,
     })
 }

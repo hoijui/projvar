@@ -663,7 +663,7 @@ fn main() -> BoxResult<()> {
         verbosity,
     };
     log::trace!("Created Settings.");
-    let mut environment = Environment::new(&settings);
+    let mut environment = Environment::new(settings);
     log::trace!("Created Environment.");
 
     // fetch environment variables

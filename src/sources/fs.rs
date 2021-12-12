@@ -18,7 +18,7 @@ use super::{Hierarchy, RetrieveRes};
 /// Sources values from the file-system and OS supplied environment variables.
 pub struct VarSource;
 
-fn repo_path<'a>(environment: &'a mut Environment) -> Result<&'a PathBuf, std_error::Error> {
+fn repo_path(environment: &'_ mut Environment) -> Result<&'_ PathBuf, std_error::Error> {
     environment
         .settings
         .repo_path

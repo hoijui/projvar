@@ -92,7 +92,7 @@ impl Overwrite {
 /*     const VARIANTS: &'static [&'static str]; */
 /* } */
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum FailOn {
     AnyMissingValue,
     Error,
@@ -108,13 +108,14 @@ impl From<bool> for FailOn {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum ShowRetrieved {
     No,
     Primary(Option<PathBuf>),
     All(Option<PathBuf>),
 }
 
+#[derive(Clone, Debug)]
 pub struct Settings /*<S: ::std::hash::BuildHasher>*/ {
     // pub repo_path: Option<Box<Path>>,
     pub repo_path: Option<PathBuf>,
