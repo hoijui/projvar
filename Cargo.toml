@@ -21,7 +21,7 @@ edition = "2021"
 [dependencies]
 askalono = "0.4.4"
 chrono = "0.4.19"
-clap = "3.0.0-beta.2"
+clap = { version = "3.0.0-rc.4", features = ["cargo"] }
 # Until this is merged, we have to use the pull-requesters- version:
 # https://gitlab.com/KonradBorowski/enum-map/-/merge_requests/40
 #enum-map = "1.1.1"
