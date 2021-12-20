@@ -244,7 +244,7 @@ dependencies = [
 [[package]]
 name = "enum-map"
 version = "2.0.0-1"
-source = "git+https://gitlab.com/bit_network/enum-map.git?branch=impl_fromiter#deca464c68029240788c0da895fc6f0a52cd644d"
+source = "git+https://gitlab.com/KonradBorowski/enum-map.git?rev=5694f9e1#5694f9e169be8e192d3eb015f7a95cb53a792e3e"
 dependencies = [
  "enum-map-derive",
 ]
@@ -252,7 +252,7 @@ dependencies = [
 [[package]]
 name = "enum-map-derive"
 version = "0.7.0"
-source = "git+https://gitlab.com/bit_network/enum-map.git?branch=impl_fromiter#deca464c68029240788c0da895fc6f0a52cd644d"
+source = "git+https://gitlab.com/KonradBorowski/enum-map.git?rev=5694f9e1#5694f9e169be8e192d3eb015f7a95cb53a792e3e"
 dependencies = [
  "proc-macro2",
  "quote",
