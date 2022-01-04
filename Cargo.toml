@@ -17,6 +17,7 @@ keywords = ["cli", "ci"]
 categories = ["command-line-utilities", "text-processing"]
 license = "GPL-3.0-or-later"
 authors = ["Robin Vobruba <hoijui.quaero@gmail.com>"]
+publish = false
 
 [dependencies]
 askalono = "0.4.4"
