@@ -5,18 +5,18 @@
 [package]
 name = "projvar"
 version = "0.8.0"
-authors = ["Robin Vobruba <hoijui.quaero@gmail.com>"]
+edition = "2021"
 description = """
     A tiny CLI tool that tries to gather project specific meta-data in different ways,
     to store them into environment variables in a file
     for later use by other tools.
     See --list for the keys set by this tool.
     """
-license = "GPL-3.0-or-later"
 repository = "https://github.com/hoijui/repvar"
 keywords = ["cli", "ci"]
 categories = ["command-line-utilities", "text-processing"]
-edition = "2021"
+license = "GPL-3.0-or-later"
+authors = ["Robin Vobruba <hoijui.quaero@gmail.com>"]
 
 [dependencies]
 askalono = "0.4.4"
