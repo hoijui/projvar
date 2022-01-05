@@ -6,6 +6,7 @@ use chrono::Local;
 use lazy_static::lazy_static;
 use regex::Regex;
 
+use crate::cleanup;
 use crate::environment::Environment;
 use crate::license;
 use crate::std_error;
@@ -200,7 +201,8 @@ impl super::VarSource for VarSource {
                 Key::License => license(environment)?.map(|val| (C_HIGH, val)),
                 Key::Licenses => licenses(environment, false)?.map(|lv| (C_HIGH, lv.join(", "))), // TODO Later on, rather create an SPDX expressions, maybe by using OR instead of ',' to join ... but can we really?
                 Key::Name => name(environment)?,
-                Key::Version => version(environment)?,
+                Key::Version => version(environment)?
+                    .map(|conf_val| cleanup::conf_version(environment, conf_val)),
             },
         )
     }

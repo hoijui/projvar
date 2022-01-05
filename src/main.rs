@@ -20,6 +20,7 @@ use std::str::FromStr;
 use strum::IntoEnumIterator;
 use strum::VariantNames;
 
+mod cleanup;
 mod constants;
 mod environment;
 mod license;

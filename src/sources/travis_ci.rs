@@ -2,7 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use crate::cleanup;
 use crate::environment::Environment;
+use crate::validator;
 use crate::var::Key;
 use crate::var::C_HIGH;
 
@@ -63,7 +65,17 @@ impl super::VarSource for VarSource {
                     environment.vars.get("TRAVIS_REPO_SLUG"),
                 )?
                 .map(|val| (C_HIGH, val)), // usually: TRAVIS_REPO_SLUG="user/project"
-                Key::Version => var(environment, "TRAVIS_COMMIT", C_HIGH),
+                Key::Version => self
+                    .retrieve(environment, Key::BuildTag)?
+                    .map(|conf_val| cleanup::conf_version(environment, conf_val))
+                    .filter(|conf_val| {
+                        if let Ok(validity) = validator::get(key)(environment, &conf_val.1) {
+                            validity.is_good()
+                        } else {
+                            false
+                        }
+                    })
+                    .or_else(|| var(environment, "TRAVIS_COMMIT", C_HIGH)),
             },
         )
     }

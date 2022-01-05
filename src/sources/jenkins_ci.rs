@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use crate::cleanup;
 use crate::environment::Environment;
 use crate::var::Key;
 use crate::var::C_HIGH;
@@ -57,7 +58,8 @@ impl super::VarSource for VarSource {
                 Key::BuildBranch => var(environment, "BRANCH_NAME", C_HIGH),
                 Key::BuildNumber => var(environment, "BUILD_NUMBER", C_HIGH),
                 Key::Name => var(environment, "APP_NAME", C_HIGH),
-                Key::Version => var(environment, "VERSION", C_HIGH), // Alternatively (but makes no sense to use): var(environment, "PULL_BASE_SHA")
+                Key::Version => var(environment, "VERSION", C_HIGH)
+                    .map(|conf_val| cleanup::conf_version(environment, conf_val)), // Alternatively (but makes no sense to use): var(environment, "PULL_BASE_SHA")
             },
         )
     }

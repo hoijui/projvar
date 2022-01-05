@@ -8,6 +8,7 @@ extern crate log;
 extern crate remain;
 extern crate url;
 
+mod cleanup;
 mod constants;
 pub mod environment;
 mod license;

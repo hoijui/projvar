@@ -2,7 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use crate::cleanup;
 use crate::environment::Environment;
+use crate::validator;
 use crate::value_conversions;
 use crate::var::Key;
 use crate::var::C_HIGH;
@@ -76,7 +78,15 @@ impl super::VarSource for VarSource {
                 Key::RepoWebUrl => var(environment, "CI_PROJECT_URL", C_HIGH),
                 Key::Version => self
                     .retrieve(environment, Key::BuildTag)?
-                    .or_else(|| var(environment, "CI_COMMIT_SHORT_SHA", C_LOW)),
+                    .map(|conf_val| cleanup::conf_version(environment, conf_val))
+                    .filter(|conf_val| {
+                        if let Ok(validity) = validator::get(key)(environment, &conf_val.1) {
+                            validity.is_good()
+                        } else {
+                            false
+                        }
+                    })
+                    .or_else(|| var(environment, "CI_COMMIT_SHORT_SHA", C_HIGH)),
                 Key::VersionDate => {
                     // This comes in the ISO 8601 time format
                     let gitlab_commit_date = var(environment, "CI_COMMIT_TIMESTAMP", C_HIGH);

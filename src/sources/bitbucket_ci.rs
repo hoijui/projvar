@@ -2,7 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use crate::cleanup;
 use crate::environment::Environment;
+use crate::validator;
 use crate::var::Key;
 use crate::var::C_HIGH;
 use crate::var::C_LOW;
@@ -69,7 +71,17 @@ impl super::VarSource for VarSource {
                         },
                     ) // TODO Maybe use a constant here? (for "http://bitbucket.org")
                 }
-                Key::Version => var(environment, "BITBUCKET_COMMIT", C_LOW),
+                Key::Version => self
+                    .retrieve(environment, Key::BuildTag)?
+                    .map(|conf_val| cleanup::conf_version(environment, conf_val))
+                    .filter(|conf_val| {
+                        if let Ok(validity) = validator::get(key)(environment, &conf_val.1) {
+                            validity.is_good()
+                        } else {
+                            false
+                        }
+                    })
+                    .or_else(|| var(environment, "BITBUCKET_COMMIT", C_HIGH)),
             },
         )
     }

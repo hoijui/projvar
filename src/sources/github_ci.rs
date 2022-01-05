@@ -2,7 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use crate::cleanup;
 use crate::environment::Environment;
+use crate::validator;
 use crate::value_conversions::slug_to_proj_name;
 use crate::var::Confidence;
 use crate::var::Key;
@@ -102,7 +104,17 @@ impl super::VarSource for VarSource {
                     None => None,
                 }, // usually: GITHUB_REPOSITORY="user/project"
                 Key::RepoWebUrl => repo_web_url(environment),
-                Key::Version => var(environment, "GITHUB_SHA", C_LOW),
+                Key::Version => self
+                    .retrieve(environment, Key::BuildTag)?
+                    .map(|conf_val| cleanup::conf_version(environment, conf_val))
+                    .filter(|conf_val| {
+                        if let Ok(validity) = validator::get(key)(environment, &conf_val.1) {
+                            validity.is_good()
+                        } else {
+                            false
+                        }
+                    })
+                    .or_else(|| var(environment, "GITHUB_SHA", C_HIGH)),
             },
         )
     }
