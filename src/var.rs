@@ -222,6 +222,19 @@ impl Key {
 //     Ok(io::BufReader::new(file).lines())
 // }
 
+fn unquote(pot_quoted: &str) -> &str {
+    let len = pot_quoted.len();
+    if len > 1 {
+        let mut chars = pot_quoted.chars();
+        let first_char = chars.next().unwrap();
+        let last_char = chars.last().unwrap();
+        if (first_char == '"' && last_char == '"') || (first_char == '\'' && last_char == '\'') {
+            return &pot_quoted[1..len - 1];
+        }
+    }
+    pot_quoted
+}
+
 /// Parses a file containing lines string with of the fomr "KEY=VALUE".
 /// Empty lines and those starting wiht either "#" or "//" are ignored.
 ///
@@ -242,6 +255,7 @@ pub fn parse_vars_file_reader(mut reader: impl BufRead) -> BoxResult<HashMap<Str
         let line = line.trim();
         if !R_IGNORE_LINE.is_match(line) {
             let (key, value) = parse_key_value_str(line)?;
+            let value = unquote(value);
             vars.insert(key.to_owned(), value.to_owned());
         }
     }
