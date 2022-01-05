@@ -63,7 +63,8 @@ pub enum Error {
     Other(#[from] Box<dyn std::error::Error>),
 }
 
-type RetrieveRes = Result<Option<(Confidence, String)>, Error>;
+pub type ConfVal = (Confidence, String);
+pub type RetrieveRes = Result<Option<ConfVal>, Error>;
 
 pub trait VarSource {
     /// Indicates whether this source of variables is usable.
