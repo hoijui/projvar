@@ -588,8 +588,10 @@ fn required_keys(key_prefix: Option<&str>, args: &ArgMatches) -> BoxResult<HashS
     }
     // make imutable
     let required_keys = required_keys;
-    for required_key in &required_keys {
-        log::trace!("Registered required key {:?}.", required_key);
+    if log::log_enabled!(log::Level::Trace) {
+        for required_key in &required_keys {
+            log::trace!("Registered required key {:?}.", required_key);
+        }
     }
 
     Ok(required_keys)
@@ -618,13 +620,18 @@ fn main() -> BoxResult<()> {
     let overwrite = settings::Overwrite::from_str(args.value_of(A_L_OVERWRITE).unwrap())?;
     log::debug!("Overwriting output variable values? -> {:?}", overwrite);
 
+    log::trace!("Collecting sources ...");
     let sources = sources::default_list(&repo_path);
 
+    log::trace!("Collecting sinks ...");
     let sinks = sinks_cli(&args)?;
 
+    log::trace!("Collecting more settings ...");
     let fail_on_missing: bool = args.is_present(A_L_FAIL_ON_MISSING_VALUE);
     let key_prefix = args.value_of(A_L_KEY_PREFIX);
+    log::trace!("Collecting required keys ...");
     let required_keys = required_keys(key_prefix, &args)?;
+    log::trace!("Collecting setting 'show-retrieved?' ...");
     let show_retrieved: settings::ShowRetrieved = if args.is_present(A_L_SHOW_ALL_RETRIEVED) {
         settings::ShowRetrieved::All(
             args.value_of(A_L_SHOW_ALL_RETRIEVED)
@@ -638,6 +645,7 @@ fn main() -> BoxResult<()> {
     } else {
         settings::ShowRetrieved::No
     };
+    log::trace!("Collecting yet more settings ...");
     let hosting_type = hosting_type(&args)?;
     let only_required = args.is_present(A_L_ONLY_REQUIRED);
 
