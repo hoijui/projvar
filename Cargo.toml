@@ -23,10 +23,7 @@ publish = false
 askalono = "0.4.4"
 chrono = "0.4.19"
 clap = { version = "3.0.0-rc.4", features = ["cargo"] }
-# Until this is merged, we have to use the pull-requesters- version:
-# https://gitlab.com/KonradBorowski/enum-map/-/merge_requests/40
-#enum-map = "1.1.1"
-enum-map = { git = "https://gitlab.com/bit_network/enum-map.git", branch = "impl_fromiter" }
+enum-map = "2.0.0-2"
 git2 = "0.13"
 human-panic = "1.0.3"
 lazy_static = "1.4.0"
