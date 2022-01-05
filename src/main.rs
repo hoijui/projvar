@@ -298,10 +298,8 @@ fn arg_require_not() -> Arg<'static> {
 
 fn arg_only_required() -> Arg<'static> {
     Arg::new(A_L_ONLY_REQUIRED)
-        .help("Only fetch and output the required values")
-        .long_help(
-            "Only fetch and output the required values (see --all,--none,--require, --require-not).",
-        )
+        .help("Only output the required values")
+        .long_help("Only output the required values (see --all,--none,--require, --require-not).")
         .takes_value(false)
         // .short(A_S_ONLY_REQUIRED)
         .long(A_L_ONLY_REQUIRED)

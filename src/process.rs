@@ -74,12 +74,6 @@ pub fn run(
         if source.is_usable(environment) {
             log::trace!("Trying to fetch from source {} ...", source.display());
             for key in Key::iter() {
-                if environment.settings.only_required
-                    && !environment.settings.required_keys.contains(&key)
-                {
-                    log::trace!("\tSkip fetching {:?} because it is not required", key);
-                    continue;
-                }
                 let rated_value = source.retrieve(environment, key)?;
                 if let Some((confidence, value)) = rated_value {
                     log::trace!("\tFetched {:?}='{}'", key, value);
@@ -145,11 +139,20 @@ pub fn run(
         }
     }
 
+    let sink_values = if environment.settings.only_required {
+        values
+            .into_iter()
+            .filter(|val| environment.settings.required_keys.contains(&val.0))
+            .collect()
+    } else {
+        values
+    };
+
     for ref sink in sinks {
         log::trace!("Checking if sink {} is usable ...", sink);
         if sink.is_usable(environment) {
             log::trace!("Storing to sink {} ...", sink);
-            sink.store(environment, &values)?;
+            sink.store(environment, &sink_values)?;
         }
     }
 
