@@ -106,9 +106,8 @@ pub fn run(
             None => {
                 if required {
                     log::warn!("Missing value for required key '{:?}'", key);
-                    match environment.settings.fail_on {
-                        FailOn::AnyMissingValue => return Err(validator::Error::Missing.into()), // TODO Should/could this be handled in the validator already?
-                        FailOn::Error => (),
+                    if let FailOn::AnyMissingValue = environment.settings.fail_on {
+                        return Err(validator::Error::Missing.into()); // TODO Should/could this be handled in the validator already?
                     }
                 } else {
                     log::debug!("Missing value for optional key '{:?}'", key);
