@@ -21,7 +21,9 @@ pub fn create(repo_dir: &Path) -> Result<(), RepoCreationError> {
         touch "a.txt";
         mkdir "b"
         touch "b/c.txt";
-        echo "$license_text" | tee "LICENSE.txt";
+        // The final call to awk is just to hide the output, without using '>',
+        // as it is not supported by lib_cmd
+        echo "$license_text" | tee "LICENSE.txt" | awk -e "{}";
         mkdir -p "LICENSES";
         touch "LICENSES/AGPL-3.0-or-later.txt";
         touch "LICENSES/CC0-1.0.txt";
@@ -36,7 +38,9 @@ pub fn create(repo_dir: &Path) -> Result<(), RepoCreationError> {
         git config "branch.master.remote" "origin";
         git config "branch.master.merge" "refs/heads/master";
         mkdir -p ".git/refs/remotes/origin";
-        git rev-parse HEAD | tee ".git/refs/remotes/origin/master";
+        // The final call to awk is just to hide the output, without using '>',
+        // as it is not supported by lib_cmd
+        git rev-parse HEAD | tee ".git/refs/remotes/origin/master" | awk -e "{}";
     )
     .map_err(|err| RepoCreationError::Initializing {
         dir: repo_dir.display().to_string(),
