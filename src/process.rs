@@ -127,11 +127,19 @@ pub fn run(
     if log::log_enabled!(log::Level::Trace) {
         log::trace!("Evaluated variables ...");
         for (key, variable, (confidence, value)) in &values {
+            let sinking = if environment.settings.only_required
+                && !environment.settings.required_keys.contains(key)
+            {
+                "output"
+            } else {
+                "!output"
+            };
             log::trace!(
-                "\t{:?}:{}:{}='{}' ",
+                "\t{:?}:{}:{}:{}='{}' ",
                 key,
                 variable.key(environment),
                 confidence,
+                sinking,
                 &value
             );
         }
