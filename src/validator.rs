@@ -144,12 +144,6 @@ fn validate_version(environment: &mut Environment, value: &str) -> Result {
         static ref R_GIT_SHA_PREFIX: Regex = Regex::new(r"^g[0-9a-f]{7}").unwrap();
         static ref R_UNKNOWN_VERS: Regex = Regex::new(r"^($|#|//)").unwrap();
     }
-    if git::is_git_dirty_version(value) {
-        log::warn!(
-            "Dirty project version '{}'; you have uncommitted changes in your project",
-            value
-        );
-    }
     if R_SEM_VERS_RELEASE.is_match(value) {
         Ok(Validity::Low { msg: "This is a release version, which indicates either that we are on a release commit, or that it is imprecise, and actually a left-over from the previous release.".to_owned() })
     } else if git::is_git_dirty_version(value) {
