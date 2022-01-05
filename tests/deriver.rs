@@ -18,6 +18,7 @@ pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
     )?;
     // let repo_dir = create_repo_common!(default)?;
     env::set_current_dir(repo_dir)?;
+    common::clear_env_vars();
     Ok(())
 }
 

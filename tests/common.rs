@@ -10,7 +10,7 @@ use uuid::Uuid;
 
 use assert_cmd::prelude::*;
 use lazy_static::lazy_static;
-use std::{collections::HashMap, fmt::Display, path::PathBuf, process::Command};
+use std::{collections::HashMap, env, fmt::Display, path::PathBuf, process::Command};
 
 lazy_static! {
     pub static ref R_DATE_TIME: Regex =
@@ -147,4 +147,11 @@ pub fn projvar_test_all(
     expected_pats: &HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     projvar_test(expected_pats, &["--all"])
+}
+
+pub fn clear_env_vars() {
+    let vars: Vec<String> = env::vars().map(|(key, _val)| key).collect();
+    for var in vars {
+        env::remove_var(var);
+    }
 }

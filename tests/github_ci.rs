@@ -32,6 +32,7 @@ const GITHUB_HEAD_REF: [Option<&str>; 2] = [Some("head-branch"), None];
 const GITHUB_BASE_REF: [Option<&str>; 2] = [Some("base-branch"), None];
 
 pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
+    common::clear_env_vars();
     env::set_var("CI", CI);
     env::set_var("GITHUB_ACTOR", GITHUB_ACTOR);
     env::set_var("GITHUB_REPOSITORY", GITHUB_REPOSITORY);

@@ -37,6 +37,7 @@ const BITBUCKET_PROJECT_KEY: [Option<&str>; 2] = [Some("my-project-group"), None
 const BITBUCKET_PROJECT_UUID: &str = "123e4567-e89b-12d3-a456-426614174001";
 
 pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
+    common::clear_env_vars();
     env::set_var("CI", CI);
     env::set_var("BITBUCKET_COMMIT", BITBUCKET_COMMIT);
     env::set_var("BITBUCKET_WORKSPACE", BITBUCKET_WORKSPACE[0]);

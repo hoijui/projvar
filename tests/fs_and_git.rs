@@ -19,6 +19,7 @@ pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
         "repo_creation/default.rs"
     )?;
     env::set_current_dir(repo_dir)?;
+    common::clear_env_vars();
     Ok(())
 }
 

@@ -90,6 +90,7 @@ const GITLAB_USER_LOGIN: &str = "jobtriggerer";
 const GITLAB_USER_NAME: &str = "Job Triggerer";
 
 pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
+    common::clear_env_vars();
     env::set_var("CI", CI);
     env::set_var("CI_COMMIT_AUTHOR", CI_COMMIT_AUTHOR);
     env::set_var("CI_COMMIT_BRANCH", CI_COMMIT_BRANCH[0].unwrap());
