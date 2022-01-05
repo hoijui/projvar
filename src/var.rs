@@ -14,6 +14,7 @@ use std::{
 };
 use strum::{EnumCount, IntoEnumIterator};
 use strum_macros::{EnumCount, EnumIter, EnumString, IntoStaticStr};
+use thiserror::Error;
 
 use std::str::FromStr;
 
@@ -145,6 +146,12 @@ pub fn camel_to_upper_snake_case(id: &str) -> String {
     res.strip_prefix('_').unwrap_or(&res).to_string()
 }
 
+#[derive(Error, Debug)]
+#[error("Not a valid key name: '{name}'")]
+pub struct InvalidKey {
+    name: String,
+}
+
 /// Converts an `"UPPER_SNAKE_CASE"` string into an `"CamelCase"` one.
 ///
 /// for example:
@@ -194,12 +201,16 @@ impl Key {
     /// # Errors
     ///
     /// If the given identifier could not be mapped to any `Key` variant.
-    pub fn from_name_or_var_key(key_prefix: &Regex, id: &str) -> BoxResult<Key> {
-        Ok(Self::from_str(id).or_else(|_| {
-            Self::from_str(&upper_snake_to_camel_case(
-                key_prefix.replace(id, "").as_ref(),
-            ))
-        })?)
+    pub fn from_name_or_var_key(key_prefix: &Regex, id: &str) -> Result<Key, InvalidKey> {
+        Self::from_str(id)
+            .or_else(|_| {
+                Self::from_str(&upper_snake_to_camel_case(
+                    key_prefix.replace(id, "").as_ref(),
+                ))
+            })
+            .map_err(|_err| InvalidKey {
+                name: id.to_owned(),
+            })
     }
 }
 
