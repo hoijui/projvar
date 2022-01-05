@@ -199,7 +199,10 @@ impl super::VarSource for VarSource {
                 Key::BuildOs => Some(build_os(environment)),
                 Key::BuildOsFamily => Some(build_os_family(environment)),
                 Key::License => license(environment)?.map(|val| (C_HIGH, val)),
-                Key::Licenses => licenses(environment, false)?.map(|lv| (C_HIGH, lv.join(", "))), // TODO Later on, rather create an SPDX expressions, maybe by using OR instead of ',' to join ... but can we really?
+                Key::Licenses => licenses(environment, false)?.map(|mut lv| {
+                    lv.sort();
+                    (C_HIGH, lv.join(", "))
+                }), // TODO Later on, rather create an SPDX expressions, maybe by using OR instead of ',' to join ... but can we really?
                 Key::Name => name(environment)?,
                 Key::Version => version(environment)?
                     .map(|conf_val| cleanup::conf_version(environment, conf_val)),
