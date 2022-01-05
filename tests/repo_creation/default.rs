@@ -11,10 +11,13 @@ use super::RepoCreationError;
 pub fn create(repo_dir: &Path) -> Result<(), RepoCreationError> {
     let license_text = include_str!("../../LICENSE.txt");
     run_cmd! (
+        // Re-creat ethe repo from scratch
         rm -Rf "$repo_dir";
         mkdir -p "$repo_dir";
         cd "$repo_dir";
         git init;
+
+        // Create content
         touch "a.txt";
         mkdir "b"
         touch "b/c.txt";
@@ -23,8 +26,12 @@ pub fn create(repo_dir: &Path) -> Result<(), RepoCreationError> {
         touch "LICENSES/AGPL-3.0-or-later.txt";
         touch "LICENSES/CC0-1.0.txt";
         touch "LICENSES/Unlicense.txt";
+
+        // Add and commit all content
         git add -A;
         git commit -m "Initial commit";
+
+        // Add a remote (without having to fetch -> tricky!)
         git remote add origin "https://github.com/hoijui/projvar.git";
         git config "branch.master.remote" "origin";
         git config "branch.master.merge" "refs/heads/master";
