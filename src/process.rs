@@ -123,9 +123,9 @@ pub fn run(
         }
     }
 
-    log::trace!("Evaluated variables ...");
     let values = environment.output.get_wrapup();
     if log::log_enabled!(log::Level::Trace) {
+        log::trace!("Evaluated variables ...");
         for (key, variable, (confidence, value)) in &values {
             log::trace!(
                 "\t{:?}:{}:{}='{}' ",
