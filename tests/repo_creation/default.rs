@@ -11,7 +11,7 @@ use super::RepoCreationError;
 pub fn create(repo_dir: &Path) -> Result<(), RepoCreationError> {
     let license_text = include_str!("../../LICENSE.txt");
     run_cmd! (
-        // Re-creat ethe repo from scratch
+        // Re-create the repo from scratch
         rm -Rf "$repo_dir";
         mkdir -p "$repo_dir";
         cd "$repo_dir";
