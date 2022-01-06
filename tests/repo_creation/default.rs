@@ -17,6 +17,10 @@ pub fn create(repo_dir: &Path) -> Result<(), RepoCreationError> {
         cd "$repo_dir";
         git init;
 
+        // Sets the git user details (required for committing)
+        git config --global user.email "elui.alawi@email.com";
+        git config --global user.name "Joe Doe";
+
         // Create content
         touch "a.txt";
         mkdir "b"
