@@ -742,7 +742,7 @@ fn main() -> BoxResult<()> {
         log::trace!("Fetching variables from the environment ...");
         repvar::tools::append_env(&mut environment.vars);
     }
-    // fetch variable files
+    // fetch variables files
     if let Some(var_files) = args.values_of(A_L_VARIABLES_FILE) {
         for var_file in var_files {
             if var_file == "-" {
