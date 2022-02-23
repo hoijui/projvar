@@ -96,7 +96,10 @@ const A_L_SHOW_PRIMARY_RETRIEVED: &str = "show-primary-retrieved";
 fn arg_project_root() -> Arg<'static> {
     Arg::new(A_L_PROJECT_ROOT)
         .help("The root dir of the project")
-        .long_help("The root directory of the project, mainly used for SCM (e.g. git) information gathering.")
+        .long_help(
+            "The root directory of the project, \
+            mainly used for SCM (e.g. git) information gathering.",
+        )
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("DIR")
@@ -111,7 +114,13 @@ fn arg_project_root() -> Arg<'static> {
 fn arg_variable() -> Arg<'static> {
     Arg::new(A_L_VARIABLE)
         .help("A key-value pair to be used as input")
-        .long_help("A key-value pair (aka a variable) to be used as input, as it it was specified as an environment variable. Value provided with this take precedense over environment variables - they overwrite them. See -I,--variable-file for supplying a lot of such pairs at once.")
+        .long_help(
+            "A key-value pair (aka a variable) to be used as input, \
+            as it it was specified as an environment variable. \
+            Value provided with this take precedense over environment variables - \
+            they overwrite them. \
+            See -I,--variable-file for supplying a lot of such pairs at once.",
+        )
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("KEY=VALUE")
@@ -126,7 +135,11 @@ fn arg_variable() -> Arg<'static> {
 fn arg_variables_file() -> Arg<'static> {
     Arg::new(A_L_VARIABLES_FILE)
         .help("An input file containing KEY=VALUE pairs")
-        .long_help("An input file containing KEY=VALUE pairs, one per line (BASH style). Empty lines, and those starting with \"#\" or \"//\" are ignored. See -D,--variable for specifying one pair at a time.")
+        .long_help(
+            "An input file containing KEY=VALUE pairs, one per line (BASH style). \
+            Empty lines, and those starting with \"#\" or \"//\" are ignored. \
+            See -D,--variable for specifying one pair at a time.",
+        )
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("FILE")
@@ -162,7 +175,11 @@ fn arg_env_out() -> Arg<'static> {
 fn arg_out_file() -> Arg<'static> {
     Arg::new(A_L_FILE_OUT)
         .help("Write variables into this file")
-        .long_help("Write evaluated values into a file, one KEY-VALUE pair per line (BASH syntax). Note that \"-\" has no special meaning here; it does not mean stdout, but rather the file \"./-\".")
+        .long_help(
+            "Write evaluated values into a file, one KEY-VALUE pair per line (BASH syntax). \
+            Note that \"-\" has no special meaning here; \
+            it does not mean stdout, but rather the file \"./-\".",
+        )
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("FILE")
@@ -177,7 +194,14 @@ fn arg_out_file() -> Arg<'static> {
 fn arg_hosting_type() -> Arg<'static> {
     Arg::new(A_L_HOSTING_TYPE)
         .help("Overrides the hosting type of the primary remote")
-        .long_help("As usually most kinds of repo URL property values are derived from the clone URL, it is essential to know how to construct them. Different hosting softwares construct them differently. By default, we try to derive it from the clone URL domain, but if this is not possible, this switch allows to set the hosting software manually.")
+        .long_help(
+            "As usually most kinds of repo URL property values are derived from the clone URL, \
+            it is essential to know how to construct them. \
+            Different hosting softwares construct them differently. \
+            By default, we try to derive it from the clone URL domain, \
+            but if this is not possible, \
+            this switch allows to set the hosting software manually.",
+        )
         .takes_value(true)
         .forbid_empty_values(true)
         .possible_values(git_hosting_provs::HostingType::VARIANTS)
@@ -191,7 +215,10 @@ fn arg_hosting_type() -> Arg<'static> {
 fn arg_verbose() -> Arg<'static> {
     Arg::new(A_L_VERBOSE)
         .help("More verbose log output")
-        .long_help("More verbose log output; useful for debugging. See -L,--log-level for more fine-graine control.")
+        .long_help(
+            "More verbose log output; useful for debugging. \
+            See -L,--log-level for more fine-graine control.",
+        )
         .takes_value(false)
         .short(A_S_VERBOSE)
         .long(A_L_VERBOSE)
@@ -214,7 +241,12 @@ fn arg_log_level() -> Arg<'static> {
 fn arg_quiet() -> Arg<'static> {
     Arg::new(A_L_QUIET)
         .help("No logging to stdout (only stderr)")
-        .long_help("Supresses all log-output to stdout, and only shows errors on stderr (see -L,--log-level to also disable those). This does not affect the log level for the log-file.")
+        .long_help(
+            "Supresses all log-output to stdout, \
+            and only shows errors on stderr \
+            (see -L,--log-level to also disable those). \
+            This does not affect the log level for the log-file.",
+        )
         .takes_value(false)
         .short(A_S_QUIET)
         .long(A_L_QUIET)
@@ -226,7 +258,10 @@ fn arg_quiet() -> Arg<'static> {
 fn arg_fail() -> Arg<'static> {
     Arg::new(A_L_FAIL_ON_MISSING_VALUE)
         .help("Fail if a required value is missing")
-        .long_help("Fail if no value is available for any of the required properties (see --all,--none,--require,--require-not)")
+        .long_help(
+            "Fail if no value is available for any of the required properties \
+            (see --all,--none,--require,--require-not)",
+        )
         .takes_value(false)
         .short(A_S_FAIL_ON_MISSING_VALUE)
         .long(A_L_FAIL_ON_MISSING_VALUE)
@@ -237,7 +272,10 @@ fn arg_fail() -> Arg<'static> {
 fn arg_require_all() -> Arg<'static> {
     Arg::new(A_L_REQUIRE_ALL)
         .help("Marks all properties as required")
-        .long_help("Marks all properties as required. See --none,--fail,--require,--require-not.")
+        .long_help(
+            "Marks all properties as required. \
+            See --none,--fail,--require,--require-not.",
+        )
         .takes_value(false)
         .short(A_S_REQUIRE_ALL)
         .long(A_L_REQUIRE_ALL)
@@ -251,7 +289,8 @@ fn arg_require_none() -> Arg<'static> {
     Arg::new(A_L_REQUIRE_NONE)
         .help("Marks all properties as *not* required")
         .long_help(
-            "Marks all properties as *not* required. See --all,--fail,--require,--require-not.",
+            "Marks all properties as *not* required. \
+            See --all,--fail,--require,--require-not.",
         )
         .takes_value(false)
         .short(A_S_REQUIRE_NONE)
@@ -266,7 +305,15 @@ fn arg_require_none() -> Arg<'static> {
 fn arg_require() -> Arg<'static> {
     Arg::new(A_L_REQUIRE)
         .help("Mark a propery as required")
-        .long_help(r#"Mark a propery as required. You may use the property name (e.g. "Name") or the variable key (e.g. "PROJECT_NAME"); See --list for all possible keys. If at least one such option is present, the default required values list is cleared (see --fail,--all,--none,--require-not)."#)
+        .long_help(
+            r#"Mark a propery as required. \
+            You may use the property name (e.g. "Name") \
+            or the variable key (e.g. "PROJECT_NAME"); \
+            See --list for all possible keys. \
+            If at least one such option is present, \
+            the default required values list is cleared \
+            (see --fail,--all,--none,--require-not)."#,
+        )
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("KEY")
@@ -283,7 +330,12 @@ fn arg_require() -> Arg<'static> {
 fn arg_require_not() -> Arg<'static> {
     Arg::new(A_L_REQUIRE_NOT)
         .help("Mark a property as not required")
-        .long_help("A key of a variable whose value is *not* required. For example PROJECT_NAME (see --list for all possible keys). Can be used either on the base of the default requried list or all (see --fail,--all,--none,--require)")
+        .long_help(
+            "A key of a variable whose value is *not* required. \
+            For example PROJECT_NAME (see --list for all possible keys). \
+            Can be used either on the base of the default requried list \
+            or all (see --fail,--all,--none,--require)",
+        )
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("KEY")
@@ -299,7 +351,10 @@ fn arg_require_not() -> Arg<'static> {
 fn arg_only_required() -> Arg<'static> {
     Arg::new(A_L_ONLY_REQUIRED)
         .help("Only output the required values")
-        .long_help("Only output the required values (see --all,--none,--require, --require-not).")
+        .long_help(
+            "Only output the required values \
+            (see --all,--none,--require, --require-not).",
+        )
         .takes_value(false)
         // .short(A_S_ONLY_REQUIRED)
         .long(A_L_ONLY_REQUIRED)
@@ -310,7 +365,10 @@ fn arg_only_required() -> Arg<'static> {
 fn arg_key_prefix() -> Arg<'static> {
     Arg::new(A_L_KEY_PREFIX)
         .help("The key prefix to be used for output")
-        .long_help("The key prefix to be used when writing out values in the sinks. For example \"PROJECT_\" -> \"PROJECT_VERSION\", \"PROJECT_NAME\", ...")
+        .long_help(
+            "The key prefix to be used when writing out values in the sinks. \
+            For example \"PROJECT_\" -> \"PROJECT_VERSION\", \"PROJECT_NAME\", ...",
+        )
         .takes_value(true)
         .forbid_empty_values(false)
         .value_name("STRING")
@@ -350,7 +408,10 @@ fn arg_overwrite() -> Arg<'static> {
 fn arg_list() -> Arg<'static> {
     Arg::new(A_L_LIST)
         .help("Show all properties and their keys")
-        .long_help("Prints a list of all the environment variables that are potentially set by this tool onto stdout and exits.")
+        .long_help(
+            "Prints a list of all the environment variables \
+            that are potentially set by this tool onto stdout and exits.",
+        )
         .takes_value(false)
         .short(A_S_LIST)
         .long(A_L_LIST)
@@ -378,7 +439,10 @@ fn arg_log_file() -> Arg<'static> {
 fn arg_date_format() -> Arg<'static> {
     Arg::new(A_L_DATE_FORMAT)
         .help("Date format for generated dates")
-        .long_help("Date format string for generated (vs supplied) dates. For details, see https://docs.rs/chrono/latest/chrono/format/strftime/index.html")
+        .long_help(
+            "Date format string for generated (vs supplied) dates. \
+            For details, see https://docs.rs/chrono/latest/chrono/format/strftime/index.html",
+        )
         .takes_value(true)
         .forbid_empty_values(true)
         .value_hint(ValueHint::Other)
@@ -392,7 +456,11 @@ fn arg_date_format() -> Arg<'static> {
 fn arg_show_all_retrieved() -> Arg<'static> {
     Arg::new(A_L_SHOW_ALL_RETRIEVED)
         .help("Shows a table of all values retrieved from sources")
-        .long_help("Shows a table (in Markdown syntax) of all properties and the values retrieved for each from each individual source. Writes to log(Info), if no target file is given as argument.")
+        .long_help(
+            "Shows a table (in Markdown syntax) of all properties and the values \
+            retrieved for each from each individual source. \
+            Writes to log(Info), if no target file is given as argument.",
+        )
         .takes_value(true)
         .value_hint(ValueHint::FilePath)
         .value_name("MD-FILE")
@@ -407,7 +475,12 @@ fn arg_show_all_retrieved() -> Arg<'static> {
 fn arg_show_primary_retrieved() -> Arg<'static> {
     Arg::new(A_L_SHOW_PRIMARY_RETRIEVED)
         .help("Shows a list of the primary values retrieved from sources")
-        .long_help("Shows a list (in Markdown syntax) of all properties and the primary values retrieved for each, accumulated over the sources. Writes to log(Info), if no target file is given as argument.")
+        .long_help(
+            "Shows a list (in Markdown syntax) of all properties \
+            and the primary values retrieved for each, \
+            accumulated over the sources. \
+            Writes to log(Info), if no target file is given as argument.",
+        )
         .takes_value(true)
         .value_hint(ValueHint::FilePath)
         .value_name("MD-FILE")
