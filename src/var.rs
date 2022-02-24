@@ -364,23 +364,28 @@ pub const KEY_VERSION_DATE: &str = "VERSION_DATE";
 
 const VAR_BUILD_ARCH: Variable = Variable {
     key: KEY_BUILD_ARCH,
-    description:
-        "The computer hardware architecture we are building on. (common values: 'x86', 'x86_64')",
+    description: "The computer hardware architecture we are building on. \
+        (common values: 'x86', 'x86_64')",
     default_required: false,
 };
 const VAR_BUILD_BRANCH: Variable = Variable {
     key: KEY_BUILD_BRANCH,
-    description: r#"The development branch name, for example: "master", "develop""#,
+    description: r#"The development branch name, for example: \
+        "master", \
+        "develop""#,
     default_required: false,
 };
 const VAR_BUILD_DATE: Variable = Variable {
     key: KEY_BUILD_DATE,
-    description: r#"Date of this build, for example: "2021-12-31 23:59:59" (see --date-format)"#,
+    description: r#"Date of this build, for example: \
+        "2021-12-31 23:59:59" (see --date-format)"#,
     default_required: false,
 };
 const VAR_BUILD_HOSTING_URL: Variable = Variable {
     key: KEY_BUILD_HOSTING_URL,
-    description: "Web URL under which the generated output will be available, for example: https://osegermany.gitlab.io/OHS-3105",
+    description: "Web URL under which the generated output will be available, \
+        for example: \
+        https://osegermany.gitlab.io/OHS-3105",
     default_required: false,
 };
 const VAR_BUILD_NUMBER: Variable = Variable {
@@ -390,19 +395,21 @@ const VAR_BUILD_NUMBER: Variable = Variable {
 };
 const VAR_BUILD_OS: Variable = Variable {
     key: KEY_BUILD_OS,
-    description:
-        "The operating system we are building on. (common values: 'linux', 'macos', 'windows')",
+    description: "The operating system we are building on. \
+        (common values: 'linux', 'macos', 'windows')",
     default_required: false,
 };
 const VAR_BUILD_OS_FAMILY: Variable = Variable {
     key: KEY_BUILD_OS_FAMILY,
-    description:
-        "The operating system family we are building on. (should be either 'unix' or 'windows')",
+    description: "The operating system family we are building on. \
+        (should be either 'unix' or 'windows')",
     default_required: false,
 };
 const VAR_BUILD_TAG: Variable = Variable {
     key: KEY_BUILD_TAG,
-    description: "The tag of a commit that kicked off the build. This value is only available on tags. Not available for builds against branches.",
+    description: "The tag of a commit that kicked off the build. \
+        This value is only available on tags. \
+        Not available for builds against branches.",
     default_required: false,
 };
 const VAR_CI: Variable = Variable {
@@ -412,12 +419,19 @@ const VAR_CI: Variable = Variable {
 };
 const VAR_LICENSE: Variable = Variable {
     key: KEY_LICENSE,
-    description: r#"The main License identifier of the sources, prefferably from the SPDX specs, for example: "AGPL-3.0-or-later", "CC-BY-SA-4.0""#,
+    description: r#"The main License identifier of the sources, \
+        prefferably from the SPDX specs, for example: \
+        "AGPL-3.0-or-later", \
+        "CC-BY-SA-4.0""#,
     default_required: true,
 };
 const VAR_LICENSES: Variable = Variable {
     key: KEY_LICENSES,
-    description: r#"The identifiers of all the licenses of this project, prefferably from the SPDX specs, comma separated, for example: "AGPL-3.0-or-later, CC0-1.0, Unlicense""#,
+    description: r#"The identifiers of all the licenses of this project, \
+        prefferably from the SPDX specs, comma separated, for example: \
+        "AGPL-3.0-or-later, \
+        CC0-1.0, \
+        Unlicense""#,
     default_required: true,
 };
 const VAR_NAME: Variable = Variable {
@@ -432,52 +446,77 @@ const VAR_NAME_MACHINE_READABLE: Variable = Variable {
 };
 const VAR_REPO_CLONE_URL: Variable = Variable {
     key: KEY_REPO_CLONE_URL,
-    description: "The repo clone URL, HTTP(S) version. This is commonly used for anonymous fetch-only access.",
+    description:
+        "The repo clone URL, HTTP(S) version. \
+        This is commonly used for anonymous fetch-only access.",
     default_required: true,
 };
 const VAR_REPO_CLONE_URL_SSH: Variable = Variable {
     key: KEY_REPO_CLONE_URL_SSH,
-    description: "The repo clone URL, SSH version. This is commonly used for authenticated, fetch and push access.",
+    description:
+        "The repo clone URL, SSH version. \
+        This is commonly used for authenticated, fetch and push access.",
     default_required: false,
 };
 const VAR_REPO_COMMIT_PREFIX_URL: Variable = Variable {
     key: KEY_REPO_COMMIT_PREFIX_URL,
-    description: "The repo commit prefix URL. Add commit SHA. The part in []: [https://github.com/hoijui/nim-ci/commit]/23f84b91]",
+    description: // TODO Elaborate the "Add commit SHA" part
+        "The repo commit prefix URL. \
+        Add commit SHA. \
+        The part in []: \
+        [https://github.com/hoijui/nim-ci/commit]/23f84b91]",
     default_required: true,
 };
 const VAR_REPO_ISSUES_URL: Variable = Variable {
     key: KEY_REPO_ISSUES_URL,
-    description: "The repo issues URL, for example: https://gitlab.com/openflexure/openflexure-microscope/issues",
+    description: "The repo issues URL, for example: \
+        https://gitlab.com/openflexure/openflexure-microscope/issues",
     default_required: true,
 };
 const VAR_REPO_RAW_VERSIONED_PREFIX_URL: Variable = Variable {
     key: KEY_REPO_RAW_VERSIONED_PREFIX_URL,
-    description: "The repo raw prefix URL. Add version (tag, branch, SHA) and file path. The part in []: [https://raw.githubusercontent.com/hoijui/nim-ci]/master/.github/workflows/docker.yml]",
+    description: "The repo raw prefix URL. \
+        Add version (tag, branch, SHA) and file path. \
+        The part in []: \
+        [https://raw.githubusercontent.com/hoijui/nim-ci]/master/.github/workflows/docker.yml]",
     default_required: true,
 };
 const VAR_REPO_VERSIONED_DIR_PREFIX_URL: Variable = Variable {
     key: KEY_REPO_VERSIONED_DIR_PREFIX_URL,
-    description: "The repo directory prefix URL. Add version (tag, branch, SHA) and directory path. The part in []: [https://github.com/hoijui/nim-ci]/master/.github/workflows/docker.yml]",
+    description: // TODO Elaborate the "Add ..." part
+        "The repo directory prefix URL. \
+        Add version (tag, branch, SHA) and directory path. \
+        The part in []: \
+        [https://github.com/hoijui/nim-ci]/master/.github/workflows/docker.yml]",
     default_required: true,
 };
 const VAR_REPO_VERSIONED_FILE_PREFIX_URL: Variable = Variable {
     key: KEY_REPO_VERSIONED_FILE_PREFIX_URL,
-    description: "The repo file prefix URL. Add version (tag, branch, SHA) and file path. The part in []: [https://github.com/hoijui/nim-ci]/master/.github/workflows/docker.yml]",
+    description: // TODO Elaborate the "Add ..." part
+        "The repo file prefix URL. \
+        Add version (tag, branch, SHA) and file path. \
+        The part in []: \
+        [https://github.com/hoijui/nim-ci]/master/.github/workflows/docker.yml]",
     default_required: true,
 };
 const VAR_REPO_WEB_URL: Variable = Variable {
     key: KEY_REPO_WEB_URL,
-    description: "The repo web UI URL, for example: https://gitlab.com/OSEGermany/OHS-3105",
+    description: "The repo web UI URL, for example: \
+        https://gitlab.com/OSEGermany/OHS-3105",
     default_required: true,
 };
 const VAR_VERSION: Variable = Variable {
     key: KEY_VERSION,
-    description: r#"The project version, for example: "1.10.3", "0.2.0-1-ga5387ac-dirty""#,
+    description: r#"The project version, for example: \
+        "1.10.3", \
+        "0.2.0-1-ga5387ac-dirty""#,
     default_required: true,
 };
 const VAR_VERSION_DATE: Variable = Variable {
     key: KEY_VERSION_DATE,
-    description: r#"Date this version was committed to source control, for example: "2021-12-31 23:59:59" (see --date-format)"#,
+    description: r#"Date this version was committed to source control, for example: \
+        "2021-12-31 23:59:59" \
+        (see --date-format)"#,
     default_required: true,
 };
 
