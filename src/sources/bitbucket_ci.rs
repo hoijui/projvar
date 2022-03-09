@@ -60,7 +60,10 @@ impl super::VarSource for VarSource {
                     var(environment, "CI", C_HIGH).or_else(|| Some((C_LOW, "false".to_owned())))
                 }
                 Key::Name => var(environment, "BITBUCKET_PROJECT_KEY", C_HIGH),
-                Key::RepoCloneUrl => var(environment, "BITBUCKET_GIT_HTTP_ORIGIN", C_HIGH),
+                Key::RepoCloneUrl => self
+                    .retrieve(environment, Key::RepoCloneUrlHttp)
+                    .or_else(|_| self.retrieve(environment, Key::RepoCloneUrlSsh))?,
+                Key::RepoCloneUrlHttp => var(environment, "BITBUCKET_GIT_HTTP_ORIGIN", C_HIGH),
                 Key::RepoCloneUrlSsh => var(environment, "BITBUCKET_GIT_SSH_ORIGIN", C_HIGH),
                 Key::RepoWebUrl => {
                     // BITBUCKET_REPO_FULL_NAME = The full name of the repository

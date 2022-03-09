@@ -25,12 +25,15 @@ chrono = "0.4.19"
 clap = { version = "3.0.0-rc.4", features = ["cargo"] }
 enum-map = "2.0.0-2"
 git2 = "0.13"
+git-url = "0.3"
+# git-url-parse = "0.4"
 human-panic = "1.0.3"
 lazy_static = "1.4.0"
 log = "0.4.14"
 regex = "1.5"
 remain = "0.2.2"
 repvar = { git = "https://github.com/hoijui/repvar.git" }
+# repvar = { path = "../repvar" }
 simplelog = "0.11.0"
 spdx = "0.8.0"
 strum = "0.24"

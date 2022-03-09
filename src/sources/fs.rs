@@ -186,6 +186,7 @@ impl super::VarSource for VarSource {
                 | Key::BuildTag
                 | Key::Ci
                 | Key::RepoCloneUrl
+                | Key::RepoCloneUrlHttp
                 | Key::RepoCloneUrlSsh
                 | Key::RepoCommitPrefixUrl
                 | Key::RepoIssuesUrl

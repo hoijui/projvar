@@ -434,8 +434,21 @@ lazy_static! {
     static ref R_BIT_BUCKET_CLONE_PATH: Regex = (*R_GIT_HUB_CLONE_PATH).clone();
 }
 
+/// Many possible formats, see:
+/// * <https://www.git-scm.com/docs/git-clone#_git_urls>
+/// * <https://github.com/tjtelan/git-url-parse-rs>
+/// * <https://github.com/Byron/gitoxide/blob/main/git-url>
+fn validate_repo_clone_url(_environment: &mut Environment, value: &str) -> Result {
+    git_url::parse(value.as_bytes())
+        .map(|_url| Validity::Middle { msg: "".to_owned() })
+        .map_err(|err| Error::BadValue {
+            msg: err.to_string(),
+            value: value.to_owned(),
+        })
+}
+
 // * https://git@bitbucket.org/Aouatef/master_arbeit.git
-fn validate_repo_clone_url(environment: &mut Environment, value: &str) -> Result {
+fn validate_repo_clone_url_http(environment: &mut Environment, value: &str) -> Result {
     let url = check_public_url(environment, value, false)?;
     let hosting_type = eval_hosting_type(environment, &url);
     let host_reg: Option<&Regex> = match hosting_type {
@@ -780,6 +793,7 @@ pub fn get(key: Key) -> Validator {
         Key::Name => validate_name,
         Key::NameMachineReadable => validate_name_machine_readable,
         Key::RepoCloneUrl => validate_repo_clone_url,
+        Key::RepoCloneUrlHttp => validate_repo_clone_url_http,
         Key::RepoCloneUrlSsh => validate_repo_clone_url_ssh,
         Key::RepoCommitPrefixUrl => validate_repo_commit_prefix_url,
         Key::RepoIssuesUrl => validate_repo_issues_url,

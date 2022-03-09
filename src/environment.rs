@@ -15,7 +15,7 @@ pub struct Environment {
     pub vars: HashMap<String, String>,
     /// The output values we evaluated for the project properties we want to know.
     pub output: Storage,
-    repo: Option<git::Repo>,
+    pub repo: Option<git::Repo>,
 }
 
 impl Environment {
@@ -23,11 +23,12 @@ impl Environment {
     pub fn new(settings: Settings) -> Environment {
         let vars = HashMap::<String, String>::new();
         let output = Storage::new();
+        let repo = git::Repo::try_from(settings.repo_path.as_deref()).ok();
         Environment {
             settings,
             vars,
             output,
-            repo: None,
+            repo,
         }
     }
 
@@ -36,10 +37,9 @@ impl Environment {
         Self::new(STUB.clone())
     }
 
-    pub fn repo(&mut self) -> Option<&git::Repo> {
-        if self.repo.is_none() {
-            self.repo = git::Repo::try_from(self.settings.repo_path.as_deref()).ok();
-        }
+    #[must_use]
+    pub fn repo(&self) -> Option<&git::Repo> {
+        // TODO DEPRECATED Just use the repo property directly, instead
         self.repo.as_ref()
     }
 }

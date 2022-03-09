@@ -99,6 +99,7 @@ pub enum Key {
     Name,
     NameMachineReadable,
     RepoCloneUrl,
+    RepoCloneUrlHttp,
     RepoCloneUrlSsh,
     RepoCommitPrefixUrl,
     RepoIssuesUrl,
@@ -352,6 +353,7 @@ pub const KEY_LICENSES: &str = "LICENSES";
 pub const KEY_NAME: &str = "NAME";
 pub const KEY_NAME_MACHINE_READABLE: &str = "NAME_MACHINE_READABLE";
 pub const KEY_REPO_CLONE_URL: &str = "REPO_CLONE_URL";
+pub const KEY_REPO_CLONE_URL_HTTP: &str = "REPO_CLONE_URL_HTTP";
 pub const KEY_REPO_CLONE_URL_SSH: &str = "REPO_CLONE_URL_SSH";
 pub const KEY_REPO_COMMIT_PREFIX_URL: &str = "REPO_COMMIT_PREFIX_URL";
 pub const KEY_REPO_ISSUES_URL: &str = "REPO_ISSUES_URL";
@@ -446,16 +448,24 @@ const VAR_NAME_MACHINE_READABLE: Variable = Variable {
 };
 const VAR_REPO_CLONE_URL: Variable = Variable {
     key: KEY_REPO_CLONE_URL,
-    description:
-        "The repo clone URL, HTTP(S) version. \
-        This is commonly used for anonymous fetch-only access.",
+    description: "The original repo clone URL; \
+        may use any valid git URL scheme. \
+        May not conform to the URL specification. \
+        It is commonly used for anonymous fetch-only access.",
     default_required: true,
+};
+const VAR_REPO_CLONE_URL_HTTP: Variable = Variable {
+    key: KEY_REPO_CLONE_URL_HTTP,
+    description: "The repo clone URL, HTTP(S) version. \
+        It always conforms to the URL specification. \
+        It is commonly used for anonymous fetch-only access.",
+    default_required: false,
 };
 const VAR_REPO_CLONE_URL_SSH: Variable = Variable {
     key: KEY_REPO_CLONE_URL_SSH,
-    description:
-        "The repo clone URL, SSH version. \
-        This is commonly used for authenticated, fetch and push access.",
+    description: "The repo clone URL, SSH version. \
+        It always conforms to the URL specification. \
+        It is commonly used for authenticated, fetch and push access.",
     default_required: false,
 };
 const VAR_REPO_COMMIT_PREFIX_URL: Variable = Variable {
@@ -540,6 +550,7 @@ pub fn get(key: Key) -> &'static Variable {
         Key::Name => &VAR_NAME,
         Key::NameMachineReadable => &VAR_NAME_MACHINE_READABLE,
         Key::RepoCloneUrl => &VAR_REPO_CLONE_URL,
+        Key::RepoCloneUrlHttp => &VAR_REPO_CLONE_URL_HTTP,
         Key::RepoCloneUrlSsh => &VAR_REPO_CLONE_URL_SSH,
         Key::RepoCommitPrefixUrl => &VAR_REPO_COMMIT_PREFIX_URL,
         Key::RepoIssuesUrl => &VAR_REPO_ISSUES_URL,

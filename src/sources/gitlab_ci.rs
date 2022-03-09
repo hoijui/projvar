@@ -47,6 +47,8 @@ impl super::VarSource for VarSource {
                 | Key::License
                 | Key::Licenses
                 | Key::NameMachineReadable
+                | Key::RepoCloneUrlHttp
+                | Key::RepoCloneUrlSsh
                 | Key::RepoCommitPrefixUrl
                 | Key::RepoIssuesUrl
                 | Key::RepoRawVersionedPrefixUrl
@@ -61,20 +63,7 @@ impl super::VarSource for VarSource {
                 }
                 Key::Name => var(environment, "CI_PROJECT_NAME", C_HIGH),
                 // TODO PRIO make sure to cover/handle well all of this (default format of this env var): CI_REPOSITORY_URL="https://gitlab-ci-token:[masked]@example.com/gitlab-org/gitlab-foss.git"
-                Key::RepoCloneUrl => value_conversions::clone_url_conversion_option(
-                    var(environment, "CI_REPOSITORY_URL", C_HIGH)
-                        .map(|rated_value| rated_value.1)
-                        .as_ref(),
-                    value_conversions::Protocol::Https,
-                )?
-                .map(|val| (C_HIGH, val)),
-                Key::RepoCloneUrlSsh => value_conversions::clone_url_conversion_option(
-                    var(environment, "CI_REPOSITORY_URL", C_HIGH)
-                        .map(|rated_value| rated_value.1)
-                        .as_ref(),
-                    value_conversions::Protocol::Ssh,
-                )?
-                .map(|val| (C_HIGH, val)),
+                Key::RepoCloneUrl => var(environment, "CI_REPOSITORY_URL", C_HIGH),
                 Key::RepoWebUrl => var(environment, "CI_PROJECT_URL", C_HIGH),
                 Key::Version => self
                     .retrieve(environment, Key::BuildTag)?

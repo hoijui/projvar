@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use crate::environment::Environment;
 use crate::var::{Key, C_HIGH};
-use crate::{environment::Environment, value_conversions};
 
 use super::{Hierarchy, RetrieveRes};
 
@@ -102,6 +102,8 @@ impl super::VarSource for VarSource {
                 | Key::BuildHostingUrl
                 | Key::Name
                 | Key::NameMachineReadable
+                | Key::RepoCloneUrlHttp
+                | Key::RepoCloneUrlSsh
                 | Key::RepoCommitPrefixUrl
                 | Key::RepoIssuesUrl
                 | Key::RepoRawVersionedPrefixUrl
@@ -110,20 +112,9 @@ impl super::VarSource for VarSource {
                 | Key::RepoWebUrl => None,
                 Key::BuildBranch => branch(environment)?,
                 Key::BuildTag => tag(environment)?,
-                Key::RepoCloneUrl => value_conversions::clone_url_conversion_option(
-                    clone_url(environment)?
-                        .map(|rated_value| rated_value.1)
-                        .as_ref(),
-                    value_conversions::Protocol::Https,
-                )?
-                .map(|val| (C_HIGH, val)),
-                Key::RepoCloneUrlSsh => value_conversions::clone_url_conversion_option(
-                    clone_url(environment)?
-                        .map(|rated_value| rated_value.1)
-                        .as_ref(),
-                    value_conversions::Protocol::Ssh,
-                )?
-                .map(|val| (C_HIGH, val)),
+                Key::RepoCloneUrl => clone_url(environment)?
+                    .map(|rated_value| rated_value.1)
+                    .map(|val| (C_HIGH, val)),
                 Key::Version => version(environment)?,
                 Key::VersionDate => version_date(environment)?,
             },

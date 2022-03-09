@@ -20,6 +20,25 @@ macro_rules! overwrite_guard {
     };
 }
 
+macro_rules! conv_val {
+    ($environment:ident, $in_key:ident, $out_key:ident, $conv_fun:ident $(,$extra_arg:expr)*) => {
+        overwrite_guard!($environment, $out_key,
+                // Does a lot of extracting and reinserting of value and confidence,
+                // and mapping of Option to Result
+                $environment
+                .output
+                .get(Key::$in_key)
+                .and_then(|(confidence, in_val)| {
+                    Some(
+                        value_conversions::$conv_fun(in_val, $($extra_arg),*)
+                            .map(|val_opt| val_opt.map(|val| (*confidence, val))),
+                    )
+                })
+                .unwrap_or(Ok(None))?
+        )
+    }
+}
+
 macro_rules! conv_val_with_env {
     ($environment:ident, $in_key:ident, $out_key:ident, $conv_fun:ident $(,$extra_arg:expr)*) => {
         overwrite_guard!($environment, $out_key,
@@ -109,14 +128,43 @@ impl super::VarSource for VarSource {
                     web_url_to_clone_url,
                     Protocol::Https
                 ),
+                Key::RepoCloneUrlHttp => {
+                    let from_web_url = conv_val_with_env!(
+                        environment,
+                        RepoWebUrl,
+                        key,
+                        web_url_to_clone_url,
+                        Protocol::Https
+                    );
+                    match from_web_url {
+                        Some(_) => from_web_url,
+                        None => conv_val!(
+                            environment,
+                            RepoCloneUrl,
+                            key,
+                            clone_url_conversion,
+                            Protocol::Https
+                        ),
+                    }
+                }
                 Key::RepoCloneUrlSsh => {
-                    conv_val_with_env!(
+                    let from_web_url = conv_val_with_env!(
                         environment,
                         RepoWebUrl,
                         key,
                         web_url_to_clone_url,
                         Protocol::Ssh
-                    )
+                    );
+                    match from_web_url {
+                        Some(_) => from_web_url,
+                        None => conv_val!(
+                            environment,
+                            RepoCloneUrl,
+                            key,
+                            clone_url_conversion,
+                            Protocol::Ssh
+                        ),
+                    }
                 }
                 Key::RepoCommitPrefixUrl => {
                     conv_val_with_env!(environment, RepoWebUrl, key, web_url_to_commit_prefix_url)
