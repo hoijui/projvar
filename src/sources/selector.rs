@@ -21,7 +21,12 @@ pub struct VarSource;
 
 fn source_index_to_confidence(source_index: usize) -> u8 {
     u8::try_from(source_index).unwrap_or_else(|_err| {
-        log::warn!("Sorting during value selection has a small chance to be imprecise because more then {} sources (at least {}) are in use.", u8::MAX, source_index + 1);
+        log::warn!(
+            "Sorting during value selection has a small chance to be imprecise, \
+            because more then {} sources (at least {}) are in use.",
+            u8::MAX,
+            source_index + 1
+        );
         u8::MAX
     })
 }
