@@ -501,8 +501,8 @@ pub fn clone_url_conversion(any_clone_url: &str, protocol: Protocol) -> Res {
                 ),
                 Protocol::Ssh => format!(
                     //"{user}{host}:{path_and_rest}", // TODO or this? ...
-                    "{protocol}://{user}{host}:{path_and_rest}", // TODO This is the (URL spec compatible) alternative
-                    // "{protocol}://{host}:{path_and_rest}", // TODO This is the (URL spec compatible) alternative, anonymised (without user)
+                    "{protocol}://{user}{host}/{path_and_rest}", // TODO This is the (URL spec compatible) alternative
+                    // "{protocol}://{host}/{path_and_rest}", // TODO This is the (URL spec compatible) alternative, anonymised (without user)
                     protocol = to_protocol_str,
                     user = user_at.to_lowercase(),
                     host = host,
