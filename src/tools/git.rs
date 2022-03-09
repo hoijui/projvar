@@ -38,7 +38,11 @@ fn _version(repo: &git2::Repository) -> BoxResult<String> {
     //      which is not possible with git2-rs,
     //      but it is really not important
     Ok(repo
-        .describe(git2::DescribeOptions::new().describe_tags())?
+        .describe(
+            git2::DescribeOptions::new()
+                .pattern("*[0-9]*.[0-9]*.[0-9]*")
+                .describe_tags(),
+        )?
         .format(Some(
             git2::DescribeFormatOptions::new()
                 .always_use_long_format(false)
