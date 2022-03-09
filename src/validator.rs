@@ -291,7 +291,7 @@ fn check_public_url(
                     ),
                     value: value.to_owned(),
                 })
-            } else if url.username() != "" {
+            } else if url.username() != "" && url.username() != "git" {
                 Err(Error::AlmostUsableValue {
                     msg: format!(
                         "Should be anonymous access, but specifies a user-name: {}",
