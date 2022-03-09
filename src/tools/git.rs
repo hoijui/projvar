@@ -169,16 +169,21 @@ impl Repo {
         ))
     }
 
-    fn _tag(&self) -> BoxResult<Option<git2::Tag>> {
+    fn _tag(&self) -> BoxResult<Option<String>> {
         let head = self.repo.head()?;
         let head_oid = head
             .resolve()?
             .target()
             .ok_or_else(|| git2::Error::from_str("No OID for HEAD"))?;
         let mut tag = None;
-        let mut inner_err: Option<BoxResult<Option<git2::Tag>>> = None;
-        self.repo.tag_foreach(|id, _name| {
-            let cur_tag_res = self.repo.find_tag(id);
+        let mut inner_err: Option<BoxResult<Option<String>>> = None;
+        self.repo.tag_foreach(|_id, name| {
+            let name_str = String::from_utf8(name.to_vec()).expect("Failed stringifying tag name");
+            let cur_tag_res = self.repo.find_reference(&name_str).and_then(|git_ref| {
+                git_ref.target().ok_or_else(|| {
+                    git2::Error::from_str("Failed to get tag reference target commit")
+                })
+            });
             let cur_tag = match cur_tag_res {
                 Err(err) => {
                     inner_err = Some(Err(Box::new(err)));
@@ -186,8 +191,8 @@ impl Repo {
                 }
                 Ok(cur_tag) => cur_tag,
             };
-            if cur_tag.target_id() == head_oid {
-                tag = Some(cur_tag);
+            if cur_tag == head_oid {
+                tag = Some(name_str);
                 false
             } else {
                 true
@@ -207,18 +212,7 @@ impl Repo {
     /// If some git-related magic goes south,
     /// or the tag name is not valid UTF-8.
     pub fn tag(&self) -> BoxResult<Option<String>> {
-        Ok(match self._tag()? {
-            Some(tag) => tag.name().map(std::borrow::ToOwned::to_owned),
-            None => None,
-        })
-
-        // Ok(self._tag()?.map(|tag: git2::Tag| -> BoxResult<Option<String>> {
-        //     // .ok_or_else(|| git2::Error::from_str("No tag on HEAD"))?
-        //     Ok(Some(
-        //         tag.name().map(std::borrow::ToOwned)
-        //             .ok_or_else(|| git2::Error::from_str("Tag name is not UTF-8 compatible"))?,
-        //     ))
-        // })?)
+        self._tag()
     }
 
     fn _remote_tracking_branch(&self) -> BoxResult<git2::Branch> {
