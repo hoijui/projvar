@@ -541,12 +541,11 @@ fn find_duplicate_short_options() -> Vec<char> {
 fn arg_matcher() -> App<'static> {
     let app = app_from_crate!().bin_name("osh").args(ARGS.iter());
     let duplicate_short_options = find_duplicate_short_options();
-    if !duplicate_short_options.is_empty() {
-        panic!(
-            "Duplicate argument short options: {:?}",
-            duplicate_short_options
-        );
-    }
+    assert!(
+        duplicate_short_options.is_empty(),
+        "Duplicate argument short options: {:?}",
+        duplicate_short_options
+    );
     app
 }
 
