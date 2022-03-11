@@ -65,6 +65,41 @@ macro_rules! conv_val_with_env {
 /// from the [`Key::RepoCloneUrl`].
 pub struct VarSource;
 
+fn name_machine_readable(environment: &Environment) -> RetrieveRes {
+    let key = Key::NameMachineReadable;
+    let from_name = conv_val_with_env!(environment, Name, key, name_to_machine_readable_name);
+    Ok(if from_name.is_some() {
+        from_name
+    } else {
+        conv_val_with_env!(
+            environment,
+            RepoWebUrl,
+            key,
+            web_url_to_machine_readable_name
+        )
+    })
+}
+
+fn repo_clone_url_specific(environment: &Environment, ssh: bool) -> RetrieveRes {
+    let (key, protocol) = if ssh {
+        (Key::RepoCloneUrlSsh, Protocol::Ssh)
+    } else {
+        (Key::RepoCloneUrlHttp, Protocol::Https)
+    };
+    let from_web_url =
+        conv_val_with_env!(environment, RepoWebUrl, key, web_url_to_clone_url, protocol);
+    Ok(match from_web_url {
+        Some(_) => from_web_url,
+        None => conv_val!(
+            environment,
+            RepoCloneUrl,
+            key,
+            clone_url_conversion,
+            protocol
+        ),
+    })
+}
+
 impl super::VarSource for VarSource {
     fn is_usable(&self, _environment: &mut Environment) -> bool {
         true
@@ -107,20 +142,7 @@ impl super::VarSource for VarSource {
                     key,
                     environment.output.get(Key::NameMachineReadable).cloned()
                 ),
-                Key::NameMachineReadable => {
-                    let from_name =
-                        conv_val_with_env!(environment, Name, key, name_to_machine_readable_name);
-                    if from_name.is_some() {
-                        from_name
-                    } else {
-                        conv_val_with_env!(
-                            environment,
-                            RepoWebUrl,
-                            key,
-                            web_url_to_machine_readable_name
-                        )
-                    }
-                }
+                Key::NameMachineReadable => name_machine_readable(environment)?,
                 Key::RepoCloneUrl => conv_val_with_env!(
                     environment,
                     RepoWebUrl,
@@ -128,44 +150,8 @@ impl super::VarSource for VarSource {
                     web_url_to_clone_url,
                     Protocol::Https
                 ),
-                Key::RepoCloneUrlHttp => {
-                    let from_web_url = conv_val_with_env!(
-                        environment,
-                        RepoWebUrl,
-                        key,
-                        web_url_to_clone_url,
-                        Protocol::Https
-                    );
-                    match from_web_url {
-                        Some(_) => from_web_url,
-                        None => conv_val!(
-                            environment,
-                            RepoCloneUrl,
-                            key,
-                            clone_url_conversion,
-                            Protocol::Https
-                        ),
-                    }
-                }
-                Key::RepoCloneUrlSsh => {
-                    let from_web_url = conv_val_with_env!(
-                        environment,
-                        RepoWebUrl,
-                        key,
-                        web_url_to_clone_url,
-                        Protocol::Ssh
-                    );
-                    match from_web_url {
-                        Some(_) => from_web_url,
-                        None => conv_val!(
-                            environment,
-                            RepoCloneUrl,
-                            key,
-                            clone_url_conversion,
-                            Protocol::Ssh
-                        ),
-                    }
-                }
+                Key::RepoCloneUrlHttp => repo_clone_url_specific(environment, false)?,
+                Key::RepoCloneUrlSsh => repo_clone_url_specific(environment, true)?,
                 Key::RepoCommitPrefixUrl => {
                     conv_val_with_env!(environment, RepoWebUrl, key, web_url_to_commit_prefix_url)
                 }
