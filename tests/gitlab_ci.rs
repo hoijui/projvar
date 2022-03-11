@@ -169,6 +169,55 @@ pub fn expected_pats(
             "PROJECT_VERSION_DATE",
             (Box::new(&"2021-12-23 07:25:21"), true),
         ),
+        (
+            "PROJECT_REPO_ISSUES_URL",
+            (
+                Box::new(&"https://gitlab.com/User-Name/Project-1/-/issues"),
+                true,
+            ),
+        ),
+        (
+            "PROJECT_REPO_VERSIONED_FILE_PREFIX_URL",
+            (
+                Box::new(&"https://gitlab.com/User-Name/Project-1/-/blob"),
+                true,
+            ),
+        ),
+        (
+            "PROJECT_REPO_CLONE_URL_HTTP",
+            (
+                Box::new(&"https://gitlab.com/User-Name/Project-1.git"),
+                true,
+            ),
+        ),
+        (
+            "PROJECT_REPO_CLONE_URL",
+            (
+                Box::new(&"https://gitlab.com/User-Name/Project-1.git"),
+                true,
+            ),
+        ),
+        (
+            "PROJECT_REPO_VERSIONED_DIR_PREFIX_URL",
+            (
+                Box::new(&"https://gitlab.com/User-Name/Project-1/-/tree"),
+                true,
+            ),
+        ),
+        (
+            "PROJECT_REPO_RAW_VERSIONED_PREFIX_URL",
+            (
+                Box::new(&"https://gitlab.com/User-Name/Project-1/-/raw"),
+                true,
+            ),
+        ),
+        (
+            "PROJECT_REPO_COMMIT_PREFIX_URL",
+            (
+                Box::new(&"https://gitlab.com/User-Name/Project-1/-/commit"),
+                true,
+            ),
+        ),
     ]
     .into_iter()
     .collect())
