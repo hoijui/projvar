@@ -428,9 +428,9 @@ fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
 
 lazy_static! {
     static ref R_GIT_HUB_CLONE_PATH: Regex =
-        Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)\.git$").unwrap();
+        Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)(\.git)?$").unwrap();
     static ref R_GIT_LAB_CLONE_PATH: Regex =
-        Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)\.git$").unwrap();
+        Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)(\.git)?$").unwrap();
     static ref R_BIT_BUCKET_CLONE_PATH: Regex = (*R_GIT_HUB_CLONE_PATH).clone();
 }
 
