@@ -71,7 +71,7 @@ pub enum Error {
 /// A Container for multipel errors
 /// that may happen during the comparison of two variables containers.
 #[derive(thiserror::Error, Debug)]
-#[error("{children:?}")]
+#[error("{children:#?}")]
 pub struct Errors {
     pub children: Vec<Error>,
 }
