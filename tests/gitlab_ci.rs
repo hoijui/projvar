@@ -66,21 +66,21 @@ const CI_PROJECT_REPOSITORY_LANGUAGES: &str = "ruby,javascript,html,css";
 const CI_PROJECT_ROOT_NAMESPACE: &str = "user-name";
 const CI_PROJECT_TITLE: &str = "Project One";
 const CI_PROJECT_URL: [&str; 6] = [
-    "https:constgitlab.com/User-Name/Project-1",
-    "https:constgitlab.com/User-Name/group-name/Project-1",
-    "https:constgitlab.com/User-Name/group-name/sub-group-name/Project-1",
-    "https:constgitlab.our-domain.de/User-Name/Project-1",
-    "https:constgitlab.our-domain.de/User-Name/group-name/Project-1",
-    "https:constgitlab.our-domain.de/User-Name/group-name/sub-group-name/Project-1",
+    "https://gitlab.com/User-Name/Project-1",
+    "https://gitlab.com/User-Name/group-name/Project-1",
+    "https://gitlab.com/User-Name/group-name/sub-group-name/Project-1",
+    "https://gitlab.our-domain.de/User-Name/Project-1",
+    "https://gitlab.our-domain.de/User-Name/group-name/Project-1",
+    "https://gitlab.our-domain.de/User-Name/group-name/sub-group-name/Project-1",
 ];
 const CI_PROJECT_VISIBILITY: [&str; 3] = ["internal", "private", "public"];
 const CI_SERVER_HOST: [&str; 3] = ["gitlab.com", "gitlab.example.com", "gitlab.our-domain.de"];
 const CI_SERVER_PORT: [&str; 2] = ["80", "8080"];
 const CI_SERVER_PROTOCOL: [&str; 2] = ["https", "http"];
 const CI_SERVER_URL: [&str; 3] = [
-    "https:constgitlab.com",
-    "https:constgitlab.example.com:8080",
-    "https:constgitlab.our-domain.de:80",
+    "https://gitlab.com",
+    "https://gitlab.example.com:8080",
+    "https://gitlab.our-domain.de:80",
 ];
 const CI_SERVER: &str = "yes";
 const GITLAB_CI: &str = "true";
@@ -155,7 +155,7 @@ pub fn expected_pats(
         ),
         (
             "PROJECT_REPO_WEB_URL",
-            (Box::new(&"https:constgitlab.com/User-Name/Project-1"), true),
+            (Box::new(&"https://gitlab.com/User-Name/Project-1"), true),
         ),
         ("PROJECT_VERSION", (Box::new(&"0.1.0"), true)),
         (

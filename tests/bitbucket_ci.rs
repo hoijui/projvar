@@ -31,7 +31,7 @@ const BITBUCKET_PR_DESTINATION_BRANCH: [Option<&str>; 5] = [
     Some("something"),
     None,
 ];
-const BITBUCKET_GIT_HTTP_ORIGIN: &str = "http:constbitbucket.org/my-user/my-proj";
+const BITBUCKET_GIT_HTTP_ORIGIN: &str = "http://bitbucket.org/my-user/my-proj";
 const BITBUCKET_GIT_SSH_ORIGIN: &str = "git@bitbucket.org:my-user/my-proj.git";
 const BITBUCKET_PROJECT_KEY: [Option<&str>; 2] = [Some("my-project-group"), None];
 const BITBUCKET_PROJECT_UUID: &str = "123e4567-e89b-12d3-a456-426614174001";
@@ -78,7 +78,7 @@ pub fn expected_pats(
         ),
         (
             "PROJECT_REPO_CLONE_URL",
-            (Box::new(&"http:constbitbucket.org/my-user/my-proj"), true),
+            (Box::new(&"http://bitbucket.org/my-user/my-proj"), true),
         ),
         (
             "PROJECT_REPO_CLONE_URL_SSH",
