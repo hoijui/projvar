@@ -412,8 +412,16 @@ pub fn web_url_to_commit_prefix_url(environment: &Environment, web_url: &str) ->
 ///     Some("https://github.com/hoijui/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
+///     clone_url_conversion("git@github.com:hoijui/kicad-text-injector", Protocol::Https)?,
+///     Some("https://github.com/hoijui/kicad-text-injector".to_owned())
+/// );
+/// assert_eq!(
 ///     clone_url_conversion("https://github.com/hoijui/kicad-text-injector.git", Protocol::Https)?,
 ///     Some("https://github.com/hoijui/kicad-text-injector.git".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("https://github.com/hoijui/kicad-text-injector", Protocol::Https)?,
+///     Some("https://github.com/hoijui/kicad-text-injector".to_owned())
 /// );
 /// assert_eq!(
 ///     clone_url_conversion("git@gitlab.com:hoijui/kicad-text-injector.git", Protocol::Https)?,
@@ -436,8 +444,16 @@ pub fn web_url_to_commit_prefix_url(environment: &Environment, web_url: &str) ->
 ///     Some("ssh://git@github.com/hoijui/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
+///     clone_url_conversion("git@github.com:hoijui/kicad-text-injector", Protocol::Ssh)?,
+///     Some("ssh://git@github.com/hoijui/kicad-text-injector".to_owned())
+/// );
+/// assert_eq!(
 ///     clone_url_conversion("https://github.com/hoijui/kicad-text-injector.git", Protocol::Ssh)?,
 ///     Some("ssh://git@github.com/hoijui/kicad-text-injector.git".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("https://github.com/hoijui/kicad-text-injector", Protocol::Ssh)?,
+///     Some("ssh://git@github.com/hoijui/kicad-text-injector".to_owned())
 /// );
 /// assert_eq!(
 ///     clone_url_conversion("git@gitlab.com:hoijui/kicad-text-injector.git", Protocol::Ssh)?,
