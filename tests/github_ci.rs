@@ -77,9 +77,16 @@ pub fn expected_pats(
             ),
         ),
         (
+            "PROJECT_REPO_CLONE_URL_HTTP",
+            (
+                Box::new(&"https://github.com/octocat/Hello-World.git"),
+                true,
+            ),
+        ),
+        (
             "PROJECT_REPO_CLONE_URL_SSH",
             (
-                Box::new(&"ssh://git@github.com:octocat/Hello-World.git"),
+                Box::new(&"ssh://git@github.com/octocat/Hello-World.git"),
                 true,
             ),
         ),

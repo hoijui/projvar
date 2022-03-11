@@ -9,9 +9,17 @@ use common::StrMatcher;
 use common::R_BOOL;
 use common::R_DATE_TIME;
 use common::R_NON_EMPTY;
+use lazy_static::lazy_static;
+use regex::Regex;
 use std::{collections::HashMap, env};
 
 use crate::repo_creation::create_repo;
+
+lazy_static! {
+    pub static ref R_CLONE_URL: Regex = Regex::new(r"^(((https|ssh)://github\.com/hoijui/projvar(\.git)?)|((git@)github\.com:hoijui/projvar(\.git)?))$").unwrap();
+    pub static ref R_CLONE_URL_HTTP: Regex = Regex::new(r"^https://github\.com/hoijui/projvar(\.git)?$").unwrap();
+    pub static ref R_CLONE_URL_SSH: Regex = Regex::new(r"^ssh://(git@)github\.com/hoijui/projvar(\.git)?$").unwrap();
+}
 
 pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
     let repo_dir = create_repo!(
@@ -54,13 +62,14 @@ pub fn expected_patterns(
             "PROJECT_NAME_MACHINE_READABLE",
             (Box::new(&"default_rs"), true),
         ),
+        ("PROJECT_REPO_CLONE_URL", (Box::new(&*R_CLONE_URL), true)),
         (
-            "PROJECT_REPO_CLONE_URL",
-            (Box::new(&"https://github.com/hoijui/projvar.git"), true),
+            "PROJECT_REPO_CLONE_URL_HTTP",
+            (Box::new(&*R_CLONE_URL_HTTP), true),
         ),
         (
             "PROJECT_REPO_CLONE_URL_SSH",
-            (Box::new(&"ssh://git@github.com:hoijui/projvar.git"), true),
+            (Box::new(&*R_CLONE_URL_SSH), true),
         ),
         (
             "PROJECT_REPO_COMMIT_PREFIX_URL",

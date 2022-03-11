@@ -154,6 +154,13 @@ pub fn expected_pats(
             (Box::new(&"Project-1"), true),
         ),
         (
+            "PROJECT_REPO_CLONE_URL_SSH",
+            (
+                Box::new(&"ssh://git@gitlab.com/User-Name/Project-1.git"),
+                true,
+            ),
+        ),
+        (
             "PROJECT_REPO_WEB_URL",
             (Box::new(&"https://gitlab.com/User-Name/Project-1"), true),
         ),
