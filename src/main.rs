@@ -9,7 +9,7 @@ extern crate log;
 extern crate remain;
 extern crate url;
 
-use clap::{app_from_crate, crate_name, App, Arg, ArgMatches, ValueHint};
+use clap::{command, crate_name, Arg, ArgMatches, Command, ValueHint};
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashSet;
@@ -538,8 +538,8 @@ fn find_duplicate_short_options() -> Vec<char> {
     duplicate_short_options.iter().copied().collect()
 }
 
-fn arg_matcher() -> App<'static> {
-    let app = app_from_crate!().bin_name("osh").args(ARGS.iter());
+fn arg_matcher() -> Command<'static> {
+    let app = command!().bin_name("osh").args(ARGS.iter());
     let duplicate_short_options = find_duplicate_short_options();
     assert!(
         duplicate_short_options.is_empty(),
