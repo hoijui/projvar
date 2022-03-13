@@ -331,7 +331,7 @@ checksum = "fea41bba32d969b513997752735605054bc0dfa92b4c56bf1189f2e174be7a10"
 [[package]]
 name = "dotenv"
 version = "0.15.0"
-source = "git+https://github.com/hoijui/dotenv.git#0427177055ddd3bce709c6beeba5d79041297daa"
+source = "git+https://github.com/hoijui/dotenv.git#8fcce9fd774a2f407ca07957876b30f0c82fb2d6"
 
 [[package]]
 name = "either"
@@ -1313,8 +1313,8 @@ dependencies = [
 
 [[package]]
 name = "repvar"
-version = "0.5.0"
-source = "git+https://github.com/hoijui/repvar.git#f4ff1712ce1a1f859d2cc1eaa2eb2cc4a7abae9a"
+version = "0.5.1"
+source = "git+https://github.com/hoijui/repvar.git#93313bb03977e2ece35f0121f09471de49ded440"
 dependencies = [
  "clap",
  "dotenv",
