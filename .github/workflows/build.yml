@@ -53,6 +53,7 @@ jobs:
         with:
             toolchain: stable
             override: true
+            target: x86_64-unknown-linux-musl
             components: rustfmt, clippy
 
       - name: "Smart caching for rust/cargo"
