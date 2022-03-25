@@ -41,6 +41,12 @@ jobs:
           packages: |
             reuse
 
+      - name: "Install musl-gcc"
+        # This is required, because we depend on system libraries
+        # like libz, which need to be compiled for MUSL with musl-gcc,
+        # which is part of musl-tools.
+        run: sudo apt install -y musl-tools
+
       - name: "Get the Rust toolchain"
         uses: actions-rs/toolchain@v1
         with:
