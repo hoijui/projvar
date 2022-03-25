@@ -17,9 +17,6 @@ on:
   release:
     types: [ published ]
 
-env:
-  STOML_VERSION: "v0.7.0"
-
 jobs:
   push_to_registry:
     name: Compile
@@ -31,11 +28,7 @@ jobs:
           submodules: true
 
       - name: "Install STOML (BASH TOML parser)"
-        run: |
-          mkdir -p "target/tools"
-          wget "https://github.com/freshautomations/stoml/releases/download/${{ env.STOML_VERSION }}/stoml_linux_amd64" \
-              -O "target/tools/stoml"
-          chmod +x "target/tools/stoml"
+        run: scripts/install_stoml
 
       - name: "Setup Python 3"
         uses: actions/setup-python@v2
