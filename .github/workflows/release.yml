@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+# SPDX-FileCopyrightText: 2021-2022 Robin Vobruba <hoijui.quaero@gmail.com>
 #
 # SPDX-License-Identifier: Unlicense
 
@@ -26,9 +26,6 @@ on:
     tags:
     - "[0-9]+.[0-9]+.[0-9]+"
 
-env:
-  STOML_VERSION: "v0.7.0"
-
 jobs:
   create-release:
     name: create-release
@@ -45,11 +42,7 @@ jobs:
           submodules: true
 
       - name: "Install STOML (BASH TOML parser)"
-        run: |
-          mkdir -p "target/tools"
-          wget "https://github.com/freshautomations/stoml/releases/download/${{ env.STOML_VERSION }}/stoml_linux_amd64" \
-              -O "target/tools/stoml"
-          chmod +x "target/tools/stoml"
+        run: scripts/install_stoml
 
       - name: Set the environment variables (including OUR_VERSION)
         shell: bash
@@ -116,10 +109,7 @@ jobs:
 
     - name: "Install STOML (BASH TOML parser)"
       run: |
-        mkdir -p "target/tools"
-        wget "https://github.com/freshautomations/stoml/releases/download/${{ env.STOML_VERSION }}/stoml_linux_amd64" \
-            -O "target/tools/stoml"
-        chmod +x "target/tools/stoml"
+        scripts/install_stoml
 
     - name: Set the environment variables (including OUR_VERSION)
       shell: bash
@@ -129,8 +119,7 @@ jobs:
     - name: Install packages (Ubuntu)
       if: matrix.os == 'ubuntu-18.04'
       run: |
-        # ci/ubuntu-install-packages
-        scripts/install-dependencies-ubuntu
+        scripts/install_deps_ubuntu
 
     # - name: Install packages (macOS)
     #   if: matrix.os == 'macos-latest'
@@ -150,13 +139,13 @@ jobs:
     #   run: |
     #     cargo install cross
     #     echo "CARGO=cross" >> $GITHUB_ENV
-    #     echo "TARGET_FLAGS=--target ${{ matrix.target }}" >> $GITHUB_ENV
+    #     echo "TARGET_FLAG=--target ${{ matrix.target }}" >> $GITHUB_ENV
     #     echo "TARGET_DIR=./target/${{ matrix.target }}" >> $GITHUB_ENV
 
     - name: Show command used for Cargo
       run: |
         echo "cargo command is: ${{ env.CARGO }}"
-        echo "target flag is: ${{ env.TARGET_FLAGS }}"
+        echo "target flag is: ${{ matrix.target }}"
         echo "target dir is: ${{ env.TARGET_DIR }}"
 
     - name: Build and strip release binary
