@@ -1,14 +1,14 @@
 <!--
-SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+SPDX-FileCopyrightText: 2021-2022 Robin Vobruba <hoijui.quaero@gmail.com>
 
 SPDX-License-Identifier: CC0-1.0
 -->
 
 # *Proj*ect *Var*iables
 
-[![License: GPL-3.0-or-later](
-    https://img.shields.io/badge/License-GPL%203.0+-blue.svg)](
-    https://www.gnu.org/licenses/gpl-3.0.html)
+[![License: AGPL-3.0-or-later](
+    https://img.shields.io/badge/License-AGPL%203.0+-blue.svg)](
+    https://www.gnu.org/licenses/agpl-3.0.html)
 [![REUSE status](
     https://api.reuse.software/badge/github.com/hoijui/projvar)](
     https://api.reuse.software/info/github.com/hoijui/projvar)
@@ -27,13 +27,58 @@ SPDX-License-Identifier: CC0-1.0
     https://github.com/hoijui/projvar/workflows/build/badge.svg)](
     https://github.com/hoijui/projvar/actions)
 
-This tool tries to extract a certain small set
-of project related properties,
+`projvar` is a CLI ([Command-line Interface](
+https://en.wikipedia.org/wiki/Command-line_interface)) tool,
+with the aim of supplying a certain base set of meta data values
+for a given project,
 using various sources.
 
-## Example scenario
+## Example scenarios
 
-In your CI job:
+`projvar` is designed to work best for git repositories,
+both locally or on a CI ([**C**ontinous **I**ntegration](
+https://en.wikipedia.org/wiki/Continuous_integration)) system,
+though it will also work (partly) for other projects.
+
+### Local project
+
+The project needs to be present as a folder on the local file-system,
+from which one runs `projvar`,
+which in turn writes the meta-data for that project into a file
+
+```sh
+$ # Here we show output for running projvar on its self,
+$ # but in your case this will be something else:
+# MY_PROJECT_PATH="$HOME/Projects/projvar"
+$ cd "$MY_PROJECT_PATH"
+$ projvar
+[INFO] Using the default out file: .projvars.env.txt
+$ cat .projvars.env.txt
+PROJECT_BUILD_ARCH="x86_64"
+PROJECT_BUILD_BRANCH="master"
+PROJECT_BUILD_DATE="2021-12-25 12:50:50"
+PROJECT_BUILD_HOSTING_URL="https://hoijui.github.io/projvar"
+PROJECT_BUILD_OS="linux"
+PROJECT_BUILD_OS_FAMILY="unix"
+PROJECT_BUILD_TAG="0.8.0"
+PROJECT_CI="false"
+PROJECT_LICENSE="AGPL-3.0-only"
+PROJECT_LICENSES="CC0-1.0, AGPL-3.0-or-later, Unlicense"
+PROJECT_NAME="projvar"
+PROJECT_NAME_MACHINE_READABLE="projvar"
+PROJECT_REPO_CLONE_URL="https://github.com/hoijui/projvar.git"
+PROJECT_REPO_CLONE_URL_SSH="ssh://git@github.com:hoijui/projvar.git"
+PROJECT_REPO_COMMIT_PREFIX_URL="https://github.com/hoijui/projvar/commit"
+PROJECT_REPO_ISSUES_URL="https://github.com/hoijui/projvar/issues"
+PROJECT_REPO_RAW_VERSIONED_PREFIX_URL="https://raw.githubusercontent.com/hoijui/projvar"
+PROJECT_REPO_VERSIONED_DIR_PREFIX_URL="https://github.com/hoijui/projvar/tree"
+PROJECT_REPO_VERSIONED_FILE_PREFIX_URL="https://github.com/hoijui/projvar/blob"
+PROJECT_REPO_WEB_URL="https://github.com/hoijui/projvar"
+PROJECT_VERSION="0.8.0-dirty"
+PROJECT_VERSION_DATE="2021-12-13 09:18:25"
+```
+
+## In CI (buildbot)
 
 1. Check out your repo
 2. Run this tool (`projvar`)
