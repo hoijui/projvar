@@ -4,7 +4,7 @@
 
 [package]
 name = "projvar"
-version = "0.10.3"
+version = "0.10.4"
 edition = "2021"
 description = """
     A tiny CLI tool that tries to gather project specific meta-data in different ways,

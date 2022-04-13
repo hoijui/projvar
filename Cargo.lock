@@ -1130,7 +1130,7 @@ dependencies = [
 
 [[package]]
 name = "projvar"
-version = "0.10.3"
+version = "0.10.4"
 dependencies = [
  "askalono",
  "assert_cmd",
