@@ -149,7 +149,7 @@ jobs:
         echo "target dir is: ${{ env.TARGET_DIR }}"
 
     - name: Build and strip release binary
-      run: scripts/build
+      run: scripts/build --skip-strip
 
     # - name: Strip release binary (linux and macos)
     #   if: matrix.build == 'linux' || matrix.build == 'macos'
