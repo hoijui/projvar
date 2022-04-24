@@ -54,6 +54,10 @@ pub enum Error {
     #[error(transparent)]
     IO(#[from] std::io::Error),
 
+    /// Represents all other cases of `std::io::Error`.
+    #[error(transparent)]
+    Git(#[from] tools::git::Error),
+
     /// Represents all other cases of `std_error::Error`.
     #[error(transparent)]
     Std(#[from] std_error::Error),

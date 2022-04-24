@@ -12,8 +12,25 @@ use std::convert::TryFrom;
 use std::path::Path;
 use std::path::PathBuf;
 use std::str;
+use thiserror::Error;
 
-use crate::BoxResult;
+/// This enumerates all possible errors returned by this module.
+/// Represents all other cases of `std::io::Error`.
+#[derive(Error, Debug)]
+#[error("Git2 lib error: {from} - {message}")]
+pub struct Error {
+    from: git2::Error,
+    message: String,
+}
+
+impl From<&str> for Error {
+    fn from(message: &str) -> Self {
+        Error {
+            from: git2::Error::from_str("PLACEHOLDER"),
+            message: String::from(message),
+        }
+    }
+}
 
 /// The default date format.
 /// For formatting specifiers, see:
@@ -33,7 +50,7 @@ pub fn is_git_dirty_version(vers: &str) -> bool {
 
 ///
 /// "--tags", "--dirty", "--broken", "--always"
-fn _version(repo: &git2::Repository) -> BoxResult<String> {
+fn _version(repo: &git2::Repository) -> Result<String, Error> {
     // NOTE We might also want '--broken',
     //      which is not possible with git2-rs,
     //      but it is really not important
@@ -42,12 +59,20 @@ fn _version(repo: &git2::Repository) -> BoxResult<String> {
             git2::DescribeOptions::new()
                 .pattern("*[0-9]*.[0-9]*.[0-9]*")
                 .describe_tags(),
-        )?
+        )
+        .map_err(|from| Error {
+            from,
+            message: String::from("Failed to describe the HEAD revision version"),
+        })?
         .format(Some(
             git2::DescribeFormatOptions::new()
                 .always_use_long_format(false)
                 .dirty_suffix("-dirty"),
-        ))?)
+        ))
+        .map_err(|from| Error {
+            from,
+            message: String::from("Failed to format the HEAD revision version"),
+        })?)
 }
 
 pub struct Repo {
@@ -55,7 +80,6 @@ pub struct Repo {
 }
 
 impl TryFrom<Option<&str>> for Repo {
-    // type Error = Box<&'static str>;
     type Error = git2::Error;
     fn try_from(repo_root: Option<&str>) -> Result<Self, Self::Error> {
         let repo_root = repo_root.unwrap_or(".");
@@ -132,9 +156,13 @@ impl Repo {
         self.local_path().to_str().unwrap().to_owned() // Can never hapen, as we already know fro mwithin local_path(), that it is valid UTF-8
     }
 
-    fn _branch(&self) -> BoxResult<git2::Branch> {
-        // self.repo.head()?.is_branch()
-        Ok(git2::Branch::wrap(self.repo.head()?))
+    fn _branch(&self) -> Result<git2::Branch, Error> {
+        Ok(git2::Branch::wrap(self.repo.head().map_err(|from| {
+            Error {
+                from,
+                message: String::from("Failed convert HEAD into a branch"),
+            }
+        })?))
     }
 
     /// Returns the SHA of the currently checked-out commit,
@@ -144,14 +172,20 @@ impl Repo {
     ///
     /// If some git-related magic goes south,
     /// or there is no commit.
-    pub fn sha(&self) -> BoxResult<Option<String>> {
-        let head = self.repo.head()?;
-        Ok(//Some(
-            head.resolve()?
+    pub fn sha(&self) -> Result<Option<String>, Error> {
+        let head = self.repo.head().map_err(|from| Error {
+            from,
+            message: String::from("Failed get repo HEAD for figuring out the SHA1"),
+        })?;
+        Ok(
+            //Some(
+            head.resolve()
+                .map_err(|from| Error {
+                    from,
+                    message: String::from("Failed resolving HEAD into a direct reference"),
+                })?
                 .target()
-                .map(|oid| oid.to_string())
-                // .ok_or_else(|| git2::Error::from_str("Not a direct reference"))?
-                // .to_owned(),
+                .map(|oid| oid.to_string()),
         ) //)
     }
 
@@ -162,46 +196,68 @@ impl Repo {
     ///
     /// If some git-related magic goes south,
     /// or the branch name is not valid UTF-8.
-    pub fn branch(&self) -> BoxResult<Option<String>> {
+    pub fn branch(&self) -> Result<Option<String>, Error> {
         Ok(Some(
             self._branch()?
-                // .map(|branch|
-                // branch
-                .name()?
-                .ok_or_else(|| git2::Error::from_str("Branch name is not UTF-8 compatible"))?
+                .name()
+                .map_err(|from| Error {
+                    from,
+                    message: String::from("Failed fetching name of a branch"),
+                })?
+                .ok_or_else(|| Error::from("Branch name is not UTF-8 compatible"))?
                 .to_owned(),
         ))
     }
 
-    fn _tag(&self) -> BoxResult<Option<String>> {
-        let head = self.repo.head()?;
-        let head_oid = head
-            .resolve()?
-            .target()
-            .ok_or_else(|| git2::Error::from_str("No OID for HEAD"))?;
-        let mut tag = None;
-        let mut inner_err: Option<BoxResult<Option<String>>> = None;
-        self.repo.tag_foreach(|_id, name| {
-            let name_str = String::from_utf8(name.to_vec()).expect("Failed stringifying tag name");
-            let cur_tag_res = self.repo.find_reference(&name_str).and_then(|git_ref| {
-                git_ref.target().ok_or_else(|| {
-                    git2::Error::from_str("Failed to get tag reference target commit")
-                })
-            });
-            let cur_tag = match cur_tag_res {
-                Err(err) => {
-                    inner_err = Some(Err(Box::new(err)));
-                    return false;
-                }
-                Ok(cur_tag) => cur_tag,
-            };
-            if cur_tag == head_oid {
-                tag = Some(name_str);
-                false
-            } else {
-                true
-            }
+    fn _tag(&self) -> Result<Option<String>, Error> {
+        let head = self.repo.head().map_err(|from| Error {
+            from,
+            message: String::from("Failed to get repo HEAD for figuring out the tag"),
         })?;
+        let head_oid = head
+            .resolve()
+            .map_err(|from| Error {
+                from,
+                message: String::from("Failed resolve HEAD into a reference"),
+            })?
+            .target()
+            .ok_or_else(|| git2::Error::from_str("No OID for HEAD"))
+            .map_err(|from| Error {
+                from,
+                message: String::from("-"),
+            })?;
+        let mut tag = None;
+        let mut inner_err: Option<Result<Option<String>, Error>> = None;
+        self.repo
+            .tag_foreach(|_id, name| {
+                let name_str =
+                    String::from_utf8(name.to_vec()).expect("Failed stringifying tag name");
+                let cur_tag_res = self.repo.find_reference(&name_str).and_then(|git_ref| {
+                    git_ref.target().ok_or_else(|| {
+                        git2::Error::from_str("Failed to get tag reference target commit")
+                    })
+                });
+                let cur_tag = match cur_tag_res {
+                    Err(from) => {
+                        inner_err = Some(Err(Error {
+                            from,
+                            message: String::from("Failed fetching current tag reference"),
+                        }));
+                        return false;
+                    }
+                    Ok(cur_tag) => cur_tag,
+                };
+                if cur_tag == head_oid {
+                    tag = Some(name_str);
+                    false
+                } else {
+                    true
+                }
+            })
+            .map_err(|from| Error {
+                from,
+                message: String::from("Failed processing tags"),
+            })?;
         match inner_err {
             Some(err) => err,
             None => Ok(tag),
@@ -215,12 +271,15 @@ impl Repo {
     ///
     /// If some git-related magic goes south,
     /// or the tag name is not valid UTF-8.
-    pub fn tag(&self) -> BoxResult<Option<String>> {
+    pub fn tag(&self) -> Result<Option<String>, Error> {
         self._tag()
     }
 
-    fn _remote_tracking_branch(&self) -> BoxResult<git2::Branch> {
-        Ok(self._branch()?.upstream()?)
+    fn _remote_tracking_branch(&self) -> Result<git2::Branch, Error> {
+        Ok(self._branch()?.upstream().map_err(|from| Error {
+            from,
+            message: String::from("Failed resolving the remote tracking branch"),
+        })?)
     }
 
     /// The local name of the remote tracking branch.
@@ -229,11 +288,15 @@ impl Repo {
     ///
     /// If some git-related magic goes south,
     /// or the remote name is not valid UTF-8.
-    pub fn remote_tracking_branch(&self) -> BoxResult<String> {
+    pub fn remote_tracking_branch(&self) -> Result<String, Error> {
         Ok(self
             ._remote_tracking_branch()?
-            .name()?
-            .ok_or_else(|| git2::Error::from_str("Remote branch name is not UTF-8 compatible"))?
+            .name()
+            .map_err(|from| Error {
+                from,
+                message: String::from("Failed fetching the remote tracking branch name"),
+            })?
+            .ok_or_else(|| Error::from("Remote tracking branch name is not UTF-8 compatible"))?
             .to_owned())
     }
 
@@ -243,19 +306,27 @@ impl Repo {
     ///
     /// If some git-related magic goes south,
     /// or the reomte name is not valid UTF-8.
-    pub fn remote_name(&self) -> BoxResult<String> {
+    pub fn remote_name(&self) -> Result<String, Error> {
         Ok(self
             .repo
             .branch_remote_name(
                 self.repo
-                    .resolve_reference_from_short_name(&self.remote_tracking_branch()?)?
+                    .resolve_reference_from_short_name(&self.remote_tracking_branch()?)
+                    .map_err(|from| Error {
+                        from,
+                        message: String::from(
+                            "Failed to resolve referenece from remotetracking branch short name",
+                        ),
+                    })?
                     .name()
-                    .ok_or_else(|| {
-                        git2::Error::from_str("Remote branch name is not UTF-8 compatible")
-                    })?,
-            )?
+                    .ok_or_else(|| Error::from("Remote branch name is not UTF-8 compatible"))?,
+            )
+            .map_err(|from| Error {
+                from,
+                message: String::from("Failed to get branch remote name"),
+            })?
             .as_str()
-            .ok_or_else(|| git2::Error::from_str("Remote name is not UTF-8 compatible"))?
+            .ok_or_else(|| Error::from("Remote name is not UTF-8 compatible"))?
             .to_owned())
         // let remote = remote_tracking_branch.name(); // HACK Need to split of the name part, as this is probably origin/master, and we want only origin.
     }
@@ -266,12 +337,16 @@ impl Repo {
     /// # Errors
     ///
     /// If some git-related magic goes south.
-    pub fn remote_clone_url(&self) -> BoxResult<String> {
+    pub fn remote_clone_url(&self) -> Result<String, Error> {
         Ok(self
             .repo
-            .find_remote(&self.remote_name()?)?
+            .find_remote(&self.remote_name()?)
+            .map_err(|from| Error {
+                from,
+                message: String::from("Failed to find remote name for remote clone URL"),
+            })?
             .url()
-            .ok_or_else(|| git2::Error::from_str("Remote URL is not UTF-8 compatible"))?
+            .ok_or_else(|| Error::from("Remote URL is not UTF-8 compatible"))?
             .to_owned())
     }
 
@@ -281,7 +356,7 @@ impl Repo {
     /// # Errors
     ///
     /// If some git-related magic goes south.
-    pub fn version(&self) -> BoxResult<String> {
+    pub fn version(&self) -> Result<String, Error> {
         _version(&self.repo)
     }
 
@@ -291,9 +366,20 @@ impl Repo {
     /// # Errors
     ///
     /// If some git-related magic goes south.
-    pub fn commit_date(&self, date_format: &str) -> BoxResult<String> {
-        let head = self.repo.head()?;
-        let commit_time_git2 = head.peel_to_commit()?.time();
+    pub fn commit_date(&self, date_format: &str) -> Result<String, Error> {
+        let head = self.repo.head().map_err(|from| Error {
+            from,
+            message: String::from("Failed to get repo HEAD for figuring out the commit date"),
+        })?;
+        let commit_time_git2 = head
+            .peel_to_commit()
+            .map_err(|from| Error {
+                from,
+                message: String::from(
+                    "Failed to peal HEAD to commit for figuring out the commit date",
+                ),
+            })?
+            .time();
         let commit_time_chrono = DateTime::<Utc>::from_utc(
             NaiveDateTime::from_timestamp(commit_time_git2.seconds(), 0),
             Utc,
