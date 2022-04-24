@@ -18,8 +18,8 @@ pub fn create(repo_dir: &Path) -> Result<(), RepoCreationError> {
         git init;
 
         // Sets the git user details (required for committing)
-        git config --global user.email "elui.alawi@email.com";
-        git config --global user.name "Joe Doe";
+        git config user.email "elui.alawi@email.com";
+        git config user.name "Joe Doe";
 
         // Create content
         touch "a.txt";
