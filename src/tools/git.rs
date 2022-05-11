@@ -54,25 +54,24 @@ fn _version(repo: &git2::Repository) -> Result<String, Error> {
     // NOTE We might also want '--broken',
     //      which is not possible with git2-rs,
     //      but it is really not important
-    Ok(repo
-        .describe(
-            git2::DescribeOptions::new()
-                .pattern("*[0-9]*.[0-9]*.[0-9]*")
-                .describe_tags(),
-        )
-        .map_err(|from| Error {
-            from,
-            message: String::from("Failed to describe the HEAD revision version"),
-        })?
-        .format(Some(
-            git2::DescribeFormatOptions::new()
-                .always_use_long_format(false)
-                .dirty_suffix("-dirty"),
-        ))
-        .map_err(|from| Error {
-            from,
-            message: String::from("Failed to format the HEAD revision version"),
-        })?)
+    repo.describe(
+        git2::DescribeOptions::new()
+            .pattern("*[0-9]*.[0-9]*.[0-9]*")
+            .describe_tags(),
+    )
+    .map_err(|from| Error {
+        from,
+        message: String::from("Failed to describe the HEAD revision version"),
+    })?
+    .format(Some(
+        git2::DescribeFormatOptions::new()
+            .always_use_long_format(false)
+            .dirty_suffix("-dirty"),
+    ))
+    .map_err(|from| Error {
+        from,
+        message: String::from("Failed to format the HEAD revision version"),
+    })
 }
 
 pub struct Repo {
@@ -276,10 +275,10 @@ impl Repo {
     }
 
     fn _remote_tracking_branch(&self) -> Result<git2::Branch, Error> {
-        Ok(self._branch()?.upstream().map_err(|from| Error {
+        self._branch()?.upstream().map_err(|from| Error {
             from,
             message: String::from("Failed resolving the remote tracking branch"),
-        })?)
+        })
     }
 
     /// The local name of the remote tracking branch.
