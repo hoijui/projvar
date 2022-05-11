@@ -25,6 +25,18 @@ pub struct Storage {
     key_primary: HashMap<Key, (Confidence, String)>,
 }
 
+/// Double-quotes a string if it is empty,
+/// leaves it as-is otherwise.
+macro_rules! quote_empty {
+    ($value:expr) => {
+        if $value.is_empty() {
+            "\"\""
+        } else {
+            $value
+        }
+    };
+}
+
 impl Storage {
     /// Creates a new, empty instance of a storage.
     pub fn new() -> Storage {
@@ -90,7 +102,11 @@ impl Storage {
                 table.push_str("` |");
                 for source_index in 0..sources.len() {
                     table.push(' ');
-                    table.push_str(values.get(&source_index).map_or("", |(_c, v)| v));
+                    table.push_str(
+                        values
+                            .get(&source_index)
+                            .map_or("", |(_c, v)| quote_empty!(v)),
+                    );
                     table.push_str(" |");
                 }
                 table.push_str(" **");
@@ -120,7 +136,7 @@ impl Storage {
             list.push("* ");
             list.push(key.into());
             list.push(" - `");
-            list.push(&key_strs[key]);
+            list.push(quote_empty!(&key_strs[key]));
             list.push("` - ");
             list.push(value);
             list.push("\n");
