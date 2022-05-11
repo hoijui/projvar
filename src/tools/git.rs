@@ -159,7 +159,7 @@ impl Repo {
         Ok(git2::Branch::wrap(self.repo.head().map_err(|from| {
             Error {
                 from,
-                message: String::from("Failed convert HEAD into a branch"),
+                message: String::from("Failed to convert HEAD into a branch"),
             }
         })?))
     }
