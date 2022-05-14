@@ -47,13 +47,9 @@ fn tag(environment: &mut Environment) -> RetrieveRes {
 
 fn clone_url(environment: &mut Environment) -> RetrieveRes {
     Ok(match environment.repo() {
-        Some(repo) => {
-            Some((C_HIGH, repo.remote_clone_url()?))
-            // repo.remote_clone_url().or_else(|err| {
-            //     log::warn!("Failed fetching git repo clone URL - {}", err);
-            //     None
-            // })
-        }
+        Some(repo) => repo
+            .remote_clone_url()?
+            .map(|remote_clone_url| (C_HIGH, remote_clone_url)),
         None => None,
     })
 }

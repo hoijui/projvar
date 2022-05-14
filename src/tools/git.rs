@@ -155,13 +155,28 @@ impl Repo {
         self.local_path().to_str().unwrap().to_owned() // Can never hapen, as we already know fro mwithin local_path(), that it is valid UTF-8
     }
 
-    fn _branch(&self) -> Result<git2::Branch, Error> {
-        Ok(git2::Branch::wrap(self.repo.head().map_err(|from| {
-            Error {
-                from,
-                message: String::from("Failed to convert HEAD into a branch"),
-            }
-        })?))
+    fn _branch(&self) -> Result<Option<git2::Branch>, Error> {
+        let head_ref = self.repo.head().map_err(|from| Error {
+            from,
+            message: String::from("Failed to convert HEAD into a branch"),
+        })?;
+        Ok(if head_ref.is_branch() {
+            Some(git2::Branch::wrap(head_ref))
+        } else {
+            log::warn!(
+                "Failed to get the current branch.
+This may indicate either:
+* valid: No branch is checked out
+  -> HEAD is pointing to a commit or a tag
+* problem: You are running on CI,
+  and while it should have a branch checked out,
+  it has not.
+  This may happen with shallow repos,
+  see for example GitLab bug
+  <https://gitlab.com/gitlab-org/gitlab/-/issues/350100>."
+            );
+            None
+        })
     }
 
     /// Returns the SHA of the currently checked-out commit,
@@ -196,16 +211,20 @@ impl Repo {
     /// If some git-related magic goes south,
     /// or the branch name is not valid UTF-8.
     pub fn branch(&self) -> Result<Option<String>, Error> {
-        Ok(Some(
-            self._branch()?
-                .name()
-                .map_err(|from| Error {
-                    from,
-                    message: String::from("Failed fetching name of a branch"),
-                })?
-                .ok_or_else(|| Error::from("Branch name is not UTF-8 compatible"))?
-                .to_owned(),
-        ))
+        Ok(if let Some(branch) = self._branch()? {
+            Some(
+                branch
+                    .name()
+                    .map_err(|from| Error {
+                        from,
+                        message: String::from("Failed fetching name of a branch"),
+                    })?
+                    .ok_or_else(|| Error::from("Branch name is not UTF-8 compatible"))?
+                    .to_owned(),
+            )
+        } else {
+            None
+        })
     }
 
     fn _tag(&self) -> Result<Option<String>, Error> {
@@ -274,11 +293,15 @@ impl Repo {
         self._tag()
     }
 
-    fn _remote_tracking_branch(&self) -> Result<git2::Branch, Error> {
-        self._branch()?.upstream().map_err(|from| Error {
-            from,
-            message: String::from("Failed resolving the remote tracking branch"),
-        })
+    fn _remote_tracking_branch(&self) -> Result<Option<git2::Branch>, Error> {
+        if let Some(branch) = self._branch()? {
+            branch.upstream().map(Some).map_err(|from| Error {
+                from,
+                message: String::from("Failed resolving the remote tracking branch"),
+            })
+        } else {
+            Ok(None)
+        }
     }
 
     /// The local name of the remote tracking branch.
@@ -287,16 +310,27 @@ impl Repo {
     ///
     /// If some git-related magic goes south,
     /// or the remote name is not valid UTF-8.
-    pub fn remote_tracking_branch(&self) -> Result<String, Error> {
-        Ok(self
-            ._remote_tracking_branch()?
-            .name()
-            .map_err(|from| Error {
-                from,
-                message: String::from("Failed fetching the remote tracking branch name"),
-            })?
-            .ok_or_else(|| Error::from("Remote tracking branch name is not UTF-8 compatible"))?
-            .to_owned())
+    pub fn remote_tracking_branch(&self) -> Result<Option<String>, Error> {
+        Ok(
+            if let Some(remote_tracking_branch) = self._remote_tracking_branch()? {
+                Some(
+                    remote_tracking_branch
+                        .name()
+                        .map_err(|from| Error {
+                            from,
+                            message: String::from(
+                                "Failed fetching the remote tracking branch name",
+                            ),
+                        })?
+                        .ok_or_else(|| {
+                            Error::from("Remote tracking branch name is not UTF-8 compatible")
+                        })?
+                        .to_owned(),
+                )
+            } else {
+                None
+            },
+        )
     }
 
     /// Local name of the main remote.
@@ -305,28 +339,34 @@ impl Repo {
     ///
     /// If some git-related magic goes south,
     /// or the reomte name is not valid UTF-8.
-    pub fn remote_name(&self) -> Result<String, Error> {
-        Ok(self
-            .repo
-            .branch_remote_name(
-                self.repo
-                    .resolve_reference_from_short_name(&self.remote_tracking_branch()?)
-                    .map_err(|from| Error {
-                        from,
-                        message: String::from(
-                            "Failed to resolve referenece from remotetracking branch short name",
-                        ),
-                    })?
-                    .name()
-                    .ok_or_else(|| Error::from("Remote branch name is not UTF-8 compatible"))?,
-            )
-            .map_err(|from| Error {
-                from,
-                message: String::from("Failed to get branch remote name"),
-            })?
-            .as_str()
-            .ok_or_else(|| Error::from("Remote name is not UTF-8 compatible"))?
-            .to_owned())
+    pub fn remote_name(&self) -> Result<Option<String>, Error> {
+        Ok(
+            if let Some(remote_tracking_branch) = self.remote_tracking_branch()? {
+                Some(self
+                .repo
+                .branch_remote_name(
+                    self.repo
+                        .resolve_reference_from_short_name(&remote_tracking_branch)
+                        .map_err(|from| Error {
+                            from,
+                            message: String::from(
+                                "Failed to resolve referenece from remotetracking branch short name",
+                            ),
+                        })?
+                        .name()
+                        .ok_or_else(|| Error::from("Remote branch name is not UTF-8 compatible"))?,
+                )
+                .map_err(|from| Error {
+                    from,
+                    message: String::from("Failed to get branch remote name"),
+                })?
+                .as_str()
+                .ok_or_else(|| Error::from("Remote name is not UTF-8 compatible"))?
+                .to_owned())
+            } else {
+                None
+            },
+        )
         // let remote = remote_tracking_branch.name(); // HACK Need to split of the name part, as this is probably origin/master, and we want only origin.
     }
 
@@ -336,17 +376,22 @@ impl Repo {
     /// # Errors
     ///
     /// If some git-related magic goes south.
-    pub fn remote_clone_url(&self) -> Result<String, Error> {
-        Ok(self
-            .repo
-            .find_remote(&self.remote_name()?)
-            .map_err(|from| Error {
-                from,
-                message: String::from("Failed to find remote name for remote clone URL"),
-            })?
-            .url()
-            .ok_or_else(|| Error::from("Remote URL is not UTF-8 compatible"))?
-            .to_owned())
+    pub fn remote_clone_url(&self) -> Result<Option<String>, Error> {
+        Ok(if let Some(remote_name) = self.remote_name()? {
+            Some(
+                self.repo
+                    .find_remote(&remote_name)
+                    .map_err(|from| Error {
+                        from,
+                        message: String::from("Failed to find remote name for remote clone URL"),
+                    })?
+                    .url()
+                    .ok_or_else(|| Error::from("Remote URL is not UTF-8 compatible"))?
+                    .to_owned(),
+            )
+        } else {
+            None
+        })
     }
 
     /// Returns the version of the current state of the repo.
