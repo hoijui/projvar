@@ -139,71 +139,103 @@ fn validate_version(environment: &mut Environment, value: &str) -> Result {
         // TODO PRIO Use this create for semver checking: https://github.com/dtolnay/semver (does not need to be with a Regex!)
         static ref R_SEM_VERS_RELEASE: Regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)$").unwrap();
         static ref R_SEM_VERS: Regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$").unwrap();
-        static ref R_GIT_VERS: Regex = Regex::new(r"^((g[0-9a-f]{7})|((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)))(-(0|[1-9]\d*)-(g[0-9a-f]{7}))?((-dirty(-broken)?)|-broken(-dirty)?)?$").unwrap();
+        static ref R_SEM_GIT_VERS: Regex = Regex::new(r"^((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*))(-(0|[1-9]\d*)-(g[0-9a-f]{7}))?((-dirty(-broken)?)|-broken(-dirty)?)?$").unwrap();
+        static ref R_GIT_VERS: Regex = Regex::new(r"^((g[0-9a-f]{7})|([^~^:?\[\*]+))(-(0|[1-9]\d*)-(g[0-9a-f]{7}))?((-dirty(-broken)?)|-broken(-dirty)?)?$").unwrap();
         static ref R_GIT_SHA: Regex = Regex::new(r"^g?[0-9a-f]{7,40}$").unwrap();
         static ref R_GIT_SHA_PREFIX: Regex = Regex::new(r"^g[0-9a-f]{7}").unwrap();
         static ref R_UNKNOWN_VERS: Regex = Regex::new(r"^($|#|//)").unwrap();
     }
     if R_SEM_VERS_RELEASE.is_match(value) {
-        Ok(Validity::Low { msg: "This is a release version, which indicates either that we are on a release commit, or that it is imprecise, and actually a left-over from the previous release.".to_owned() })
+        Ok(Validity::Low {
+            msg: "This is a release version, \
+which indicates either that we are on a release commit, \
+or that it is imprecise, \
+and actually a left-over from the previous release."
+                .to_owned(),
+        })
+    } else if git::is_git_broken_version(value) {
+        log::warn!(
+            "Broken project version '{}'; something is seriously wrong with your git repo",
+            value
+        );
+        Ok(Validity::Suboptimal {
+            msg: "This version is broken; something is seriously wrong with your git repo."
+                .to_owned(),
+            source: None,
+        })
     } else if git::is_git_dirty_version(value) {
         log::warn!(
             "Dirty project version '{}'; you have uncommitted changes in your project",
             value
         );
         if R_GIT_SHA_PREFIX.is_match(value) {
-            Ok(Validity::Middle {
-                msg:
-                    "This version (a raw git SHA) is technically ok, but not a release-version, and not human-readable; We trust it because it is dirty, though."
-                        .to_owned(),
+            Ok(Validity::Low {
+                msg: "This version is technically ok - \
+having a raw git SHA as base - \
+but not a release-version, \
+and not human-readable; \
+it does not allow direct comparison with other versions.
+We trust it because it is dirty, though."
+                    .to_owned(),
             })
         } else {
-            Ok(Validity::High {
-                msg: Some("A git dirty version starting with a tag".to_owned()),
+            Ok(Validity::Middle {
+                msg: "A git dirty version starting with a tag".to_owned(),
             })
         }
-    } else if R_GIT_SHA.is_match(value) {
-        Ok(Validity::Suboptimal {
-            msg:
-                "This version (a raw git SHA) is technically ok, but not a release-version, and not human-readable"
-                    .to_owned(),
-            source: None,
-        })
-    } else if R_GIT_VERS.is_match(value) {
-        // This version is technically good,
-        // but not a release-version
-        // (i.e., does not look so nice).
-        match R_GIT_SHA_PREFIX.find(value) {
-            Some(mtch) if mtch.range().len() == value.len() =>
-                // The version consists only of a SHA
-                Ok(Validity::Suboptimal {
-                    msg:
-                        "This version (a git SHA) is technically ok, but not a release-version, and not human-readable"
-                            .to_owned(),
-                    source: None,
-                }),
-            Some(_) => {
-                // The version starts with a SHA
-                Ok(Validity::Suboptimal {
-                    msg: "git version starting with a SHA (instead of a tag, which would be preffered)".to_owned(),
-                    source: None,
-                })
-            },
-            None => {
-                // It is a detailed git version starting with a tag
-                Ok(Validity::High {
-                    msg: Some("A git version starting with/consisting of a tag".to_owned()),
-                })
-            },
-        }
     } else if R_SEM_VERS.is_match(value) {
-        // This version is technically good,
+        // This version is (git-)technically good,
         // but not a release-version
         // (i.e., does not look so nice).
-        // Ok(Validity::High)
-        Ok(Validity::Low {
+        Ok(Validity::Middle {
             msg: "semver".to_owned(),
         })
+    } else if R_GIT_SHA.is_match(value) {
+        Ok(Validity::Suboptimal {
+            msg: "This version is technically ok - \
+a raw git SHA - \
+but not a release-version, \
+and not human-readable; \
+it does not allow direct comparison with other versions."
+                .to_owned(),
+            source: None,
+        })
+    } else if R_SEM_GIT_VERS.is_match(value) {
+        // This version is (git-)technically good,
+        // but not a release-version,
+        // and not a valid semver.
+        // It has a semver release versaion as a base,
+        // and is a valid git version, as a whole.
+        // (i.e., does not look so nice).
+        Ok(Validity::Middle {
+            msg: "A git version starting with a semver tag, \
+but not a valid semver version"
+                .to_owned(),
+        })
+    } else if R_GIT_VERS.is_match(value) {
+        // This version is (git-)technically good,
+        // but not commonly accepted as a release-version,
+        // as it is not semver.
+        match R_GIT_SHA_PREFIX.find(value) {
+            Some(mtch) if mtch.range().len() == value.len() => Ok(Validity::Suboptimal {
+                msg: "This version (a git SHA) is technically ok, \
+but not a release-version, and not human-readable"
+                    .to_owned(),
+                source: None,
+            }),
+            Some(_) => Ok(Validity::Suboptimal {
+                msg: "A git version starting with a SHA \
+(instead of a (semver-)tag, which would be preffered)"
+                    .to_owned(),
+                source: None,
+            }),
+            None => {
+                // It is a detailed git version, starting with a tag
+                Ok(Validity::Low {
+                    msg: "A git version starting with/consisting of a non-semver tag".to_owned(),
+                })
+            }
+        }
     } else if R_UNKNOWN_VERS.is_match(value) {
         missing(environment, Key::Version)
     } else {
@@ -916,8 +948,6 @@ mod tests {
     fn test_validate_version() {
         let mut environment = Environment::stub();
         let full_sha = "cf73ea34fcc785b1ac44ffb20d655c917e77c83d";
-        let double_sha =
-            "cf73ea34fcc785b1ac44ffb20d655c917e77c83dcf73ea34fcc785b1ac44ffb20d655c917e77c83d";
 
         // Good cases
         for sha_length in 7..full_sha.len() {
@@ -930,71 +960,64 @@ mod tests {
             &mut environment,
             "gad8f844"
         )));
-        assert!(is_middle(validate_version(
-            &mut environment,
-            "gad8f844-dirty"
-        )));
+        assert!(is_low(validate_version(&mut environment, "gad8f844-dirty")));
         assert!(is_suboptimal(validate_version(
             &mut environment,
             "gad8f844-broken"
         )));
-        assert!(is_middle(validate_version(
+        assert!(is_suboptimal(validate_version(
             &mut environment,
             "gad8f844-dirty-broken"
         )));
-        assert!(is_middle(validate_version(
+        assert!(is_suboptimal(validate_version(
             &mut environment,
             "gad8f844-broken-dirty"
         )));
-        assert!(is_high(validate_version(
+        assert!(is_middle(validate_version(
             &mut environment,
             "0.1.19-12-gad8f844"
         )));
-        assert!(is_high(validate_version(
+        assert!(is_middle(validate_version(
             &mut environment,
             "0.1.19-12-gad8f844-dirty"
         )));
-        assert!(is_high(validate_version(
+        assert!(is_suboptimal(validate_version(
             &mut environment,
             "0.1.19-12-gad8f844-broken"
         )));
-        assert!(is_high(validate_version(
+        assert!(is_suboptimal(validate_version(
             &mut environment,
             "0.1.19-12-gad8f844-dirty-broken"
         )));
-        assert!(is_high(validate_version(
+        assert!(is_suboptimal(validate_version(
             &mut environment,
             "0.1.19-12-gad8f844-broken-dirty"
         )));
         assert!(is_good(validate_version(&mut environment, "0.1.19")));
-        assert!(is_high(validate_version(&mut environment, "0.1.19-dirty")));
-        assert!(is_high(validate_version(&mut environment, "0.1.19-broken")));
-        assert!(is_high(validate_version(
+        assert!(is_middle(validate_version(
+            &mut environment,
+            "0.1.19-dirty"
+        )));
+        assert!(is_suboptimal(validate_version(
+            &mut environment,
+            "0.1.19-broken"
+        )));
+        assert!(is_suboptimal(validate_version(
             &mut environment,
             "0.1.19-dirty-broken"
         )));
-        assert!(is_high(validate_version(
+        assert!(is_suboptimal(validate_version(
             &mut environment,
             "0.1.19-broken-dirty"
         )));
 
         // Bad cases
         assert!(is_missing_err(validate_version(&mut environment, "")));
-        assert!(is_bad_value(validate_version(&mut environment, "gabcdefg")));
-        // Too short SHAs
-        for sha_length in 1..7 {
-            assert!(is_bad_value(validate_version(
-                &mut environment,
-                &full_sha[0..sha_length],
-            )));
-        }
-        // Too long SHAs
-        for sha_length in full_sha.len() + 1..double_sha.len() {
-            assert!(is_bad_value(validate_version(
-                &mut environment,
-                &double_sha[0..sha_length],
-            )));
-        }
+        assert!(is_low(validate_version(&mut environment, "gabcdefg")));
+        assert!(is_low(validate_version(
+            &mut environment,
+            "din-spec-3105-0.10.0-202-g9b5ff47"
+        )));
         // TODO Add some more bad cases. producing various different errors
     }
 
