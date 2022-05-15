@@ -37,6 +37,17 @@ impl From<&str> for Error {
 /// <https://docs.rs/chrono/latest/chrono/format/strftime/index.html>
 pub const DATE_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 
+/// Checks whether a given version string is a git broken version.
+/// Broken means, the repository is corrupt,
+/// and Git cannot determine if there is local modification.
+#[must_use]
+pub fn is_git_broken_version(vers: &str) -> bool {
+    lazy_static! {
+        static ref R_BROKEN_VERSION: Regex = Regex::new(r"^[^-].+(-dirty)?-broken(-.+)?$").unwrap();
+    }
+    R_BROKEN_VERSION.is_match(vers)
+}
+
 /// Checks whether a given version string is a git dirty version.
 /// Dirty means, there are uncommitted changes.
 #[must_use]
