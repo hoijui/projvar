@@ -853,23 +853,43 @@ mod tests {
     // }
 
     fn is_good(res: Result) -> bool {
-        res.unwrap().is_good()
+        if let Ok(val) = res {
+            val.is_good()
+        } else {
+            false
+        }
     }
 
     fn is_high(res: Result) -> bool {
-        variant_eq(&res.unwrap(), &V_HIGH)
+        if let Ok(val) = res {
+            variant_eq(&val, &V_HIGH)
+        } else {
+            false
+        }
     }
 
     fn is_middle(res: Result) -> bool {
-        variant_eq(&res.unwrap(), &V_MIDDLE)
+        if let Ok(val) = res {
+            variant_eq(&val, &V_MIDDLE)
+        } else {
+            false
+        }
     }
 
     fn is_low(res: Result) -> bool {
-        variant_eq(&res.unwrap(), &V_LOW)
+        if let Ok(val) = res {
+            variant_eq(&val, &V_LOW)
+        } else {
+            false
+        }
     }
 
     fn is_suboptimal(res: Result) -> bool {
-        variant_eq(&res.unwrap(), &V_SUBOPTIMAL)
+        if let Ok(val) = res {
+            variant_eq(&val, &V_SUBOPTIMAL)
+        } else {
+            false
+        }
     }
 
     // fn is_almost_usable(res: Result) -> bool {
@@ -877,11 +897,19 @@ mod tests {
     // }
 
     fn is_missing_err(res: Result) -> bool {
-        variant_eq(&res.unwrap_err(), &VE_MISSING)
+        if let Err(err) = res {
+            variant_eq(&err, &VE_MISSING)
+        } else {
+            false
+        }
     }
 
     fn is_bad_value(res: Result) -> bool {
-        variant_eq(&res.unwrap_err(), &VE_BAD_VALUE)
+        if let Err(err) = res {
+            variant_eq(&err, &VE_BAD_VALUE)
+        } else {
+            false
+        }
     }
 
     #[test]
