@@ -10,6 +10,7 @@ extern crate remain;
 extern crate url;
 
 use clap::{command, crate_name, Arg, ArgMatches, Command, ValueHint};
+use const_format::formatcp;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashSet;
@@ -114,13 +115,13 @@ fn arg_project_root() -> Arg<'static> {
 fn arg_variable() -> Arg<'static> {
     Arg::new(A_L_VARIABLE)
         .help("A key-value pair to be used as input")
-        .long_help(
+        .long_help(formatcp!(
             "A key-value pair (aka a variable) to be used as input, \
             as it it was specified as an environment variable. \
             Value provided with this take precedense over environment variables - \
             they overwrite them. \
-            See -I,--variable-file for supplying a lot of such pairs at once.",
-        )
+            See -{A_S_VARIABLES_FILE},--{A_L_VARIABLES_FILE} for supplying a lot of such pairs at once.",
+        ))
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("KEY=VALUE")
@@ -135,11 +136,11 @@ fn arg_variable() -> Arg<'static> {
 fn arg_variables_file() -> Arg<'static> {
     Arg::new(A_L_VARIABLES_FILE)
         .help("An input file containing KEY=VALUE pairs")
-        .long_help(
+        .long_help(formatcp!(
             "An input file containing KEY=VALUE pairs, one per line (BASH style). \
             Empty lines, and those starting with \"#\" or \"//\" are ignored. \
-            See -D,--variable for specifying one pair at a time.",
-        )
+            See -{A_S_VARIABLE},--{A_L_VARIABLE} for specifying one pair at a time.",
+        ))
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("FILE")
@@ -215,10 +216,10 @@ fn arg_hosting_type() -> Arg<'static> {
 fn arg_verbose() -> Arg<'static> {
     Arg::new(A_L_VERBOSE)
         .help("More verbose log output")
-        .long_help(
+        .long_help(formatcp!(
             "More verbose log output; useful for debugging. \
-            See -L,--log-level for more fine-graine control.",
-        )
+            See -{A_S_LOG_LEVEL},--{A_L_LOG_LEVEL} for more fine-graine control.",
+        ))
         .takes_value(false)
         .short(A_S_VERBOSE)
         .long(A_L_VERBOSE)
@@ -241,12 +242,12 @@ fn arg_log_level() -> Arg<'static> {
 fn arg_quiet() -> Arg<'static> {
     Arg::new(A_L_QUIET)
         .help("No logging to stdout (only stderr)")
-        .long_help(
+        .long_help(formatcp!(
             "Supresses all log-output to stdout, \
-            and only shows errors on stderr \
-            (see -L,--log-level to also disable those). \
+            and only shows errors on stderr. \
+            See -{A_S_LOG_LEVEL},--{A_L_LOG_LEVEL} to also disable those. \
             This does not affect the log level for the log-file.",
-        )
+        ))
         .takes_value(false)
         .short(A_S_QUIET)
         .long(A_L_QUIET)
@@ -258,10 +259,10 @@ fn arg_quiet() -> Arg<'static> {
 fn arg_fail() -> Arg<'static> {
     Arg::new(A_L_FAIL_ON_MISSING_VALUE)
         .help("Fail if a required value is missing")
-        .long_help(
-            "Fail if no value is available for any of the required properties \
-            (see --all,--none,--require,--require-not)",
-        )
+        .long_help(formatcp!(
+            "Fail if no value is available for any of the required properties. \
+            See --{A_L_REQUIRE_ALL}, --{A_L_REQUIRE_NONE}, --{A_L_REQUIRE}, --{A_L_REQUIRE_NOT}.",
+        ))
         .takes_value(false)
         .short(A_S_FAIL_ON_MISSING_VALUE)
         .long(A_L_FAIL_ON_MISSING_VALUE)
@@ -272,10 +273,10 @@ fn arg_fail() -> Arg<'static> {
 fn arg_require_all() -> Arg<'static> {
     Arg::new(A_L_REQUIRE_ALL)
         .help("Marks all properties as required")
-        .long_help(
+        .long_help(formatcp!(
             "Marks all properties as required. \
-            See --none,--fail,--require,--require-not.",
-        )
+            See --{A_L_REQUIRE_NONE}, --{A_L_FAIL_ON_MISSING_VALUE}, --{A_L_REQUIRE}, --{A_L_REQUIRE_NOT}.",
+        ))
         .takes_value(false)
         .short(A_S_REQUIRE_ALL)
         .long(A_L_REQUIRE_ALL)
@@ -288,10 +289,10 @@ fn arg_require_all() -> Arg<'static> {
 fn arg_require_none() -> Arg<'static> {
     Arg::new(A_L_REQUIRE_NONE)
         .help("Marks all properties as *not* required")
-        .long_help(
+        .long_help(formatcp!(
             "Marks all properties as *not* required. \
-            See --all,--fail,--require,--require-not.",
-        )
+            See --{A_L_REQUIRE_ALL}, --{A_L_FAIL_ON_MISSING_VALUE}, --{A_L_REQUIRE}, --{A_L_REQUIRE_NOT}.",
+        ))
         .takes_value(false)
         .short(A_S_REQUIRE_NONE)
         .long(A_L_REQUIRE_NONE)
@@ -305,15 +306,15 @@ fn arg_require_none() -> Arg<'static> {
 fn arg_require() -> Arg<'static> {
     Arg::new(A_L_REQUIRE)
         .help("Mark a propery as required")
-        .long_help(
+        .long_help(formatcp!(
             r#"Mark a propery as required. \
             You may use the property name (e.g. "Name") \
             or the variable key (e.g. "PROJECT_NAME"); \
-            See --list for all possible keys. \
+            See --{A_L_LIST} for all possible keys. \
             If at least one such option is present, \
-            the default required values list is cleared \
-            (see --fail,--all,--none,--require-not)."#,
-        )
+            the default required values list is cleared. \
+            See --{A_L_FAIL_ON_MISSING_VALUE}, --{A_L_REQUIRE_ALL}, --{A_L_REQUIRE_NONE}, --{A_L_REQUIRE_NOT}."#,
+        ))
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("KEY")
@@ -330,12 +331,13 @@ fn arg_require() -> Arg<'static> {
 fn arg_require_not() -> Arg<'static> {
     Arg::new(A_L_REQUIRE_NOT)
         .help("Mark a property as not required")
-        .long_help(
+        .long_help(formatcp!(
             "A key of a variable whose value is *not* required. \
-            For example PROJECT_NAME (see --list for all possible keys). \
+            For example PROJECT_NAME (see --{A_L_LIST} for all possible keys). \
             Can be used either on the base of the default requried list \
-            or all (see --fail,--all,--none,--require)",
-        )
+            or all. \
+            See --{A_L_FAIL_ON_MISSING_VALUE}, --{A_L_REQUIRE_ALL}, --{A_L_REQUIRE_NONE}, --{A_L_REQUIRE}.",
+        ))
         .takes_value(true)
         .forbid_empty_values(true)
         .value_name("KEY")
@@ -351,10 +353,10 @@ fn arg_require_not() -> Arg<'static> {
 fn arg_only_required() -> Arg<'static> {
     Arg::new(A_L_ONLY_REQUIRED)
         .help("Only output the required values")
-        .long_help(
-            "Only output the required values \
-            (see --all,--none,--require, --require-not).",
-        )
+        .long_help(formatcp!(
+            "Only output the required values. \
+            See --{A_L_REQUIRE_ALL}, --{A_L_REQUIRE_NONE}, --{A_L_REQUIRE}, --{A_L_REQUIRE_NOT}.",
+        ))
         .takes_value(false)
         // .short(A_S_ONLY_REQUIRED)
         .long(A_L_ONLY_REQUIRED)

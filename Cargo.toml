@@ -23,6 +23,7 @@ publish = false
 askalono = "0.4.4"
 chrono = "0.4.19"
 clap = { version = "3.0.0-rc.4", features = ["cargo"] }
+const_format = "0.2"
 enum-map = "2.0.0-2"
 git-url = "0.3"
 git2 = { version = "0.13", default-features = false } # "default-features = false" is required for MUSL compatibility, to get rid of OpenSSL
