@@ -17,6 +17,9 @@ on:
   release:
     types: [ published ]
 
+env:
+  RUST_BACKTRACE: 1
+
 jobs:
   push_to_registry:
     name: Compile
