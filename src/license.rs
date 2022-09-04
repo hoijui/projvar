@@ -84,12 +84,12 @@ pub fn validate_spdx_expr(expr: &str) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn get_licenses(dir: &str) -> Result<Vec<String>, std::io::Error> {
+pub fn get_licenses(dir: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
     lazy_static! {
         static ref DIR_LICENSES_EXTRACTOR: Detector = Detector::new();
     }
 
-    DIR_LICENSES_EXTRACTOR.get_licenses(dir)
+    Ok(DIR_LICENSES_EXTRACTOR.get_licenses(dir)?)
 }
 
 /// A basic wrapper around the askalono library;
@@ -102,8 +102,11 @@ struct Detector {
 
 impl Detector {
     pub fn new() -> Self {
-        Self {
-            store: Store::from_cache(CACHE_DATA).unwrap(),
+        match Store::from_cache(CACHE_DATA) {
+            Ok(store) => Self { store },
+            Err(err) => {
+                panic!("Failed to load licenses info cache: {}", err);
+            }
         }
     }
 
