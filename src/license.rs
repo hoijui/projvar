@@ -115,12 +115,12 @@ impl Detector {
     /// Returns a list of SPDX licnese identifiers;
     /// one for each LICENSE file found in the given directory.
     pub fn get_licenses(&self, dir: &str) -> Result<Vec<String>, std::io::Error> {
-        log::trace!("Fetching licenses from (REUSE-dir) '{}' ...", dir);
         fn is_license_file<S: AsRef<str>>(file_name: S) -> bool {
             LICENSE_FILE_PREFIXES
                 .iter()
                 .any(|&lf_prefix| file_name.as_ref().starts_with(lf_prefix))
         }
+        log::trace!("Fetching licenses from (REUSE-dir) '{}' ...", dir);
 
         let mut output = fs::read_dir(dir)?
             .filter_map(std::result::Result::ok)
