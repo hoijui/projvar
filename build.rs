@@ -8,7 +8,7 @@ use std::path::Path;
 
 const LICENSES_CACHE_FILE: &str = "resources/licenses-cache.bin.zstd";
 const LICENSES_CACHE_URL: &str =
-    "https://github.com/o2sh/onefetch/raw/main/resources/licenses/cache.bin.zstd";
+    "https://github.com/o2sh/onefetch/raw/main/resources/license.cache.zstd";
 
 fn download_licenses_cache() -> Result<(), Box<dyn std::error::Error>> {
     let cache_file = Path::new(&env::var("OUT_DIR")?).join(LICENSES_CACHE_FILE);
