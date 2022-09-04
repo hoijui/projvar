@@ -89,6 +89,7 @@ pub fn get_licenses(dir: &str) -> Result<Vec<String>, Box<dyn std::error::Error>
         static ref DIR_LICENSES_EXTRACTOR: Detector = Detector::new();
     }
 
+    log::trace!("Fetching licenses from (REUSE-dir) '{}' OUTSIDE ...", dir);
     Ok(DIR_LICENSES_EXTRACTOR.get_licenses(dir)?)
 }
 
@@ -105,6 +106,7 @@ impl Detector {
         match Store::from_cache(CACHE_DATA) {
             Ok(store) => Self { store },
             Err(err) => {
+                log::error!("Failed to load licenses info cache: {}", err);
                 panic!("Failed to load licenses info cache: {}", err);
             }
         }
@@ -113,6 +115,7 @@ impl Detector {
     /// Returns a list of SPDX licnese identifiers;
     /// one for each LICENSE file found in the given directory.
     pub fn get_licenses(&self, dir: &str) -> Result<Vec<String>, std::io::Error> {
+        log::trace!("Fetching licenses from (REUSE-dir) '{}' ...", dir);
         fn is_license_file<S: AsRef<str>>(file_name: S) -> bool {
             LICENSE_FILE_PREFIXES
                 .iter()
@@ -138,6 +141,7 @@ impl Detector {
 
         output.sort();
         output.dedup();
+        log::trace!("Fetching licenses - found {}.", output.len());
         Ok(output)
     }
 
