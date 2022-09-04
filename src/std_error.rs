@@ -26,4 +26,8 @@ pub enum Error {
     /// Represents all cases of `std::io::Error`.
     #[error(transparent)]
     IO(#[from] std::io::Error),
+
+    /// Represents all other cases `std::error::Error`.
+    #[error(transparent)]
+    Boxed(#[from] Box<dyn std::error::Error>),
 }
