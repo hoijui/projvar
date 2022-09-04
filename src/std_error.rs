@@ -20,11 +20,10 @@ pub enum Error {
     )]
     NotValidUtf8,
 
-    /// Represents all other cases of `std::io::Error`.
     #[error(transparent)]
     InvalidUrl(#[from] url::ParseError),
 
-    /// Represents all other cases of `std::io::Error`.
+    /// Represents all cases of `std::io::Error`.
     #[error(transparent)]
     IO(#[from] std::io::Error),
 }
