@@ -471,7 +471,7 @@ lazy_static! {
 /// * <https://github.com/tjtelan/git-url-parse-rs>
 /// * <https://github.com/Byron/gitoxide/blob/main/git-url>
 fn validate_repo_clone_url(_environment: &mut Environment, value: &str) -> Result {
-    git_url::parse(value.as_bytes())
+    git_url::parse(value.into())
         .map(|_url| Validity::Middle { msg: "".to_owned() })
         .map_err(|err| Error::BadValue {
             msg: err.to_string(),
