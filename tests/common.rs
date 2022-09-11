@@ -5,6 +5,7 @@
 use fake::uuid::UUIDv5;
 use fake::Fake;
 use projvar::var;
+use projvar::BoxResult;
 use regex::Regex;
 use uuid::Uuid;
 
@@ -121,21 +122,22 @@ pub fn compare(
 pub fn projvar_test(
     expected_pats: &HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>,
     args: &[&str],
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> BoxResult<()> {
     // let tmp_out_file = assert_fs::NamedTempFile::new("projvar.out.env")?;
     // tmp_out_file.touch()?;
     // let out_file = tmp_out_file.path();
     // NOTE Use this instead of the above for debugging
     let out_file = PathBuf::from("/tmp/projvar-test-out.env");
+    let out_file_str = &out_file.display().to_string();
 
     let mut cmd = Command::cargo_bin("projvar")?;
-    cmd.arg("-O").arg(&out_file.display().to_string());
+    cmd.arg("-O").arg(&out_file_str);
     cmd.args(args);
 
     cmd.assert().success();
 
-    let mut output_reader =
-        repvar::tools::create_input_reader(Some(&out_file.display().to_string()))?;
+    assert!(out_file.exists());
+    let mut output_reader = repvar::tools::create_input_reader(Some(&out_file_str))?;
     let mut actual_vars = var::parse_vars_file_reader(&mut output_reader)?;
 
     compare(expected_pats, &mut actual_vars)?;
@@ -145,12 +147,16 @@ pub fn projvar_test(
 
 pub fn projvar_test_all(
     expected_pats: &HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> BoxResult<()> {
     projvar_test(expected_pats, &["--all"])
 }
 
+pub fn get_env_var_keys() -> Vec<String> {
+    env::vars().map(|(key, _val)| key).collect()
+}
+
 pub fn clear_env_vars() {
-    let vars: Vec<String> = env::vars().map(|(key, _val)| key).collect();
+    let vars = get_env_var_keys();
     for var in vars {
         env::remove_var(var);
     }

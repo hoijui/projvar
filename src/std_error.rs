@@ -29,5 +29,5 @@ pub enum Error {
 
     /// Represents all other cases `std::error::Error`.
     #[error(transparent)]
-    Boxed(#[from] Box<dyn std::error::Error>),
+    Boxed(#[from] Box<dyn std::error::Error + Send + Sync>),
 }

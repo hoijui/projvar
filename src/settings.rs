@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use clap::ValueEnum;
 use lazy_static::lazy_static;
 use std::{collections::HashSet, path::PathBuf};
 use strum::IntoEnumIterator;
@@ -15,7 +16,16 @@ use crate::{
 };
 
 #[derive(
-    Debug, EnumString, EnumVariantNames, EnumIter, IntoStaticStr, PartialEq, PartialOrd, Copy, Clone,
+    Debug,
+    ValueEnum,
+    EnumString,
+    EnumVariantNames,
+    EnumIter,
+    IntoStaticStr,
+    PartialEq,
+    PartialOrd,
+    Copy,
+    Clone,
 )]
 pub enum Verbosity {
     None,
@@ -24,6 +34,12 @@ pub enum Verbosity {
     Info,
     Debug,
     Trace,
+}
+
+impl Default for Verbosity {
+    fn default() -> Self {
+        Self::Info
+    }
 }
 
 lazy_static! {
@@ -38,8 +54,8 @@ impl Verbosity {
     /// Increases the verbosity by `steps`,
     /// halting at the upper bound of the enum.
     #[must_use]
-    pub fn up_max(self, steps: usize) -> Self {
-        let new_index = self.index().saturating_add(steps) % VARIANTS_LIST.len();
+    pub fn up_max<S: Into<usize>>(self, steps: S) -> Self {
+        let new_index = self.index().saturating_add(steps.into()) % VARIANTS_LIST.len();
         VARIANTS_LIST[new_index]
     }
 
@@ -62,7 +78,7 @@ impl From<bool> for Verbosity {
     }
 }
 
-#[derive(Debug, EnumString, EnumVariantNames, IntoStaticStr, Clone, Copy)]
+#[derive(Debug, ValueEnum, EnumString, EnumVariantNames, IntoStaticStr, Clone, Copy)]
 pub enum Overwrite {
     All,
     None,
@@ -85,6 +101,12 @@ impl Overwrite {
             Overwrite::All | Overwrite::Alternative => true,
             Overwrite::None | Overwrite::Main => false,
         }
+    }
+}
+
+impl Default for Overwrite {
+    fn default() -> Self {
+        Self::All
     }
 }
 

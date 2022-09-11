@@ -7,6 +7,7 @@ use std::{collections::HashMap, env};
 mod common;
 
 use common::StrMatcher;
+use projvar::BoxResult;
 
 const CI: &str = "true";
 const BITBUCKET_COMMIT: &str = "ffac537e6cbbf934b08745a378932722df287a53";
@@ -36,7 +37,7 @@ const BITBUCKET_GIT_SSH_ORIGIN: &str = "git@bitbucket.org:my-user/my-proj.git";
 const BITBUCKET_PROJECT_KEY: [Option<&str>; 2] = [Some("my-project-group"), None];
 const BITBUCKET_PROJECT_UUID: &str = "123e4567-e89b-12d3-a456-426614174001";
 
-pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
+fn setup() -> BoxResult<()> {
     common::clear_env_vars();
     env::set_var("CI", CI);
     env::set_var("BITBUCKET_COMMIT", BITBUCKET_COMMIT);
@@ -58,9 +59,7 @@ pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-pub fn expected_pats(
-) -> Result<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>, Box<dyn std::error::Error>>
-{
+fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>> {
     Ok(vec![
         (
             "PROJECT_BUILD_BRANCH",
@@ -128,7 +127,7 @@ pub fn expected_pats(
 }
 
 #[test]
-fn bitbucket_ci() -> Result<(), Box<dyn std::error::Error>> {
+fn bitbucket_ci() -> BoxResult<()> {
     let tmp_proj_dir_empty = assert_fs::TempDir::new()?;
     env::set_current_dir(tmp_proj_dir_empty)?;
     setup()?;

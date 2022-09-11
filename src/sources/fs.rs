@@ -38,7 +38,7 @@ fn dir_name(path: &Path) -> Result<String, std_error::Error> {
         .to_owned())
 }
 
-/// Read the whole file
+/// Reads the whole file
 fn file_content(path: &Path) -> RetrieveRes {
     Ok(if path.exists() && path.is_file() {
         let content = fs::read_to_string(path)?;

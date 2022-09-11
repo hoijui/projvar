@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use clap::ValueEnum;
 /// This deals with things related to different git hosting providers,
 /// both the actual hosters (github.com, gitlab.com, bitbucket.org, ...),
 /// as well as the software (gitlab, gitea, ...).
@@ -83,7 +84,9 @@ impl From<Option<Host<&str>>> for PublicSite {
     }
 }
 
-#[derive(Debug, EnumString, EnumVariantNames, IntoStaticStr, PartialEq, Eq, Clone, Copy)]
+#[derive(
+    Debug, ValueEnum, EnumString, EnumVariantNames, IntoStaticStr, PartialEq, Eq, Clone, Copy,
+)]
 pub enum HostingType {
     /// <https://github.com> - proprietary
     GitHub,

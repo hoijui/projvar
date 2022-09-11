@@ -256,8 +256,8 @@ pub fn parse_vars_file_reader(mut reader: impl BufRead) -> BoxResult<HashMap<Str
         let line = line.trim();
         if !R_IGNORE_LINE.is_match(line) {
             let (key, value) = parse_key_value_str(line)?;
-            let value = unquote(value);
-            vars.insert(key.to_owned(), value.to_owned());
+            let value = unquote(&value);
+            vars.insert(key.clone(), value.to_owned());
         }
     }
     Ok(vars)
@@ -285,7 +285,7 @@ pub fn parse_vars_file_reader(mut reader: impl BufRead) -> BoxResult<HashMap<Str
 /// # Errors
 ///
 /// If the string has a bad form, missing key and/or value.
-pub fn parse_key_value_str(key_value: &str) -> BoxResult<(&str, &str)> {
+pub fn parse_key_value_str(key_value: &str) -> BoxResult<(String, String)> {
     let mut splitter = key_value.splitn(2, '=');
     let key = splitter
         .next()
@@ -293,7 +293,7 @@ pub fn parse_key_value_str(key_value: &str) -> BoxResult<(&str, &str)> {
     let value = splitter
         .next()
         .ok_or("Failed to parse value; key-value pairs have to be of the form \"key=value\"")?;
-    Ok((key, value))
+    Ok((key.to_owned(), value.to_owned()))
 }
 
 /// Checks if a string represents a valid key-value pair,

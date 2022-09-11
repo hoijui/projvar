@@ -5,6 +5,7 @@
 mod common;
 
 use common::StrMatcher;
+use projvar::BoxResult;
 use std::{collections::HashMap, env};
 
 const CI: &str = "true";
@@ -31,7 +32,7 @@ const GITHUB_REF_TYPE: [Option<&str>; 3] = [Some("branch"), Some("tag"), None];
 const GITHUB_HEAD_REF: [Option<&str>; 2] = [Some("head-branch"), None];
 const GITHUB_BASE_REF: [Option<&str>; 2] = [Some("base-branch"), None];
 
-pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
+fn setup() -> BoxResult<()> {
     common::clear_env_vars();
     env::set_var("CI", CI);
     env::set_var("GITHUB_ACTOR", GITHUB_ACTOR);
@@ -47,9 +48,7 @@ pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-pub fn expected_pats(
-) -> Result<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>, Box<dyn std::error::Error>>
-{
+fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>> {
     let vars = vec![
         (
             "PROJECT_BUILD_BRANCH",
@@ -138,7 +137,7 @@ pub fn expected_pats(
 }
 
 #[test]
-fn github_ci() -> Result<(), Box<dyn std::error::Error>> {
+fn github_ci() -> BoxResult<()> {
     let tmp_proj_dir_empty = assert_fs::TempDir::new()?;
     env::set_current_dir(tmp_proj_dir_empty)?;
     setup()?;

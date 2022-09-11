@@ -34,7 +34,7 @@ pub enum Error {
         msg: String,
         input: String,
         #[from(url::parser::ParseError)]
-        source: Box<dyn std::error::Error>,
+        source: Box<dyn std::error::Error + Send + Sync>,
     },
 
     /// Represents all other cases of `std::io::Error`.
@@ -51,7 +51,7 @@ pub enum Error {
 
     /// Represents all other cases of `std::error::Error`.
     #[error(transparent)]
-    Other(#[from] Box<dyn std::error::Error>),
+    Other(#[from] Box<dyn std::error::Error + Send + Sync>),
     // /// Represents all other errors, especially those not fitting any of the above,
     // /// and which do not derive from `std::error::Error`.
     // #[error("No info about the errror is available")]

@@ -10,6 +10,7 @@ use common::R_BOOL;
 use common::R_DATE_TIME;
 use common::R_NON_EMPTY;
 use lazy_static::lazy_static;
+use projvar::BoxResult;
 use regex::Regex;
 use std::{collections::HashMap, env};
 
@@ -21,7 +22,7 @@ lazy_static! {
     pub static ref R_CLONE_URL_SSH: Regex = Regex::new(r"^ssh://(git@)github\.com/hoijui/projvar(\.git)?$").unwrap();
 }
 
-pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
+fn setup() -> BoxResult<()> {
     let repo_dir = create_repo!(
         crate::repo_creation::default::create,
         "repo_creation/default.rs"
@@ -31,9 +32,7 @@ pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-pub fn expected_patterns(
-) -> Result<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>, Box<dyn std::error::Error>>
-{
+fn expected_patterns() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>> {
     Ok(vec![
         (
             "PROJECT_BUILD_DATE",
@@ -106,7 +105,7 @@ pub fn expected_patterns(
 }
 
 #[test]
-fn git() -> Result<(), Box<dyn std::error::Error>> {
+fn git() -> BoxResult<()> {
     setup()?;
     common::projvar_test_all(&expected_patterns()?)
 }

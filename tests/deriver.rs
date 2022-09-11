@@ -8,10 +8,11 @@ mod common;
 mod repo_creation;
 
 use common::{StrMatcher, R_DATE_TIME, R_NON_EMPTY};
+use projvar::BoxResult;
 
 use crate::repo_creation::{create_repo, create_repo_common};
 
-pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
+fn setup() -> BoxResult<()> {
     let repo_dir = create_repo!(
         crate::repo_creation::default::create,
         "repo_creation/default.rs"
@@ -22,9 +23,7 @@ pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-pub fn expected_pats(
-) -> Result<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>, Box<dyn std::error::Error>>
-{
+fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>> {
     Ok(vec![
         (
             "PROJECT_BUILD_DATE",
@@ -50,7 +49,7 @@ pub fn expected_pats(
 }
 
 #[test]
-fn deriver() -> Result<(), Box<dyn std::error::Error>> {
+fn deriver() -> BoxResult<()> {
     setup()?;
     common::projvar_test(
         &expected_pats()?,

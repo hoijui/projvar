@@ -9,17 +9,17 @@ extern crate log;
 extern crate remain;
 extern crate url;
 
-use clap::{command, crate_name, Arg, ArgMatches, Command, ValueHint};
+use clap::builder::ValueParser;
+use clap::{command, crate_name, value_parser, Arg, ArgAction, ArgMatches, Command, ValueHint};
 use const_format::formatcp;
 use lazy_static::lazy_static;
+use projvar::BoxResult;
 use regex::Regex;
 use std::collections::HashSet;
-use std::convert::TryInto;
 use std::env;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::str::FromStr;
 use strum::IntoEnumIterator;
-use strum::VariantNames;
 
 mod cleanup;
 mod constants;
@@ -42,8 +42,6 @@ use crate::settings::{Settings, Verbosity};
 use crate::sinks::VarSink;
 use crate::tools::git_hosting_provs::{self, HostingType};
 use crate::var::Key;
-
-pub(crate) type BoxResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 const A_S_PROJECT_ROOT: char = 'C';
 const A_L_PROJECT_ROOT: &str = "project-root";
@@ -102,12 +100,12 @@ fn arg_project_root() -> Arg<'static> {
             mainly used for SCM (e.g. git) information gathering.",
         )
         .takes_value(true)
-        .forbid_empty_values(true)
+        .value_parser(value_parser!(std::path::PathBuf))
         .value_name("DIR")
         .value_hint(ValueHint::DirPath)
         .short(A_S_PROJECT_ROOT)
         .long(A_L_PROJECT_ROOT)
-        .multiple_occurrences(false)
+        .action(ArgAction::Set)
         .required(false)
         .default_value(".")
 }
@@ -118,18 +116,17 @@ fn arg_variable() -> Arg<'static> {
         .long_help(formatcp!(
             "A key-value pair (aka a variable) to be used as input, \
             as it it was specified as an environment variable. \
-            Value provided with this take precedense over environment variables - \
+            Values provided with this take precedense over environment variables - \
             they overwrite them. \
             See -{A_S_VARIABLES_FILE},--{A_L_VARIABLES_FILE} for supplying a lot of such pairs at once.",
         ))
         .takes_value(true)
-        .forbid_empty_values(true)
         .value_name("KEY=VALUE")
         .value_hint(ValueHint::Other)
-        .validator(var::is_key_value_str_valid)
+        .value_parser(ValueParser::new(var::parse_key_value_str))
         .short(A_S_VARIABLE)
         .long(A_L_VARIABLE)
-        .multiple_occurrences(true)
+        .action(ArgAction::Append)
         .required(false)
 }
 
@@ -142,12 +139,12 @@ fn arg_variables_file() -> Arg<'static> {
             See -{A_S_VARIABLE},--{A_L_VARIABLE} for specifying one pair at a time.",
         ))
         .takes_value(true)
-        .forbid_empty_values(true)
+        .value_parser(value_parser!(std::path::PathBuf))
         .value_name("FILE")
         .value_hint(ValueHint::FilePath)
         .short(A_S_VARIABLES_FILE)
         .long(A_L_VARIABLES_FILE)
-        .multiple_occurrences(true)
+        .action(ArgAction::Append)
         .required(false)
         .default_missing_value("-")
 }
@@ -159,7 +156,6 @@ fn arg_no_env_in() -> Arg<'static> {
         .takes_value(false)
         .short(A_S_NO_ENV_IN)
         .long(A_L_NO_ENV_IN)
-        .multiple_occurrences(false)
         .required(false)
 }
 
@@ -169,7 +165,6 @@ fn arg_env_out() -> Arg<'static> {
         .takes_value(false)
         .short(A_S_ENV_OUT)
         .long(A_L_ENV_OUT)
-        .multiple_occurrences(false)
         .required(false)
 }
 
@@ -182,12 +177,12 @@ fn arg_out_file() -> Arg<'static> {
             it does not mean stdout, but rather the file \"./-\".",
         )
         .takes_value(true)
-        .forbid_empty_values(true)
+        .value_parser(value_parser!(std::path::PathBuf))
         .value_name("FILE")
         .value_hint(ValueHint::FilePath)
         .short(A_S_FILE_OUT)
         .long(A_L_FILE_OUT)
-        .multiple_occurrences(true)
+        .action(ArgAction::Set)
         .default_value(sinks::DEFAULT_FILE_OUT)
         .required(false)
 }
@@ -204,13 +199,11 @@ fn arg_hosting_type() -> Arg<'static> {
             this switch allows to set the hosting software manually.",
         )
         .takes_value(true)
-        .forbid_empty_values(true)
-        .possible_values(git_hosting_provs::HostingType::VARIANTS)
+        .value_parser(value_parser!(git_hosting_provs::HostingType))
         .short(A_S_HOSTING_TYPE)
         .long(A_L_HOSTING_TYPE)
-        .multiple_occurrences(false)
+        .action(ArgAction::Set)
         .required(false)
-        .default_value(HostingType::Unknown.into())
 }
 
 fn arg_verbose() -> Arg<'static> {
@@ -223,7 +216,7 @@ fn arg_verbose() -> Arg<'static> {
         .takes_value(false)
         .short(A_S_VERBOSE)
         .long(A_L_VERBOSE)
-        .multiple_occurrences(true)
+        .action(ArgAction::Count)
         .required(false)
 }
 
@@ -231,10 +224,10 @@ fn arg_log_level() -> Arg<'static> {
     Arg::new(A_L_LOG_LEVEL)
         .help("Set the log-level")
         .takes_value(false)
-        .possible_values(settings::Verbosity::VARIANTS)
+        .value_parser(value_parser!(settings::Verbosity))
         .short(A_S_LOG_LEVEL)
         .long(A_L_LOG_LEVEL)
-        .multiple_occurrences(true)
+        .action(ArgAction::Set)
         .required(false)
         .conflicts_with(A_L_VERBOSE)
 }
@@ -251,7 +244,6 @@ fn arg_quiet() -> Arg<'static> {
         .takes_value(false)
         .short(A_S_QUIET)
         .long(A_L_QUIET)
-        .multiple_occurrences(true)
         .required(false)
         .conflicts_with(A_L_VERBOSE)
 }
@@ -266,7 +258,6 @@ fn arg_fail() -> Arg<'static> {
         .takes_value(false)
         .short(A_S_FAIL_ON_MISSING_VALUE)
         .long(A_L_FAIL_ON_MISSING_VALUE)
-        .multiple_occurrences(false)
         .required(false)
 }
 
@@ -280,7 +271,6 @@ fn arg_require_all() -> Arg<'static> {
         .takes_value(false)
         .short(A_S_REQUIRE_ALL)
         .long(A_L_REQUIRE_ALL)
-        .multiple_occurrences(false)
         .required(false)
         // .requires(A_L_FAIL_ON_MISSING_VALUE)
         .conflicts_with(A_L_REQUIRE)
@@ -296,7 +286,6 @@ fn arg_require_none() -> Arg<'static> {
         .takes_value(false)
         .short(A_S_REQUIRE_NONE)
         .long(A_L_REQUIRE_NONE)
-        .multiple_occurrences(false)
         .required(false)
         // .requires(A_L_FAIL_ON_MISSING_VALUE)
         .conflicts_with(A_L_REQUIRE_NOT)
@@ -316,12 +305,12 @@ fn arg_require() -> Arg<'static> {
             See --{A_L_FAIL_ON_MISSING_VALUE}, --{A_L_REQUIRE_ALL}, --{A_L_REQUIRE_NONE}, --{A_L_REQUIRE_NOT}."#,
         ))
         .takes_value(true)
-        .forbid_empty_values(true)
+        .value_parser(clap::builder::NonEmptyStringValueParser::new()) // TODO Maybe parse into Key directly here already?
         .value_name("KEY")
         .value_hint(ValueHint::Other)
         .short(A_S_REQUIRE)
         .long(A_L_REQUIRE)
-        .multiple_occurrences(true)
+        .action(ArgAction::Append)
         .required(false)
         .requires(A_L_FAIL_ON_MISSING_VALUE)
         .conflicts_with(A_L_REQUIRE_NOT)
@@ -339,12 +328,12 @@ fn arg_require_not() -> Arg<'static> {
             See --{A_L_FAIL_ON_MISSING_VALUE}, --{A_L_REQUIRE_ALL}, --{A_L_REQUIRE_NONE}, --{A_L_REQUIRE}.",
         ))
         .takes_value(true)
-        .forbid_empty_values(true)
+        .value_parser(clap::builder::NonEmptyStringValueParser::new()) // TODO Maybe parse into Key directly here already?
         .value_name("KEY")
         .value_hint(ValueHint::Other)
         .short(A_S_REQUIRE_NOT)
         .long(A_L_REQUIRE_NOT)
-        .multiple_occurrences(true)
+        .action(ArgAction::Append)
         .required(false)
         .requires(A_L_FAIL_ON_MISSING_VALUE)
         .conflicts_with(A_L_REQUIRE)
@@ -360,7 +349,6 @@ fn arg_only_required() -> Arg<'static> {
         .takes_value(false)
         // .short(A_S_ONLY_REQUIRED)
         .long(A_L_ONLY_REQUIRED)
-        .multiple_occurrences(false)
         .required(false)
 }
 
@@ -374,10 +362,11 @@ fn arg_key_prefix() -> Arg<'static> {
         .takes_value(true)
         .forbid_empty_values(false)
         .value_name("STRING")
+        .value_parser(clap::builder::StringValueParser::new()) // TODO Maybe check for illegal chars directly here?
         .value_hint(ValueHint::Other)
         // .short(A_S_KEY_PREFIX)
         .long(A_L_KEY_PREFIX)
-        .multiple_occurrences(false)
+        .action(ArgAction::Set)
         .default_missing_value("")
         .default_value(constants::DEFAULT_KEY_PREFIX)
         .required(false)
@@ -390,7 +379,6 @@ fn arg_dry() -> Arg<'static> {
         .takes_value(false)
         .short(A_S_DRY)
         .long(A_L_DRY)
-        .multiple_occurrences(false)
         .required(false)
 }
 
@@ -398,11 +386,10 @@ fn arg_overwrite() -> Arg<'static> {
     Arg::new(A_L_OVERWRITE)
         .help("Whether to overwrite already set values in the output.")
         .takes_value(true)
-        .possible_values(settings::Overwrite::VARIANTS) //iter().map(|ovr| &*format!("{:?}", ovr)).collect())
+        .value_parser(value_parser!(settings::Overwrite))
         .short(A_S_OVERWRITE)
         .long(A_L_OVERWRITE)
-        .multiple_occurrences(false)
-        .default_value(settings::Overwrite::All.into())
+        .action(ArgAction::Set)
         .required(false)
         .conflicts_with(A_L_DRY)
 }
@@ -417,7 +404,6 @@ fn arg_list() -> Arg<'static> {
         .takes_value(false)
         .short(A_S_LIST)
         .long(A_L_LIST)
-        .multiple_occurrences(false)
         .required(false)
 }
 
@@ -429,11 +415,11 @@ fn arg_log_file() -> Arg<'static> {
         .help("Write log output to a file")
         .long_help("Writes a detailed log to the specifed file.")
         .takes_value(true)
-        .forbid_empty_values(true)
+        .value_parser(value_parser!(std::path::PathBuf))
         .value_hint(ValueHint::FilePath)
         .short(A_S_LOG_FILE)
         .long(A_L_LOG_FILE)
-        .multiple_occurrences(false)
+        .action(ArgAction::Set)
         .required(false)
         .default_missing_value(&LOG_FILE_NAME)
 }
@@ -447,10 +433,11 @@ fn arg_date_format() -> Arg<'static> {
         )
         .takes_value(true)
         .forbid_empty_values(true)
+        .value_parser(clap::builder::NonEmptyStringValueParser::new()) // TODO Maybe parse directly into a date format?
         .value_hint(ValueHint::Other)
         .short(A_S_DATE_FORMAT)
         .long(A_L_DATE_FORMAT)
-        .multiple_occurrences(false)
+        .action(ArgAction::Set)
         .default_value(tools::git::DATE_FORMAT)
         .required(false)
 }
@@ -467,10 +454,10 @@ fn arg_show_all_retrieved() -> Arg<'static> {
         .value_hint(ValueHint::FilePath)
         .value_name("MD-FILE")
         .min_values(0)
-        .forbid_empty_values(true)
+        .value_parser(value_parser!(std::path::PathBuf))
         .short(A_S_SHOW_ALL_RETRIEVED)
         .long(A_L_SHOW_ALL_RETRIEVED)
-        .multiple_occurrences(false)
+        .action(ArgAction::Set)
         .required(false)
 }
 
@@ -487,10 +474,10 @@ fn arg_show_primary_retrieved() -> Arg<'static> {
         .value_hint(ValueHint::FilePath)
         .value_name("MD-FILE")
         .min_values(0)
-        .forbid_empty_values(true)
+        .value_parser(value_parser!(std::path::PathBuf))
         .short(A_S_SHOW_PRIMARY_RETRIEVED)
         .long(A_L_SHOW_PRIMARY_RETRIEVED)
-        .multiple_occurrences(false)
+        .action(ArgAction::Set)
         .required(false)
         .conflicts_with(A_L_SHOW_ALL_RETRIEVED)
 }
@@ -551,26 +538,39 @@ fn arg_matcher() -> Command<'static> {
     app
 }
 
-fn hosting_type(args: &ArgMatches) -> BoxResult<HostingType> {
-    let hosting_type = if let Some(hosting_type_str) = args.value_of(A_L_HOSTING_TYPE) {
-        HostingType::from_str(hosting_type_str)?
-    } else {
-        HostingType::default()
-    };
+fn hosting_type(args: &ArgMatches) -> HostingType {
+    let hosting_type = args
+        .get_one::<HostingType>(A_L_HOSTING_TYPE)
+        .copied()
+        .unwrap_or_default();
 
     if log::log_enabled!(log::Level::Debug) {
         let hosting_type_str: &str = hosting_type.into();
         log::debug!("Hosting-type setting: {}", hosting_type_str);
     }
 
-    Ok(hosting_type)
+    hosting_type
+}
+
+fn overwrite(args: &ArgMatches) -> settings::Overwrite {
+    let overwrite = args
+        .get_one::<settings::Overwrite>(A_L_OVERWRITE)
+        .copied()
+        .unwrap_or_default();
+
+    if log::log_enabled!(log::Level::Debug) {
+        let overwrite_str: &str = overwrite.into();
+        log::debug!("Overwriting output variable values? -> {}", overwrite_str);
+    }
+
+    overwrite
 }
 
 /// Returns the logging verbosities to be used.
 /// The first one is for stdout&stderr,
 /// the second one for log-file(s).
 fn verbosity(args: &ArgMatches) -> BoxResult<(Verbosity, Verbosity)> {
-    let common = if let Some(specified) = args.value_of(A_L_LOG_LEVEL) {
+    let common = if let Some(specified) = args.get_one(A_L_LOG_LEVEL).copied() {
         Verbosity::from_str(specified)?
     } else {
         // Set the default base level
@@ -579,11 +579,11 @@ fn verbosity(args: &ArgMatches) -> BoxResult<(Verbosity, Verbosity)> {
         } else {
             Verbosity::Info
         };
-        let num_verbose = args.occurrences_of(A_L_VERBOSE).try_into()?;
+        let num_verbose = *args.get_one::<u8>(A_L_VERBOSE).unwrap_or(&0);
         level.up_max(num_verbose)
     };
 
-    let std = if args.is_present(A_L_QUIET) {
+    let std = if args.contains_id(A_L_QUIET) {
         Verbosity::None
     } else {
         common
@@ -593,15 +593,16 @@ fn verbosity(args: &ArgMatches) -> BoxResult<(Verbosity, Verbosity)> {
 }
 
 fn repo_path(args: &ArgMatches) -> PathBuf {
-    let repo_path: Option<&str> = args.value_of(A_L_PROJECT_ROOT);
-    let repo_path_str = repo_path.unwrap_or(".");
-    let repo_path = PathBuf::from(repo_path_str);
-    log::debug!("Using repo path '{:?}'.", repo_path);
+    let repo_path = args
+        .get_one::<PathBuf>(A_L_PROJECT_ROOT)
+        .cloned()
+        .unwrap_or_else(PathBuf::new);
+    log::debug!("Using repo path '{:#?}'.", &repo_path);
     repo_path
 }
 
 fn date_format(args: &ArgMatches) -> &str {
-    let date_format = match args.value_of(A_L_DATE_FORMAT) {
+    let date_format = match args.get_one::<String>(A_L_DATE_FORMAT) {
         Some(date_format) => date_format,
         None => tools::git::DATE_FORMAT,
     };
@@ -609,33 +610,25 @@ fn date_format(args: &ArgMatches) -> &str {
     date_format
 }
 
-fn sinks_cli(args: &ArgMatches) -> BoxResult<Vec<Box<dyn VarSink>>> {
-    let env_out = args.is_present(A_L_ENV_OUT);
-    let dry = args.is_present(A_L_DRY);
+fn sinks_cli(args: &ArgMatches) -> Vec<Box<dyn VarSink>> {
+    let env_out = args.contains_id(A_L_ENV_OUT);
+    let dry = args.contains_id(A_L_DRY);
 
-    let mut default_out_file = false;
+    let mut default_out_file = true;
     let mut additional_out_files = vec![];
-    if args.is_present(A_L_FILE_OUT) {
-        if args.occurrences_of(A_L_FILE_OUT) == 0 {
-            default_out_file = true;
-        } else if let Some(out_files) = args.values_of(A_L_FILE_OUT) {
-            for out_file in out_files {
-                additional_out_files.push(PathBuf::from_str(out_file)?);
-            }
+    if let Some(out_files) = args.get_many::<PathBuf>(A_L_FILE_OUT) {
+        for out_file in out_files {
+            additional_out_files.push(out_file.into());
+            default_out_file = false;
         }
     }
 
-    Ok(sinks::cli_list(
-        env_out,
-        dry,
-        default_out_file,
-        additional_out_files,
-    ))
+    sinks::cli_list(env_out, dry, default_out_file, additional_out_files)
 }
 
-fn required_keys(key_prefix: Option<&str>, args: &ArgMatches) -> BoxResult<HashSet<Key>> {
-    let require_all: bool = args.is_present(A_L_REQUIRE_ALL);
-    let require_none: bool = args.is_present(A_L_REQUIRE_NONE);
+fn required_keys(key_prefix: Option<String>, args: &ArgMatches) -> BoxResult<HashSet<Key>> {
+    let require_all: bool = args.contains_id(A_L_REQUIRE_ALL);
+    let require_none: bool = args.contains_id(A_L_REQUIRE_NONE);
     let mut required_keys = if require_all {
         let mut all = HashSet::<Key>::new();
         all.extend(Key::iter());
@@ -645,7 +638,7 @@ fn required_keys(key_prefix: Option<&str>, args: &ArgMatches) -> BoxResult<HashS
     } else {
         var::default_keys().clone()
     };
-    let r_key_prefix_str = format!("^{}", key_prefix.unwrap_or(""));
+    let r_key_prefix_str = format!("^{}", key_prefix.unwrap_or_default());
     let r_key_prefix = Regex::new(&r_key_prefix_str).unwrap();
     if let Some(requires) = args.values_of(A_L_REQUIRE) {
         for require in requires {
@@ -677,10 +670,10 @@ fn main() -> BoxResult<()> {
 
     let verbosity = verbosity(&args)?;
 
-    let log_file = args.value_of(A_L_LOG_FILE).map(Path::new);
+    let log_file = args.get_one(A_L_LOG_FILE).copied();
     logger::init(log_file, verbosity);
 
-    if args.is_present(A_L_LIST) {
+    if args.contains_id(A_L_LIST) {
         let environment = Environment::stub();
         let list = var::list_keys(&environment);
         log::info!("{}", list);
@@ -690,37 +683,36 @@ fn main() -> BoxResult<()> {
     let repo_path = repo_path(&args);
     let date_format = date_format(&args);
 
-    let overwrite = settings::Overwrite::from_str(args.value_of(A_L_OVERWRITE).unwrap())?;
-    log::debug!("Overwriting output variable values? -> {:?}", overwrite);
+    let overwrite = overwrite(&args);
 
     log::trace!("Collecting sources ...");
     let sources = sources::default_list(&repo_path);
 
     log::trace!("Collecting sinks ...");
-    let sinks = sinks_cli(&args)?;
+    let sinks = sinks_cli(&args);
 
     log::trace!("Collecting more settings ...");
-    let fail_on_missing: bool = args.is_present(A_L_FAIL_ON_MISSING_VALUE);
-    let key_prefix = args.value_of(A_L_KEY_PREFIX);
+    let fail_on_missing: bool = args.contains_id(A_L_FAIL_ON_MISSING_VALUE);
+    let key_prefix = args.get_one::<String>(A_L_KEY_PREFIX).cloned();
     log::trace!("Collecting required keys ...");
-    let required_keys = required_keys(key_prefix, &args)?;
+    let required_keys = required_keys(key_prefix.clone(), &args)?;
     log::trace!("Collecting setting 'show-retrieved?' ...");
-    let show_retrieved: settings::ShowRetrieved = if args.is_present(A_L_SHOW_ALL_RETRIEVED) {
+    let show_retrieved: settings::ShowRetrieved = if args.contains_id(A_L_SHOW_ALL_RETRIEVED) {
         settings::ShowRetrieved::All(
-            args.value_of(A_L_SHOW_ALL_RETRIEVED)
+            args.get_one::<PathBuf>(A_L_SHOW_ALL_RETRIEVED)
                 .map(std::convert::Into::into),
         )
-    } else if args.is_present(A_L_SHOW_PRIMARY_RETRIEVED) {
+    } else if args.contains_id(A_L_SHOW_PRIMARY_RETRIEVED) {
         settings::ShowRetrieved::Primary(
-            args.value_of(A_L_SHOW_PRIMARY_RETRIEVED)
+            args.get_one::<PathBuf>(A_L_SHOW_PRIMARY_RETRIEVED)
                 .map(std::convert::Into::into),
         )
     } else {
         settings::ShowRetrieved::No
     };
     log::trace!("Collecting yet more settings ...");
-    let hosting_type = hosting_type(&args)?;
-    let only_required = args.is_present(A_L_ONLY_REQUIRED);
+    let hosting_type = hosting_type(&args);
+    let only_required = args.contains_id(A_L_ONLY_REQUIRED);
 
     let settings = Settings {
         repo_path: Some(repo_path),
@@ -731,7 +723,7 @@ fn main() -> BoxResult<()> {
         show_retrieved,
         hosting_type,
         only_required,
-        key_prefix: key_prefix.map(ToOwned::to_owned),
+        key_prefix,
         verbosity,
     };
     log::trace!("Created Settings.");
@@ -739,7 +731,7 @@ fn main() -> BoxResult<()> {
     log::trace!("Created Environment.");
 
     // fetch environment variables
-    if !args.is_present(A_L_NO_ENV_IN) {
+    if !args.contains_id(A_L_NO_ENV_IN) {
         log::trace!("Fetching variables from the environment ...");
         repvar::tools::append_env(&mut environment.vars);
     }
@@ -758,11 +750,11 @@ fn main() -> BoxResult<()> {
         }
     }
     // insert CLI supplied variables values
-    if let Some(variables) = args.values_of(A_L_VARIABLE) {
-        for var in variables {
+    if let Some(variables) = args.get_many(A_L_VARIABLE) {
+        for var in variables.copied() {
             log::trace!("Adding variable from CLI: '{}' ...", var);
             let (key, value) = var::parse_key_value_str(var)?;
-            environment.vars.insert(key.to_owned(), value.to_owned());
+            environment.vars.insert(key, value);
         }
     }
 

@@ -7,6 +7,7 @@ use std::{collections::HashMap, env};
 mod common;
 
 use common::StrMatcher;
+use projvar::BoxResult;
 
 const CI: &str = "true";
 const CI_COMMIT_AUTHOR: &str = "Commit Author <commit.author@email.com>";
@@ -89,7 +90,7 @@ const GITLAB_USER_ID: fn() -> String = common::random_uuid;
 const GITLAB_USER_LOGIN: &str = "jobtriggerer";
 const GITLAB_USER_NAME: &str = "Job Triggerer";
 
-pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
+fn setup() -> BoxResult<()> {
     common::clear_env_vars();
     env::set_var("CI", CI);
     env::set_var("CI_COMMIT_AUTHOR", CI_COMMIT_AUTHOR);
@@ -131,9 +132,7 @@ pub fn setup() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-pub fn expected_pats(
-) -> Result<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>, Box<dyn std::error::Error>>
-{
+fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>> {
     Ok(vec![
         (
             "PROJECT_BUILD_BRANCH",
@@ -224,7 +223,7 @@ pub fn expected_pats(
 }
 
 #[test]
-fn gitlab_ci() -> Result<(), Box<dyn std::error::Error>> {
+fn gitlab_ci() -> BoxResult<()> {
     let tmp_proj_dir_empty = assert_fs::TempDir::new()?;
     env::set_current_dir(tmp_proj_dir_empty)?;
     setup()?;

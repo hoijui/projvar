@@ -21,7 +21,7 @@ use lazy_static::lazy_static;
 
 use crate::environment::Environment;
 use crate::var::{Confidence, Key, C_HIGH};
-use crate::{std_error, tools, value_conversions};
+use crate::{std_error, tools, value_conversions, BoxResult};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub enum Hierarchy {
@@ -64,11 +64,11 @@ pub enum Error {
 
     /// Represents all other cases of `std::error::Error`.
     #[error(transparent)]
-    Other(#[from] Box<dyn std::error::Error>),
+    Other(#[from] Box<dyn std::error::Error + Send + Sync>),
 }
 
 pub type ConfVal = (Confidence, String);
-pub type RetrieveRes = Result<Option<ConfVal>, Error>;
+pub type RetrieveRes = BoxResult<Option<ConfVal>>;
 
 pub trait VarSource {
     /// Indicates whether this source of variables is usable.

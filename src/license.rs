@@ -84,13 +84,13 @@ pub fn validate_spdx_expr(expr: &str) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn get_licenses(dir: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+pub fn get_licenses(dir: &str) -> Result<Vec<String>, std::io::Error> {
     lazy_static! {
         static ref DIR_LICENSES_EXTRACTOR: Detector = Detector::new();
     }
 
     log::trace!("Fetching licenses from (REUSE-dir) '{}' OUTSIDE ...", dir);
-    Ok(DIR_LICENSES_EXTRACTOR.get_licenses(dir)?)
+    DIR_LICENSES_EXTRACTOR.get_licenses(dir)
 }
 
 /// A basic wrapper around the askalono library;
