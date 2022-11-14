@@ -92,14 +92,14 @@ const A_L_SHOW_ALL_RETRIEVED: &str = "show-all-retrieved";
 const A_S_SHOW_PRIMARY_RETRIEVED: char = 'P';
 const A_L_SHOW_PRIMARY_RETRIEVED: &str = "show-primary-retrieved";
 
-fn arg_project_root() -> Arg<'static> {
+fn arg_project_root() -> Arg {
     Arg::new(A_L_PROJECT_ROOT)
         .help("The root dir of the project")
         .long_help(
             "The root directory of the project, \
             mainly used for SCM (e.g. git) information gathering.",
         )
-        .takes_value(true)
+        .num_args(1)
         .value_parser(value_parser!(std::path::PathBuf))
         .value_name("DIR")
         .value_hint(ValueHint::DirPath)
@@ -110,7 +110,7 @@ fn arg_project_root() -> Arg<'static> {
         .default_value(".")
 }
 
-fn arg_variable() -> Arg<'static> {
+fn arg_variable() -> Arg {
     Arg::new(A_L_VARIABLE)
         .help("A key-value pair to be used as input")
         .long_help(formatcp!(
@@ -120,7 +120,7 @@ fn arg_variable() -> Arg<'static> {
             they overwrite them. \
             See -{A_S_VARIABLES_FILE},--{A_L_VARIABLES_FILE} for supplying a lot of such pairs at once.",
         ))
-        .takes_value(true)
+        .num_args(1)
         .value_name("KEY=VALUE")
         .value_hint(ValueHint::Other)
         .value_parser(ValueParser::new(var::parse_key_value_str))
@@ -130,7 +130,7 @@ fn arg_variable() -> Arg<'static> {
         .required(false)
 }
 
-fn arg_variables_file() -> Arg<'static> {
+fn arg_variables_file() -> Arg {
     Arg::new(A_L_VARIABLES_FILE)
         .help("An input file containing KEY=VALUE pairs")
         .long_help(formatcp!(
@@ -138,7 +138,7 @@ fn arg_variables_file() -> Arg<'static> {
             Empty lines, and those starting with \"#\" or \"//\" are ignored. \
             See -{A_S_VARIABLE},--{A_L_VARIABLE} for specifying one pair at a time.",
         ))
-        .takes_value(true)
+        .num_args(1)
         .value_parser(value_parser!(std::path::PathBuf))
         .value_name("FILE")
         .value_hint(ValueHint::FilePath)
@@ -149,26 +149,26 @@ fn arg_variables_file() -> Arg<'static> {
         .default_missing_value("-")
 }
 
-fn arg_no_env_in() -> Arg<'static> {
+fn arg_no_env_in() -> Arg {
     Arg::new(A_L_NO_ENV_IN)
         .help("Do not read environment variables")
         .long_help("Disable the use of environment variables as input")
-        .takes_value(false)
+        .action(ArgAction::SetTrue)
         .short(A_S_NO_ENV_IN)
         .long(A_L_NO_ENV_IN)
         .required(false)
 }
 
-fn arg_env_out() -> Arg<'static> {
+fn arg_env_out() -> Arg {
     Arg::new(A_L_ENV_OUT)
         .help("Write resulting values directy into the environment") // TODO Check: is that even possible? As in, the values remaining in the environment after the ned of the process?
-        .takes_value(false)
+        .action(ArgAction::SetTrue)
         .short(A_S_ENV_OUT)
         .long(A_L_ENV_OUT)
         .required(false)
 }
 
-fn arg_out_file() -> Arg<'static> {
+fn arg_out_file() -> Arg {
     Arg::new(A_L_FILE_OUT)
         .help("Write variables into this file")
         .long_help(
@@ -176,7 +176,7 @@ fn arg_out_file() -> Arg<'static> {
             Note that \"-\" has no special meaning here; \
             it does not mean stdout, but rather the file \"./-\".",
         )
-        .takes_value(true)
+        .num_args(1)
         .value_parser(value_parser!(std::path::PathBuf))
         .value_name("FILE")
         .value_hint(ValueHint::FilePath)
@@ -187,7 +187,7 @@ fn arg_out_file() -> Arg<'static> {
         .required(false)
 }
 
-fn arg_hosting_type() -> Arg<'static> {
+fn arg_hosting_type() -> Arg {
     Arg::new(A_L_HOSTING_TYPE)
         .help("Overrides the hosting type of the primary remote")
         .long_help(
@@ -198,7 +198,7 @@ fn arg_hosting_type() -> Arg<'static> {
             but if this is not possible, \
             this switch allows to set the hosting software manually.",
         )
-        .takes_value(true)
+        .num_args(1)
         .value_parser(value_parser!(git_hosting_provs::HostingType))
         .short(A_S_HOSTING_TYPE)
         .long(A_L_HOSTING_TYPE)
@@ -206,24 +206,24 @@ fn arg_hosting_type() -> Arg<'static> {
         .required(false)
 }
 
-fn arg_verbose() -> Arg<'static> {
+fn arg_verbose() -> Arg {
     Arg::new(A_L_VERBOSE)
         .help("More verbose log output")
         .long_help(formatcp!(
             "More verbose log output; useful for debugging. \
             See -{A_S_LOG_LEVEL},--{A_L_LOG_LEVEL} for more fine-graine control.",
         ))
-        .takes_value(false)
+        .action(ArgAction::SetTrue)
         .short(A_S_VERBOSE)
         .long(A_L_VERBOSE)
         .action(ArgAction::Count)
         .required(false)
 }
 
-fn arg_log_level() -> Arg<'static> {
+fn arg_log_level() -> Arg {
     Arg::new(A_L_LOG_LEVEL)
         .help("Set the log-level")
-        .takes_value(false)
+        .action(ArgAction::SetTrue)
         .value_parser(value_parser!(settings::Verbosity))
         .short(A_S_LOG_LEVEL)
         .long(A_L_LOG_LEVEL)
@@ -232,7 +232,7 @@ fn arg_log_level() -> Arg<'static> {
         .conflicts_with(A_L_VERBOSE)
 }
 
-fn arg_quiet() -> Arg<'static> {
+fn arg_quiet() -> Arg {
     Arg::new(A_L_QUIET)
         .help("No logging to stdout (only stderr)")
         .long_help(formatcp!(
@@ -241,34 +241,34 @@ fn arg_quiet() -> Arg<'static> {
             See -{A_S_LOG_LEVEL},--{A_L_LOG_LEVEL} to also disable those. \
             This does not affect the log level for the log-file.",
         ))
-        .takes_value(false)
+        .action(ArgAction::SetTrue)
         .short(A_S_QUIET)
         .long(A_L_QUIET)
         .required(false)
         .conflicts_with(A_L_VERBOSE)
 }
 
-fn arg_fail() -> Arg<'static> {
+fn arg_fail() -> Arg {
     Arg::new(A_L_FAIL_ON_MISSING_VALUE)
         .help("Fail if a required value is missing")
         .long_help(formatcp!(
             "Fail if no value is available for any of the required properties. \
             See --{A_L_REQUIRE_ALL}, --{A_L_REQUIRE_NONE}, --{A_L_REQUIRE}, --{A_L_REQUIRE_NOT}.",
         ))
-        .takes_value(false)
+        .action(ArgAction::SetTrue)
         .short(A_S_FAIL_ON_MISSING_VALUE)
         .long(A_L_FAIL_ON_MISSING_VALUE)
         .required(false)
 }
 
-fn arg_require_all() -> Arg<'static> {
+fn arg_require_all() -> Arg {
     Arg::new(A_L_REQUIRE_ALL)
         .help("Marks all properties as required")
         .long_help(formatcp!(
             "Marks all properties as required. \
             See --{A_L_REQUIRE_NONE}, --{A_L_FAIL_ON_MISSING_VALUE}, --{A_L_REQUIRE}, --{A_L_REQUIRE_NOT}.",
         ))
-        .takes_value(false)
+        .action(ArgAction::SetTrue)
         .short(A_S_REQUIRE_ALL)
         .long(A_L_REQUIRE_ALL)
         .required(false)
@@ -276,14 +276,14 @@ fn arg_require_all() -> Arg<'static> {
         .conflicts_with(A_L_REQUIRE)
 }
 
-fn arg_require_none() -> Arg<'static> {
+fn arg_require_none() -> Arg {
     Arg::new(A_L_REQUIRE_NONE)
         .help("Marks all properties as *not* required")
         .long_help(formatcp!(
             "Marks all properties as *not* required. \
             See --{A_L_REQUIRE_ALL}, --{A_L_FAIL_ON_MISSING_VALUE}, --{A_L_REQUIRE}, --{A_L_REQUIRE_NOT}.",
         ))
-        .takes_value(false)
+        .action(ArgAction::SetTrue)
         .short(A_S_REQUIRE_NONE)
         .long(A_L_REQUIRE_NONE)
         .required(false)
@@ -292,7 +292,7 @@ fn arg_require_none() -> Arg<'static> {
         .conflicts_with(A_L_REQUIRE_ALL)
 }
 
-fn arg_require() -> Arg<'static> {
+fn arg_require() -> Arg {
     Arg::new(A_L_REQUIRE)
         .help("Mark a propery as required")
         .long_help(formatcp!(
@@ -304,7 +304,7 @@ fn arg_require() -> Arg<'static> {
             the default required values list is cleared. \
             See --{A_L_FAIL_ON_MISSING_VALUE}, --{A_L_REQUIRE_ALL}, --{A_L_REQUIRE_NONE}, --{A_L_REQUIRE_NOT}."#,
         ))
-        .takes_value(true)
+        .num_args(1)
         .value_parser(clap::builder::NonEmptyStringValueParser::new()) // TODO Maybe parse into Key directly here already?
         .value_name("KEY")
         .value_hint(ValueHint::Other)
@@ -317,7 +317,7 @@ fn arg_require() -> Arg<'static> {
         .conflicts_with(A_L_REQUIRE_ALL)
 }
 
-fn arg_require_not() -> Arg<'static> {
+fn arg_require_not() -> Arg {
     Arg::new(A_L_REQUIRE_NOT)
         .help("Mark a property as not required")
         .long_help(formatcp!(
@@ -327,7 +327,7 @@ fn arg_require_not() -> Arg<'static> {
             or all. \
             See --{A_L_FAIL_ON_MISSING_VALUE}, --{A_L_REQUIRE_ALL}, --{A_L_REQUIRE_NONE}, --{A_L_REQUIRE}.",
         ))
-        .takes_value(true)
+        .num_args(1)
         .value_parser(clap::builder::NonEmptyStringValueParser::new()) // TODO Maybe parse into Key directly here already?
         .value_name("KEY")
         .value_hint(ValueHint::Other)
@@ -339,28 +339,27 @@ fn arg_require_not() -> Arg<'static> {
         .conflicts_with(A_L_REQUIRE)
 }
 
-fn arg_only_required() -> Arg<'static> {
+fn arg_only_required() -> Arg {
     Arg::new(A_L_ONLY_REQUIRED)
         .help("Only output the required values")
         .long_help(formatcp!(
             "Only output the required values. \
             See --{A_L_REQUIRE_ALL}, --{A_L_REQUIRE_NONE}, --{A_L_REQUIRE}, --{A_L_REQUIRE_NOT}.",
         ))
-        .takes_value(false)
+        .action(ArgAction::SetTrue)
         // .short(A_S_ONLY_REQUIRED)
         .long(A_L_ONLY_REQUIRED)
         .required(false)
 }
 
-fn arg_key_prefix() -> Arg<'static> {
+fn arg_key_prefix() -> Arg {
     Arg::new(A_L_KEY_PREFIX)
         .help("The key prefix to be used for output")
         .long_help(
             "The key prefix to be used when writing out values in the sinks. \
             For example \"PROJECT_\" -> \"PROJECT_VERSION\", \"PROJECT_NAME\", ...",
         )
-        .takes_value(true)
-        .forbid_empty_values(false)
+        .num_args(1)
         .value_name("STRING")
         .value_parser(clap::builder::StringValueParser::new()) // TODO Maybe check for illegal chars directly here?
         .value_hint(ValueHint::Other)
@@ -372,20 +371,20 @@ fn arg_key_prefix() -> Arg<'static> {
         .required(false)
 }
 
-fn arg_dry() -> Arg<'static> {
+fn arg_dry() -> Arg {
     Arg::new(A_L_DRY)
         .help("Do not write any files or set any environment variables")
         .long_help("Set Whether to skip the actual setting of environment variables.")
-        .takes_value(false)
+        .action(ArgAction::SetTrue)
         .short(A_S_DRY)
         .long(A_L_DRY)
         .required(false)
 }
 
-fn arg_overwrite() -> Arg<'static> {
+fn arg_overwrite() -> Arg {
     Arg::new(A_L_OVERWRITE)
         .help("Whether to overwrite already set values in the output.")
-        .takes_value(true)
+        .num_args(1)
         .value_parser(value_parser!(settings::Overwrite))
         .short(A_S_OVERWRITE)
         .long(A_L_OVERWRITE)
@@ -394,45 +393,44 @@ fn arg_overwrite() -> Arg<'static> {
         .conflicts_with(A_L_DRY)
 }
 
-fn arg_list() -> Arg<'static> {
+fn arg_list() -> Arg {
     Arg::new(A_L_LIST)
         .help("Show all properties and their keys")
         .long_help(
             "Prints a list of all the environment variables \
             that are potentially set by this tool onto stdout and exits.",
         )
-        .takes_value(false)
+        .action(ArgAction::SetTrue)
         .short(A_S_LIST)
         .long(A_L_LIST)
         .required(false)
 }
 
-fn arg_log_file() -> Arg<'static> {
+fn arg_log_file() -> Arg {
     lazy_static! {
         static ref LOG_FILE_NAME: String = format!("{}.log.txt", crate_name!());
     }
     Arg::new(A_L_LOG_FILE)
         .help("Write log output to a file")
         .long_help("Writes a detailed log to the specifed file.")
-        .takes_value(true)
+        .num_args(1)
         .value_parser(value_parser!(std::path::PathBuf))
         .value_hint(ValueHint::FilePath)
         .short(A_S_LOG_FILE)
         .long(A_L_LOG_FILE)
         .action(ArgAction::Set)
         .required(false)
-        .default_missing_value(&LOG_FILE_NAME)
+        .default_missing_value(&**LOG_FILE_NAME)
 }
 
-fn arg_date_format() -> Arg<'static> {
+fn arg_date_format() -> Arg {
     Arg::new(A_L_DATE_FORMAT)
         .help("Date format for generated dates")
         .long_help(
             "Date format string for generated (vs supplied) dates. \
             For details, see https://docs.rs/chrono/latest/chrono/format/strftime/index.html",
         )
-        .takes_value(true)
-        .forbid_empty_values(true)
+        .num_args(1)
         .value_parser(clap::builder::NonEmptyStringValueParser::new()) // TODO Maybe parse directly into a date format?
         .value_hint(ValueHint::Other)
         .short(A_S_DATE_FORMAT)
@@ -442,7 +440,7 @@ fn arg_date_format() -> Arg<'static> {
         .required(false)
 }
 
-fn arg_show_all_retrieved() -> Arg<'static> {
+fn arg_show_all_retrieved() -> Arg {
     Arg::new(A_L_SHOW_ALL_RETRIEVED)
         .help("Shows a table of all values retrieved from sources")
         .long_help(
@@ -450,10 +448,9 @@ fn arg_show_all_retrieved() -> Arg<'static> {
             retrieved for each from each individual source. \
             Writes to log(Info), if no target file is given as argument.",
         )
-        .takes_value(true)
+        .num_args(0..=1)
         .value_hint(ValueHint::FilePath)
         .value_name("MD-FILE")
-        .min_values(0)
         .value_parser(value_parser!(std::path::PathBuf))
         .short(A_S_SHOW_ALL_RETRIEVED)
         .long(A_L_SHOW_ALL_RETRIEVED)
@@ -461,7 +458,7 @@ fn arg_show_all_retrieved() -> Arg<'static> {
         .required(false)
 }
 
-fn arg_show_primary_retrieved() -> Arg<'static> {
+fn arg_show_primary_retrieved() -> Arg {
     Arg::new(A_L_SHOW_PRIMARY_RETRIEVED)
         .help("Shows a list of the primary values retrieved from sources")
         .long_help(
@@ -470,10 +467,9 @@ fn arg_show_primary_retrieved() -> Arg<'static> {
             accumulated over the sources. \
             Writes to log(Info), if no target file is given as argument.",
         )
-        .takes_value(true)
+        .num_args(0..=1)
         .value_hint(ValueHint::FilePath)
         .value_name("MD-FILE")
-        .min_values(0)
         .value_parser(value_parser!(std::path::PathBuf))
         .short(A_S_SHOW_PRIMARY_RETRIEVED)
         .long(A_L_SHOW_PRIMARY_RETRIEVED)
@@ -483,7 +479,7 @@ fn arg_show_primary_retrieved() -> Arg<'static> {
 }
 
 lazy_static! {
-    static ref ARGS: [Arg<'static>; 24] = [
+    static ref ARGS: [Arg; 24] = [
         arg_project_root(),
         arg_variable(),
         arg_variables_file(),
@@ -527,7 +523,7 @@ fn find_duplicate_short_options() -> Vec<char> {
     duplicate_short_options.iter().copied().collect()
 }
 
-fn arg_matcher() -> Command<'static> {
+fn arg_matcher() -> Command {
     let app = command!().bin_name("osh").args(ARGS.iter());
     let duplicate_short_options = find_duplicate_short_options();
     assert!(
@@ -583,7 +579,7 @@ fn verbosity(args: &ArgMatches) -> BoxResult<(Verbosity, Verbosity)> {
         level.up_max(num_verbose)
     };
 
-    let std = if args.contains_id(A_L_QUIET) {
+    let std = if args.get_flag(A_L_QUIET) {
         Verbosity::None
     } else {
         common
@@ -611,8 +607,8 @@ fn date_format(args: &ArgMatches) -> &str {
 }
 
 fn sinks_cli(args: &ArgMatches) -> Vec<Box<dyn VarSink>> {
-    let env_out = args.contains_id(A_L_ENV_OUT);
-    let dry = args.contains_id(A_L_DRY);
+    let env_out = args.get_flag(A_L_ENV_OUT);
+    let dry = args.get_flag(A_L_DRY);
 
     let mut default_out_file = true;
     let mut additional_out_files = vec![];
@@ -627,8 +623,8 @@ fn sinks_cli(args: &ArgMatches) -> Vec<Box<dyn VarSink>> {
 }
 
 fn required_keys(key_prefix: Option<String>, args: &ArgMatches) -> BoxResult<HashSet<Key>> {
-    let require_all: bool = args.contains_id(A_L_REQUIRE_ALL);
-    let require_none: bool = args.contains_id(A_L_REQUIRE_NONE);
+    let require_all: bool = args.get_flag(A_L_REQUIRE_ALL);
+    let require_none: bool = args.get_flag(A_L_REQUIRE_NONE);
     let mut required_keys = if require_all {
         let mut all = HashSet::<Key>::new();
         all.extend(Key::iter());
@@ -640,13 +636,13 @@ fn required_keys(key_prefix: Option<String>, args: &ArgMatches) -> BoxResult<Has
     };
     let r_key_prefix_str = format!("^{}", key_prefix.unwrap_or_default());
     let r_key_prefix = Regex::new(&r_key_prefix_str).unwrap();
-    if let Some(requires) = args.values_of(A_L_REQUIRE) {
+    if let Some(requires) = args.get_many::<String>(A_L_REQUIRE) {
         for require in requires {
             let key = Key::from_name_or_var_key(&r_key_prefix, require)?;
             required_keys.insert(key);
         }
     }
-    if let Some(require_nots) = args.values_of(A_L_REQUIRE_NOT) {
+    if let Some(require_nots) = args.get_many::<String>(A_L_REQUIRE_NOT) {
         for require_not in require_nots {
             let key = Key::from_name_or_var_key(&r_key_prefix, require_not)?;
             required_keys.remove(&key);
@@ -673,7 +669,7 @@ fn main() -> BoxResult<()> {
     let log_file = args.get_one(A_L_LOG_FILE).copied();
     logger::init(log_file, verbosity);
 
-    if args.contains_id(A_L_LIST) {
+    if args.get_flag(A_L_LIST) {
         let environment = Environment::stub();
         let list = var::list_keys(&environment);
         log::info!("{}", list);
@@ -692,7 +688,7 @@ fn main() -> BoxResult<()> {
     let sinks = sinks_cli(&args);
 
     log::trace!("Collecting more settings ...");
-    let fail_on_missing: bool = args.contains_id(A_L_FAIL_ON_MISSING_VALUE);
+    let fail_on_missing: bool = args.get_flag(A_L_FAIL_ON_MISSING_VALUE);
     let key_prefix = args.get_one::<String>(A_L_KEY_PREFIX).cloned();
     log::trace!("Collecting required keys ...");
     let required_keys = required_keys(key_prefix.clone(), &args)?;
@@ -712,7 +708,7 @@ fn main() -> BoxResult<()> {
     };
     log::trace!("Collecting yet more settings ...");
     let hosting_type = hosting_type(&args);
-    let only_required = args.contains_id(A_L_ONLY_REQUIRED);
+    let only_required = args.get_flag(A_L_ONLY_REQUIRED);
 
     let settings = Settings {
         repo_path: Some(repo_path),
@@ -731,13 +727,13 @@ fn main() -> BoxResult<()> {
     log::trace!("Created Environment.");
 
     // fetch environment variables
-    if !args.contains_id(A_L_NO_ENV_IN) {
+    if !args.get_flag(A_L_NO_ENV_IN) {
         log::trace!("Fetching variables from the environment ...");
         repvar::tools::append_env(&mut environment.vars);
     }
     // fetch variables files
-    if let Some(var_files) = args.values_of(A_L_VARIABLES_FILE) {
-        for var_file in var_files {
+    if let Some(var_files) = args.get_many(A_L_VARIABLES_FILE) {
+        for var_file in var_files.copied() {
             if var_file == "-" {
                 log::trace!("Fetching variables from stdin ...");
             } else {
@@ -750,11 +746,10 @@ fn main() -> BoxResult<()> {
         }
     }
     // insert CLI supplied variables values
-    if let Some(variables) = args.get_many(A_L_VARIABLE) {
-        for var in variables.copied() {
-            log::trace!("Adding variable from CLI: '{}' ...", var);
-            let (key, value) = var::parse_key_value_str(var)?;
-            environment.vars.insert(key, value);
+    if let Some(variables) = args.get_many::<(String, String)>(A_L_VARIABLE) {
+        for (key, value) in variables {
+            log::trace!("Adding variable from CLI: {}='{}' ...", key, value);
+            environment.vars.insert(key.to_owned(), value.to_owned());
         }
     }
 
