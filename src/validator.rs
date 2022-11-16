@@ -470,9 +470,14 @@ lazy_static! {
 /// * <https://www.git-scm.com/docs/git-clone#_git_urls>
 /// * <https://github.com/tjtelan/git-url-parse-rs>
 /// * <https://github.com/Byron/gitoxide/blob/main/git-url>
+/// * <>
 fn validate_repo_clone_url(_environment: &mut Environment, value: &str) -> Result {
     git_url::parse(value.into())
-        .map(|_url| Validity::Middle { msg: "".to_owned() })
+        .map(|_url| Validity::Middle {
+            msg:
+                "Nothing wrong with that; but we can/do not check more than that it is a valid URL"
+                    .to_owned(),
+        })
         .map_err(|err| Error::BadValue {
             msg: err.to_string(),
             value: value.to_owned(),
