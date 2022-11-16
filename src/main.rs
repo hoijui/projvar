@@ -16,9 +16,7 @@ use lazy_static::lazy_static;
 use projvar::BoxResult;
 use regex::Regex;
 use std::collections::HashSet;
-use std::env;
 use std::path::PathBuf;
-use std::str::FromStr;
 use strum::IntoEnumIterator;
 
 mod cleanup;
@@ -565,9 +563,9 @@ fn overwrite(args: &ArgMatches) -> settings::Overwrite {
 /// Returns the logging verbosities to be used.
 /// The first one is for stdout&stderr,
 /// the second one for log-file(s).
-fn verbosity(args: &ArgMatches) -> BoxResult<(Verbosity, Verbosity)> {
-    let common = if let Some(specified) = args.get_one(A_L_LOG_LEVEL).copied() {
-        Verbosity::from_str(specified)?
+fn verbosity(args: &ArgMatches) -> (Verbosity, Verbosity) {
+    let common = if let Some(specified) = args.get_one::<Verbosity>(A_L_LOG_LEVEL).copied() {
+        specified
     } else {
         // Set the default base level
         let level = if cfg!(debug_assertions) {
@@ -585,7 +583,7 @@ fn verbosity(args: &ArgMatches) -> BoxResult<(Verbosity, Verbosity)> {
         common
     };
 
-    Ok((std, common))
+    (std, common)
 }
 
 fn repo_path(args: &ArgMatches) -> PathBuf {
@@ -664,7 +662,7 @@ fn main() -> BoxResult<()> {
 
     let args = arg_matcher().get_matches();
 
-    let verbosity = verbosity(&args)?;
+    let verbosity = verbosity(&args);
 
     let log_file = args.get_one(A_L_LOG_FILE).copied();
     logger::init(log_file, verbosity);
@@ -749,7 +747,7 @@ fn main() -> BoxResult<()> {
     if let Some(variables) = args.get_many::<(String, String)>(A_L_VARIABLE) {
         for (key, value) in variables {
             log::trace!("Adding variable from CLI: {}='{}' ...", key, value);
-            environment.vars.insert(key.to_owned(), value.to_owned());
+            environment.vars.insert(key.clone(), value.clone());
         }
     }
 
