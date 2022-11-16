@@ -1,8 +1,8 @@
-use std::{collections::HashMap, env};
-
 // SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
+
+use std::collections::HashMap;
 
 mod common;
 
@@ -90,46 +90,55 @@ const GITLAB_USER_ID: fn() -> String = common::random_uuid;
 const GITLAB_USER_LOGIN: &str = "jobtriggerer";
 const GITLAB_USER_NAME: &str = "Job Triggerer";
 
-fn setup() -> BoxResult<()> {
-    common::clear_env_vars();
-    env::set_var("CI", CI);
-    env::set_var("CI_COMMIT_AUTHOR", CI_COMMIT_AUTHOR);
-    env::set_var("CI_COMMIT_BRANCH", CI_COMMIT_BRANCH[0].unwrap());
-    env::set_var("CI_COMMIT_REF_NAME", CI_COMMIT_REF_NAME[0].unwrap());
-    env::set_var("CI_COMMIT_REF_SLUG", CI_COMMIT_REF_SLUG[0].unwrap());
-    env::set_var("CI_COMMIT_SHA", CI_COMMIT_SHA);
-    env::set_var("CI_COMMIT_SHORT_SHA", CI_COMMIT_SHORT_SHA);
-    env::set_var("CI_COMMIT_TAG", CI_COMMIT_TAG[0].unwrap());
-    env::set_var("CI_COMMIT_TIMESTAMP", CI_COMMIT_TIMESTAMP);
-    env::set_var("CI_DEBUG_TRACE", CI_DEBUG_TRACE[0]);
-    env::set_var("CI_DEFAULT_BRANCH", CI_DEFAULT_BRANCH[0]);
-    env::set_var("CI_PAGES_DOMAIN", CI_PAGES_DOMAIN[0].unwrap());
-    env::set_var("CI_PAGES_URL", CI_PAGES_URL[0].unwrap());
-    env::set_var("CI_PROJECT_DIR", CI_PROJECT_DIR);
-    env::set_var("CI_PROJECT_ID", CI_PROJECT_ID());
-    env::set_var("CI_PROJECT_NAME", CI_PROJECT_NAME);
-    env::set_var("CI_PROJECT_NAMESPACE", CI_PROJECT_NAMESPACE[0]);
-    env::set_var("CI_PROJECT_PATH_SLUG", CI_PROJECT_PATH_SLUG[0]);
-    env::set_var("CI_PROJECT_PATH", CI_PROJECT_PATH[0]);
-    env::set_var(
-        "CI_PROJECT_REPOSITORY_LANGUAGES",
-        CI_PROJECT_REPOSITORY_LANGUAGES,
-    );
-    env::set_var("CI_PROJECT_ROOT_NAMESPACE", CI_PROJECT_ROOT_NAMESPACE);
-    env::set_var("CI_PROJECT_TITLE", CI_PROJECT_TITLE);
-    env::set_var("CI_PROJECT_URL", CI_PROJECT_URL[0]);
-    env::set_var("CI_PROJECT_VISIBILITY", CI_PROJECT_VISIBILITY[0]);
-    env::set_var("CI_SERVER_HOST", CI_SERVER_HOST[0]);
-    env::set_var("CI_SERVER_PORT", CI_SERVER_PORT[0]);
-    env::set_var("CI_SERVER_PROTOCOL", CI_SERVER_PROTOCOL[0]);
-    env::set_var("CI_SERVER_URL", CI_SERVER_URL[0]);
-    env::set_var("CI_SERVER", CI_SERVER);
-    env::set_var("GITLAB_CI", GITLAB_CI);
-    env::set_var("GITLAB_USER_EMAIL", GITLAB_USER_EMAIL);
-    env::set_var("GITLAB_USER_ID", GITLAB_USER_ID());
-    env::set_var("GITLAB_USER_LOGIN", GITLAB_USER_LOGIN);
-    env::set_var("GITLAB_USER_NAME", GITLAB_USER_NAME);
-    Ok(())
+fn setup() -> BoxResult<HashMap<&'static str, String>> {
+    Ok(HashMap::from([
+        ("CI", CI.to_owned()),
+        ("CI_COMMIT_AUTHOR", CI_COMMIT_AUTHOR.to_owned()),
+        ("CI_COMMIT_BRANCH", CI_COMMIT_BRANCH[0].unwrap().to_owned()),
+        (
+            "CI_COMMIT_REF_NAME",
+            CI_COMMIT_REF_NAME[0].unwrap().to_owned(),
+        ),
+        (
+            "CI_COMMIT_REF_SLUG",
+            CI_COMMIT_REF_SLUG[0].unwrap().to_owned(),
+        ),
+        ("CI_COMMIT_SHA", CI_COMMIT_SHA.to_owned()),
+        ("CI_COMMIT_SHORT_SHA", CI_COMMIT_SHORT_SHA.to_owned()),
+        ("CI_COMMIT_TAG", CI_COMMIT_TAG[0].unwrap().to_owned()),
+        ("CI_COMMIT_TIMESTAMP", CI_COMMIT_TIMESTAMP.to_owned()),
+        ("CI_DEBUG_TRACE", CI_DEBUG_TRACE[0].to_owned()),
+        ("CI_DEFAULT_BRANCH", CI_DEFAULT_BRANCH[0].to_owned()),
+        ("CI_PAGES_DOMAIN", CI_PAGES_DOMAIN[0].unwrap().to_owned()),
+        ("CI_PAGES_URL", CI_PAGES_URL[0].unwrap().to_owned()),
+        ("CI_PROJECT_DIR", CI_PROJECT_DIR.to_owned()),
+        ("CI_PROJECT_ID", CI_PROJECT_ID()),
+        ("CI_PROJECT_NAME", CI_PROJECT_NAME.to_owned()),
+        ("CI_PROJECT_NAMESPACE", CI_PROJECT_NAMESPACE[0].to_owned()),
+        ("CI_PROJECT_PATH_SLUG", CI_PROJECT_PATH_SLUG[0].to_owned()),
+        ("CI_PROJECT_PATH", CI_PROJECT_PATH[0].to_owned()),
+        (
+            "CI_PROJECT_REPOSITORY_LANGUAGES",
+            CI_PROJECT_REPOSITORY_LANGUAGES.to_owned(),
+        ),
+        (
+            "CI_PROJECT_ROOT_NAMESPACE",
+            CI_PROJECT_ROOT_NAMESPACE.to_owned(),
+        ),
+        ("CI_PROJECT_TITLE", CI_PROJECT_TITLE.to_owned()),
+        ("CI_PROJECT_URL", CI_PROJECT_URL[0].to_owned()),
+        ("CI_PROJECT_VISIBILITY", CI_PROJECT_VISIBILITY[0].to_owned()),
+        ("CI_SERVER_HOST", CI_SERVER_HOST[0].to_owned()),
+        ("CI_SERVER_PORT", CI_SERVER_PORT[0].to_owned()),
+        ("CI_SERVER_PROTOCOL", CI_SERVER_PROTOCOL[0].to_owned()),
+        ("CI_SERVER_URL", CI_SERVER_URL[0].to_owned()),
+        ("CI_SERVER", CI_SERVER.to_owned()),
+        ("GITLAB_CI", GITLAB_CI.to_owned()),
+        ("GITLAB_USER_EMAIL", GITLAB_USER_EMAIL.to_owned()),
+        ("GITLAB_USER_ID", GITLAB_USER_ID().to_owned()),
+        ("GITLAB_USER_LOGIN", GITLAB_USER_LOGIN.to_owned()),
+        ("GITLAB_USER_NAME", GITLAB_USER_NAME.to_owned()),
+    ]))
 }
 
 fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>> {
@@ -225,7 +234,6 @@ fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatch
 #[test]
 fn gitlab_ci() -> BoxResult<()> {
     let tmp_proj_dir_empty = assert_fs::TempDir::new()?;
-    env::set_current_dir(tmp_proj_dir_empty)?;
-    setup()?;
-    common::projvar_test_all(&expected_pats()?)
+    let envs = setup()?;
+    common::projvar_test(&expected_pats()?, &["--all"], &tmp_proj_dir_empty, envs)
 }

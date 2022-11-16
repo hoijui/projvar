@@ -1,5 +1,3 @@
-use std::{collections::HashMap, env};
-
 // SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -7,20 +5,19 @@ use std::{collections::HashMap, env};
 mod common;
 mod repo_creation;
 
+use std::{collections::HashMap, path::PathBuf};
+
 use common::{StrMatcher, R_DATE_TIME, R_NON_EMPTY};
 use projvar::BoxResult;
 
-use crate::repo_creation::{create_repo, create_repo_common};
+use crate::repo_creation::create_repo;
 
-fn setup() -> BoxResult<()> {
+fn setup() -> BoxResult<(PathBuf, HashMap<&'static str, &'static str>)> {
     let repo_dir = create_repo!(
         crate::repo_creation::default::create,
         "repo_creation/default.rs"
     )?;
-    // let repo_dir = create_repo_common!(default)?;
-    env::set_current_dir(repo_dir)?;
-    common::clear_env_vars();
-    Ok(())
+    Ok((repo_dir, HashMap::<&'static str, &'static str>::new()))
 }
 
 fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>> {
@@ -50,7 +47,7 @@ fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatch
 
 #[test]
 fn deriver() -> BoxResult<()> {
-    setup()?;
+    let (cwd, envs) = setup()?;
     common::projvar_test(
         &expected_pats()?,
         &[
@@ -64,5 +61,7 @@ fn deriver() -> BoxResult<()> {
             "-RPROJECT_VERSION",
             "-RPROJECT_VERSION_DATE",
         ],
+        &cwd,
+        envs,
     )
 }

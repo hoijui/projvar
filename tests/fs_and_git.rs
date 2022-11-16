@@ -12,7 +12,8 @@ use common::R_NON_EMPTY;
 use lazy_static::lazy_static;
 use projvar::BoxResult;
 use regex::Regex;
-use std::{collections::HashMap, env};
+use std::collections::HashMap;
+use std::path::PathBuf;
 
 use crate::repo_creation::create_repo;
 
@@ -22,17 +23,15 @@ lazy_static! {
     pub static ref R_CLONE_URL_SSH: Regex = Regex::new(r"^ssh://(git@)github\.com/hoijui/projvar(\.git)?$").unwrap();
 }
 
-fn setup() -> BoxResult<()> {
+fn setup() -> BoxResult<(PathBuf, HashMap<&'static str, &'static str>)> {
     let repo_dir = create_repo!(
         crate::repo_creation::default::create,
         "repo_creation/default.rs"
     )?;
-    env::set_current_dir(repo_dir)?;
-    common::clear_env_vars();
-    Ok(())
+    Ok((repo_dir, HashMap::<&'static str, &'static str>::new()))
 }
 
-fn expected_patterns() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>> {
+fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>> {
     Ok(vec![
         (
             "PROJECT_BUILD_DATE",
@@ -106,6 +105,6 @@ fn expected_patterns() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrM
 
 #[test]
 fn git() -> BoxResult<()> {
-    setup()?;
-    common::projvar_test_all(&expected_patterns()?)
+    let (cwd, envs) = setup()?;
+    common::projvar_test(&expected_pats()?, &["--all"], &cwd, envs)
 }

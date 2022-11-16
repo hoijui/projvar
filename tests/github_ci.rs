@@ -6,7 +6,7 @@ mod common;
 
 use common::StrMatcher;
 use projvar::BoxResult;
-use std::{collections::HashMap, env};
+use std::collections::HashMap;
 
 const CI: &str = "true";
 const GITHUB_ACTOR: &str = "octocat";
@@ -32,20 +32,20 @@ const GITHUB_REF_TYPE: [Option<&str>; 3] = [Some("branch"), Some("tag"), None];
 const GITHUB_HEAD_REF: [Option<&str>; 2] = [Some("head-branch"), None];
 const GITHUB_BASE_REF: [Option<&str>; 2] = [Some("base-branch"), None];
 
-fn setup() -> BoxResult<()> {
-    common::clear_env_vars();
-    env::set_var("CI", CI);
-    env::set_var("GITHUB_ACTOR", GITHUB_ACTOR);
-    env::set_var("GITHUB_REPOSITORY", GITHUB_REPOSITORY);
-    env::set_var("GITHUB_SHA", GITHUB_SHA);
-    env::set_var("GITHUB_SERVER_URL", GITHUB_SERVER_URL);
-    env::set_var("GITHUB_API_URL", GITHUB_API_URL);
-    env::set_var("GITHUB_REF", GITHUB_REF[0].unwrap());
-    env::set_var("GITHUB_REF_NAME", GITHUB_REF_NAME[0].unwrap());
-    env::set_var("GITHUB_REF_TYPE", GITHUB_REF_TYPE[0].unwrap());
-    env::set_var("GITHUB_HEAD_REF", GITHUB_HEAD_REF[0].unwrap());
-    env::set_var("GITHUB_BASE_REF", GITHUB_BASE_REF[0].unwrap());
-    Ok(())
+fn setup() -> BoxResult<HashMap<&'static str, &'static str>> {
+    Ok(HashMap::from([
+        ("CI", CI),
+        ("GITHUB_ACTOR", GITHUB_ACTOR),
+        ("GITHUB_REPOSITORY", GITHUB_REPOSITORY),
+        ("GITHUB_SHA", GITHUB_SHA),
+        ("GITHUB_SERVER_URL", GITHUB_SERVER_URL),
+        ("GITHUB_API_URL", GITHUB_API_URL),
+        ("GITHUB_REF", GITHUB_REF[0].unwrap()),
+        ("GITHUB_REF_NAME", GITHUB_REF_NAME[0].unwrap()),
+        ("GITHUB_REF_TYPE", GITHUB_REF_TYPE[0].unwrap()),
+        ("GITHUB_HEAD_REF", GITHUB_HEAD_REF[0].unwrap()),
+        ("GITHUB_BASE_REF", GITHUB_BASE_REF[0].unwrap()),
+    ]))
 }
 
 fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>> {
@@ -139,7 +139,11 @@ fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatch
 #[test]
 fn github_ci() -> BoxResult<()> {
     let tmp_proj_dir_empty = assert_fs::TempDir::new()?;
-    env::set_current_dir(tmp_proj_dir_empty)?;
-    setup()?;
-    common::projvar_test_all(&expected_pats()?)
+    let envs = setup()?;
+    common::projvar_test(
+        &expected_pats()?,
+        &["--all"],
+        tmp_proj_dir_empty.path(),
+        envs,
+    )
 }

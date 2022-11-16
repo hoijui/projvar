@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use assert_fs::fixture::FileTouch;
 use fake::uuid::UUIDv5;
 use fake::Fake;
 use projvar::var;
@@ -11,7 +12,10 @@ use uuid::Uuid;
 
 use assert_cmd::prelude::*;
 use lazy_static::lazy_static;
-use std::{collections::HashMap, env, fmt::Display, path::PathBuf, process::Command};
+use std::ffi::OsStr;
+use std::path::Path;
+use std::process::Stdio;
+use std::{collections::HashMap, fmt::Display, process::Command};
 
 lazy_static! {
     pub static ref R_DATE_TIME: Regex =
@@ -119,20 +123,37 @@ pub fn compare(
     }
 }
 
-pub fn projvar_test(
+pub fn projvar_test<I, K, V>(
     expected_pats: &HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>,
     args: &[&str],
-) -> BoxResult<()> {
-    // let tmp_out_file = assert_fs::NamedTempFile::new("projvar.out.env")?;
-    // tmp_out_file.touch()?;
-    // let out_file = tmp_out_file.path();
-    // NOTE Use this instead of the above for debugging
-    let out_file = PathBuf::from("/tmp/projvar-test-out.env");
+    cwd: &Path,
+    envs: I,
+) -> BoxResult<()>
+where
+    I: IntoIterator<Item = (K, V)>,
+    K: AsRef<OsStr>,
+    V: AsRef<OsStr>,
+{
+    let tmp_out_file = assert_fs::NamedTempFile::new("projvar.out.env")?;
+    tmp_out_file.touch()?;
+    let out_file = tmp_out_file.path();
+    // NOTE Use this instead of the above for debugging **A SINGLE TEST**!
+    // let out_file = PathBuf::from("/tmp/projvar-test-out.env");
+    // if out_file.exists() {
+    //     fs::remove_file(&out_file)?;
+    // }
     let out_file_str = &out_file.display().to_string();
 
     let mut cmd = Command::cargo_bin("projvar")?;
     cmd.arg("-O").arg(&out_file_str);
+    // NOTE Uncomment this for debugging
+    // cmd.arg("-A").arg("/tmp/pv-dbg-out-all.md");
+    // cmd.arg("-F").arg("trace");
+    // cmd.arg("-F").arg("warnings");
+    cmd.current_dir(cwd);
     cmd.args(args);
+    cmd.env_clear();
+    cmd.envs(envs);
 
     cmd.assert().success();
 
@@ -145,19 +166,15 @@ pub fn projvar_test(
     Ok(())
 }
 
-pub fn projvar_test_all(
+pub fn projvar_test_clean(
     expected_pats: &HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>,
+    args: &[&str],
 ) -> BoxResult<()> {
-    projvar_test(expected_pats, &["--all"])
-}
-
-pub fn get_env_var_keys() -> Vec<String> {
-    env::vars().map(|(key, _val)| key).collect()
-}
-
-pub fn clear_env_vars() {
-    let vars = get_env_var_keys();
-    for var in vars {
-        env::remove_var(var);
-    }
+    let tmp_proj_dir_empty = assert_fs::TempDir::new()?;
+    projvar_test(
+        expected_pats,
+        args,
+        tmp_proj_dir_empty.path(),
+        HashMap::<String, String>::new(),
+    )
 }

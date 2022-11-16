@@ -1,8 +1,8 @@
-use std::{collections::HashMap, env};
-
 // SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
+
+use std::collections::HashMap;
 
 mod common;
 
@@ -37,26 +37,38 @@ const BITBUCKET_GIT_SSH_ORIGIN: &str = "git@bitbucket.org:my-user/my-proj.git";
 const BITBUCKET_PROJECT_KEY: [Option<&str>; 2] = [Some("my-project-group"), None];
 const BITBUCKET_PROJECT_UUID: &str = "123e4567-e89b-12d3-a456-426614174001";
 
-fn setup() -> BoxResult<()> {
-    common::clear_env_vars();
-    env::set_var("CI", CI);
-    env::set_var("BITBUCKET_COMMIT", BITBUCKET_COMMIT);
-    env::set_var("BITBUCKET_WORKSPACE", BITBUCKET_WORKSPACE[0]);
-    env::set_var("BITBUCKET_REPO_SLUG", BITBUCKET_REPO_SLUG);
-    env::set_var("BITBUCKET_REPO_UUID", BITBUCKET_REPO_UUID);
-    env::set_var("BITBUCKET_REPO_FULL_NAME", BITBUCKET_REPO_FULL_NAME);
-    env::set_var("BITBUCKET_BRANCH", BITBUCKET_BRANCH[0].unwrap());
-    env::set_var("BITBUCKET_TAG", BITBUCKET_TAG[0].unwrap());
-    env::set_var("BITBUCKET_PR_ID", BITBUCKET_PR_ID());
-    env::set_var(
-        "BITBUCKET_PR_DESTINATION_BRANCH",
-        BITBUCKET_PR_DESTINATION_BRANCH[0].unwrap(),
-    );
-    env::set_var("BITBUCKET_GIT_HTTP_ORIGIN", BITBUCKET_GIT_HTTP_ORIGIN);
-    env::set_var("BITBUCKET_GIT_SSH_ORIGIN", BITBUCKET_GIT_SSH_ORIGIN);
-    env::set_var("BITBUCKET_PROJECT_KEY", BITBUCKET_PROJECT_KEY[0].unwrap());
-    env::set_var("BITBUCKET_PROJECT_UUID", BITBUCKET_PROJECT_UUID);
-    Ok(())
+fn setup() -> BoxResult<HashMap<&'static str, String>> {
+    Ok(HashMap::from([
+        ("CI", CI.to_owned()),
+        ("BITBUCKET_COMMIT", BITBUCKET_COMMIT.to_owned()),
+        ("BITBUCKET_WORKSPACE", BITBUCKET_WORKSPACE[0].to_owned()),
+        ("BITBUCKET_REPO_SLUG", BITBUCKET_REPO_SLUG.to_owned()),
+        ("BITBUCKET_REPO_UUID", BITBUCKET_REPO_UUID.to_owned()),
+        (
+            "BITBUCKET_REPO_FULL_NAME",
+            BITBUCKET_REPO_FULL_NAME.to_owned(),
+        ),
+        ("BITBUCKET_BRANCH", BITBUCKET_BRANCH[0].unwrap().to_owned()),
+        ("BITBUCKET_TAG", BITBUCKET_TAG[0].unwrap().to_owned()),
+        ("BITBUCKET_PR_ID", BITBUCKET_PR_ID()),
+        (
+            "BITBUCKET_PR_DESTINATION_BRANCH",
+            BITBUCKET_PR_DESTINATION_BRANCH[0].unwrap().to_owned(),
+        ),
+        (
+            "BITBUCKET_GIT_HTTP_ORIGIN",
+            BITBUCKET_GIT_HTTP_ORIGIN.to_owned(),
+        ),
+        (
+            "BITBUCKET_GIT_SSH_ORIGIN",
+            BITBUCKET_GIT_SSH_ORIGIN.to_owned(),
+        ),
+        (
+            "BITBUCKET_PROJECT_KEY",
+            BITBUCKET_PROJECT_KEY[0].unwrap().to_owned(),
+        ),
+        ("BITBUCKET_PROJECT_UUID", BITBUCKET_PROJECT_UUID.to_owned()),
+    ]))
 }
 
 fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>> {
@@ -129,7 +141,6 @@ fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatch
 #[test]
 fn bitbucket_ci() -> BoxResult<()> {
     let tmp_proj_dir_empty = assert_fs::TempDir::new()?;
-    env::set_current_dir(tmp_proj_dir_empty)?;
-    setup()?;
-    common::projvar_test_all(&expected_pats()?)
+    let envs = setup()?;
+    common::projvar_test(&expected_pats()?, &["--all"], &tmp_proj_dir_empty, envs)
 }
