@@ -39,7 +39,7 @@ impl super::VarSink for VarSink {
             .collect();
         output_values.sort();
         for (key, rated_value) in output_values {
-            if environment.settings.overwrite.main() || previous_vars.contains_key(key.as_ref()) {
+            if environment.settings.overwrite.main() || !previous_vars.contains_key(key.as_ref()) {
                 file.write_fmt(format_args!("{}=\"{}\"\n", key, rated_value.1))?;
             }
         }
