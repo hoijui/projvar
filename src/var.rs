@@ -5,6 +5,7 @@
 use enum_map::Enum;
 use lazy_static::lazy_static;
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
     collections::{HashMap, HashSet},
@@ -27,7 +28,7 @@ pub const C_LOW: Confidence = 25;
 
 // #[derive(Clone)]
 // #[derive(Debug)]
-#[derive(Default)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct Variable {
     key: &'static str,
     pub description: &'static str,
@@ -42,6 +43,13 @@ impl Variable {
             Some(prefix) => Cow::Owned(prefix.clone() + self.key),
             None => Cow::Borrowed(self.key),
         }
+    }
+
+    /// The raw key, without prefix.
+    /// NOTE You should probably use [`Self::key`] instead.
+    #[must_use]
+    pub fn key_raw(&self) -> &'static str {
+        self.key
     }
 }
 
@@ -82,6 +90,8 @@ impl<'a> Default for &'a Variable {
     Ord,
     Clone,
     Copy,
+    Serialize,
+    Deserialize,
 )]
 pub enum Key {
     BuildArch,

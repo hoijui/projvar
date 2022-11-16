@@ -1342,6 +1342,8 @@ dependencies = [
  "remain",
  "repvar",
  "reqwest",
+ "serde",
+ "serde_json",
  "simplelog",
  "spdx",
  "strum",

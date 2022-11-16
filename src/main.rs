@@ -168,9 +168,13 @@ fn arg_env_out() -> Arg {
 
 fn arg_out_file() -> Arg {
     Arg::new(A_L_FILE_OUT)
-        .help("Write variables into this file")
+        .help("Write variables into this file; .env or .json")
         .long_help(
-            "Write evaluated values into a file, one KEY-VALUE pair per line (BASH syntax). \
+            "Write evaluated values into a file. \
+            Two file formats are supported: \
+            * ENV: one KEY=VALUE pair per line (BASH syntax) \
+            * JSON: a dictionary of KEY: \"value\" \
+            You can choose which format is used by the file-extension.
             Note that \"-\" has no special meaning here; \
             it does not mean stdout, but rather the file \"./-\".",
         )

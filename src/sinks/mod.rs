@@ -4,7 +4,9 @@
 
 pub mod env;
 pub mod file;
+pub mod json;
 
+use std::ffi::OsStr;
 use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -59,7 +61,17 @@ pub fn cli_list(
         }));
     }
     for out_file in additional_out_files {
-        sinks.push(Box::new(file::VarSink { file: out_file }));
+        if out_file
+            .extension()
+            .and_then(OsStr::to_str)
+            .map_or(false, |ext| ext.to_lowercase().ends_with("json"))
+        {
+            log::trace!("Going to sink to JSON file: {}", out_file.display());
+            sinks.push(Box::new(json::VarSink { file: out_file }));
+        } else {
+            log::trace!("Going to sink to ENV file: {}", out_file.display());
+            sinks.push(Box::new(file::VarSink { file: out_file }));
+        }
     }
     if dry {
         sinks.clear();

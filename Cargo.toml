@@ -35,6 +35,8 @@ regex = "1.5"
 remain = "0.2"
 repvar = { git = "https://github.com/hoijui/repvar.git" }
 # repvar = { path = "../repvar" }
+serde = { version = "1.0", features = ["derive", "rc"] }
+serde_json = "1.0"
 simplelog = "0.12"
 spdx = "0.9"
 strum = "0.24"
