@@ -25,17 +25,27 @@ impl super::VarSink for VarSink {
     }
 
     fn store(&self, environment: &Environment, values: &[storage::Value]) -> BoxResult<()> {
+        log::trace!(
+            "Reading previous values from ENV file (if it exists): '{}' ...",
+            self.file.display()
+        );
         let previous_vars = if self.file.exists() {
             var::parse_vars_file_reader(repvar::tools::create_input_reader(self.file.to_str())?)?
         } else {
             HashMap::new()
         };
 
+        log::trace!("Prepare and sort new/generated values ...");
         let mut output_values: Vec<(Cow<str>, &&(Confidence, String))> = values
             .iter()
             .map(|(_key, var, rated_value)| (var.key(environment), rated_value))
             .collect();
         output_values.sort();
+
+        log::trace!(
+            "Combine and write combined vars to ENV file: '{}' ...",
+            self.file.display()
+        );
         let file = File::create(self.file.as_path())?;
         let mut file = LineWriter::new(file);
         for (key, rated_value) in output_values {

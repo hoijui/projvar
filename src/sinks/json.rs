@@ -33,6 +33,10 @@ impl super::VarSink for VarSink {
     }
 
     fn store(&self, environment: &Environment, values: &[storage::Value]) -> BoxResult<()> {
+        log::trace!(
+            "Reading previous values from JSON file (if it exists): '{}' ...",
+            self.file.display()
+        );
         let previous_vars: HashMap<String, String> = if self.file.exists() {
             let mut content = String::new();
             repvar::tools::create_input_reader(self.file.to_str())?.read_to_string(&mut content)?;
@@ -41,6 +45,7 @@ impl super::VarSink for VarSink {
             HashMap::new()
         };
 
+        log::trace!("Combine new/generated vars with previous ones (if any) ...");
         let new_values: HashMap<String, String> = values
             .iter()
             .map(|(_, var, (_, val))| (var.key_raw().to_string(), val.clone()))
@@ -51,9 +56,16 @@ impl super::VarSink for VarSink {
             extend(previous_vars, new_values)
         };
 
+        log::trace!("Convert combined vars to JSON ...");
         let json = serde_json::to_string(&combined_values)?;
+
+        log::trace!(
+            "Write combined vars to JSON file: '{}' ...",
+            self.file.display()
+        );
         let mut file = File::create(self.file.as_path())?;
         file.write_all(json.as_bytes())?;
+
         Ok(())
     }
 }
