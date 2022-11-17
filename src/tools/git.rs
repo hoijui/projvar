@@ -306,10 +306,23 @@ This may indicate either:
 
     fn _remote_tracking_branch(&self) -> Result<Option<git2::Branch>, Error> {
         if let Some(branch) = self._branch()? {
-            branch.upstream().map(Some).map_err(|from| Error {
-                from,
-                message: String::from("Failed resolving the remote tracking branch"),
-            })
+            match branch.upstream() {
+                Ok(remote_branch) => Ok(Some(remote_branch)),
+                Err(from) => {
+                    if from.code() == git2::ErrorCode::NotFound
+                    /*&& from.class() == git2::ErrorClass::Config*/
+                    {
+                        // NOTE It is totally normal for a branch not to have a remote-tracking-branch;
+                        //      no reason to return an error.
+                        Ok(None)
+                    } else {
+                        Err(Error {
+                            from,
+                            message: String::from("Failed resolving the remote tracking branch"),
+                        })
+                    }
+                }
+            }
         } else {
             Ok(None)
         }
