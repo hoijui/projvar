@@ -51,8 +51,8 @@ impl super::VarSink for VarSink {
             extend(previous_vars, new_values)
         };
 
-        let mut file = File::create(self.file.as_path())?;
         let json = serde_json::to_string(&combined_values)?;
+        let mut file = File::create(self.file.as_path())?;
         file.write_all(json.as_bytes())?;
         Ok(())
     }

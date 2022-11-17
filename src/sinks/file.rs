@@ -31,13 +31,13 @@ impl super::VarSink for VarSink {
             HashMap::new()
         };
 
-        let file = File::create(self.file.as_path())?;
-        let mut file = LineWriter::new(file);
         let mut output_values: Vec<(Cow<str>, &&(Confidence, String))> = values
             .iter()
             .map(|(_key, var, rated_value)| (var.key(environment), rated_value))
             .collect();
         output_values.sort();
+        let file = File::create(self.file.as_path())?;
+        let mut file = LineWriter::new(file);
         for (key, rated_value) in output_values {
             if environment.settings.overwrite.main() || !previous_vars.contains_key(key.as_ref()) {
                 file.write_fmt(format_args!("{}=\"{}\"\n", key, rated_value.1))?;
