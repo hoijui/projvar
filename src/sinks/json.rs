@@ -43,7 +43,7 @@ impl super::VarSink for VarSink {
 
         let new_values: HashMap<String, String> = values
             .iter()
-            .map(|(_, var, (_, val))| (format!("{}", var.key_raw()), val.clone()))
+            .map(|(_, var, (_, val))| (var.key_raw().to_string(), val.clone()))
             .collect();
         let combined_values: HashMap<String, String> = if environment.settings.overwrite.main() {
             extend(new_values, previous_vars)
