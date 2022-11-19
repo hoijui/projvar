@@ -43,6 +43,7 @@ use crate::var::Key;
 
 const A_S_PROJECT_ROOT: char = 'C';
 const A_L_PROJECT_ROOT: &str = "project-root";
+const A_L_RAW_PANIC: &str = "raw-panic";
 const A_S_VARIABLE: char = 'D';
 const A_L_VARIABLE: &str = "variable";
 const A_S_VARIABLES_FILE: char = 'I';
@@ -106,6 +107,18 @@ fn arg_project_root() -> Arg {
         .action(ArgAction::Set)
         .required(false)
         .default_value(".")
+}
+
+fn arg_raw_panic() -> Arg {
+    Arg::new(A_L_RAW_PANIC)
+        .help("Use rusts native panic handling, if one occures.")
+        .long_help(
+            "Do not wrap rusts native panic handling functionality \
+            in a more end-user-friendly way. \
+            This is particularly useful when running on CI.",
+        )
+        .action(ArgAction::SetTrue)
+        .long(A_L_RAW_PANIC)
 }
 
 fn arg_variable() -> Arg {
@@ -481,8 +494,9 @@ fn arg_show_primary_retrieved() -> Arg {
 }
 
 lazy_static! {
-    static ref ARGS: [Arg; 24] = [
+    static ref ARGS: [Arg; 25] = [
         arg_project_root(),
+        arg_raw_panic(),
         arg_variable(),
         arg_variables_file(),
         arg_no_env_in(),
@@ -662,9 +676,11 @@ fn required_keys(key_prefix: Option<String>, args: &ArgMatches) -> BoxResult<Has
 }
 
 fn main() -> BoxResult<()> {
-    human_panic::setup_panic!();
-
     let args = arg_matcher().get_matches();
+
+    if !args.get_flag(A_L_RAW_PANIC) {
+        human_panic::setup_panic!();
+    }
 
     let verbosity = verbosity(&args);
 
