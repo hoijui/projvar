@@ -709,7 +709,7 @@ fn main() -> BoxResult<()> {
     let sinks = sinks_cli(&args);
 
     log::trace!("Collecting more settings ...");
-    let fail_on_missing: bool = args.get_flag(A_L_FAIL_ON_MISSING_VALUE);
+    let fail_on_missing = args.get_flag(A_L_FAIL_ON_MISSING_VALUE);
     let key_prefix = args.get_one::<String>(A_L_KEY_PREFIX).cloned();
     log::trace!("Collecting required keys ...");
     let required_keys = required_keys(key_prefix.clone(), &args)?;
