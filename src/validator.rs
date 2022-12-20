@@ -287,9 +287,7 @@ fn validate_licenses(environment: &mut Environment, value: &str) -> Result {
             if let Err(err) = res {
                 return Ok(Validity::Suboptimal {
                     msg: format!(
-                        "Not all of these are recognized SPDX license identifiers: {}\n\tspecifically '{}'",
-                        value,
-                        license
+                        "Not all of these are recognized SPDX license identifiers: {value}\n\tspecifically '{license}'",
                     ),
                     source: Some(Box::new(err)),
                 });
@@ -338,15 +336,12 @@ fn check_public_url(
                 })
             } else if let Some(query) = url.query() {
                 Err(Error::AlmostUsableValue {
-                    msg: format!(
-                        "Should be a simple URL, but uses query arguments: {}",
-                        query
-                    ),
+                    msg: format!("Should be a simple URL, but uses query arguments: {query}",),
                     value: value.to_owned(),
                 })
             } else if let Some(fragment) = url.fragment() {
                 Err(Error::AlmostUsableValue {
-                    msg: format!("Should be a simple URL, but uses a fragment: {}", fragment),
+                    msg: format!("Should be a simple URL, but uses a fragment: {fragment}"),
                     value: value.to_owned(),
                 })
             } else {
@@ -359,7 +354,7 @@ fn check_public_url(
 fn check_empty(_environment: &mut Environment, value: &str, part_desc: &str) -> Result {
     if value.is_empty() {
         Err(Error::BadValue {
-            msg: format!("{} can not be empty", part_desc),
+            msg: format!("{part_desc} can not be empty"),
             value: value.to_owned(),
         })
     } else {
@@ -700,7 +695,7 @@ fn check_date(environment: &mut Environment, value: &str, date_desc: &str) -> Re
     if value.is_empty() {
         return Err(Error::BadValue {
             // TODO Maybe replace with a call to missing(...) ?
-            msg: format!("{} date can not be empty", date_desc),
+            msg: format!("{date_desc} date can not be empty"),
             value: value.to_owned(),
         });
     }

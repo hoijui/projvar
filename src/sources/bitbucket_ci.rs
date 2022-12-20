@@ -68,7 +68,7 @@ impl super::VarSource for VarSource {
                     // (everything that comes after http://bitbucket.org/).
                     var(environment, "BITBUCKET_REPO_FULL_NAME", C_HIGH).map(
                         |(confidence, project_slug)| {
-                            (confidence, format!("http://bitbucket.org/{}", project_slug))
+                            (confidence, format!("http://bitbucket.org/{project_slug}"))
                         },
                     ) // TODO Maybe use a constant here? (for "http://bitbucket.org")
                 }

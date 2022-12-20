@@ -536,9 +536,8 @@ pub fn clone_url_conversion(any_clone_url: &str, protocol: Protocol) -> Res {
                 Protocol::Ssh => Key::RepoCloneUrlSsh,
             },
             msg: format!(
-                "Evaluated resulting clone URL is empty -> something went very wrong; Unable to convert clone URL to {} using regex '{}'",
-                                                                                       to_protocol_str,
-                                                                                       R_CLONE_URL.as_str()
+                "Evaluated resulting clone URL is empty -> something went very wrong; Unable to convert clone URL to {to_protocol_str} using regex '{}'",
+                R_CLONE_URL.as_str()
             ),
             input: any_clone_url.to_owned(),
         })
@@ -671,7 +670,7 @@ pub fn split_after_first_path_element<'t>(
     let path = trim_char(path, '/');
     path.split_once('/').ok_or_else(|| Error::BadInputValue {
         key: Key::BuildHostingUrl,
-        msg: format!("Invalid web hosting URL for {:?}", public_site),
+        msg: format!("Invalid web hosting URL for {public_site:?}"),
         input: web_url.to_owned(),
     })
 }
@@ -681,7 +680,7 @@ macro_rules! build_hostify_url {
         let old_path = $url.path().to_owned();
         let (site_user, site_project) =
             split_after_first_path_element($web_url, &old_path, $public_site)?;
-        $url.set_host(Some(&format!("{}.{}", site_user, constants::$suffix)))
+        $url.set_host(Some(&format!("{site_user}.{}", constants::$suffix)))
             .map_err(std_error::Error::from)?;
         $url.set_path(site_project);
         Some($url.to_string())

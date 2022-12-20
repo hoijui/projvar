@@ -50,7 +50,7 @@ impl super::VarSink for VarSink {
         let mut file = LineWriter::new(file);
         for (key, rated_value) in output_values {
             if environment.settings.overwrite.main() || !previous_vars.contains_key(key.as_ref()) {
-                file.write_fmt(format_args!("{}=\"{}\"\n", key, rated_value.1))?;
+                file.write_fmt(format_args!("{key}=\"{}\"\n", rated_value.1))?;
             }
         }
         Ok(())

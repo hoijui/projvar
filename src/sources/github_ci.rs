@@ -47,7 +47,7 @@ fn repo_web_url(environment: &mut Environment) -> Option<(Confidence, String)> {
             // usually:
             // GITHUB_SERVER_URL="https://github.com/"
             // GITHUB_REPOSITORY="user/project"
-            Some((C_HIGH, format!("{}/{}", server, repo)))
+            Some((C_HIGH, format!("{server}/{repo}")))
         }
         (_, _) => None,
     }
