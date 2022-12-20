@@ -38,6 +38,7 @@ jobs:
         with:
             python-version: '3.x'
             cache: 'pip' # caching pip dependencies
+            cache-dependency-path: '.github/requirements-ci.txt'
 
       - name: "Install the REUSE tool"
         run: pip install reuse
