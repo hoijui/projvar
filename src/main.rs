@@ -41,6 +41,8 @@ use crate::sinks::VarSink;
 use crate::tools::git_hosting_provs::{self, HostingType};
 use crate::var::Key;
 
+pub const A_L_VERSION: &str = "version";
+pub const A_S_VERSION: char = 'V';
 const A_S_PROJECT_ROOT: char = 'C';
 const A_L_PROJECT_ROOT: &str = "project-root";
 const A_L_RAW_PANIC: &str = "raw-panic";
@@ -90,6 +92,14 @@ const A_S_SHOW_ALL_RETRIEVED: char = 'A';
 const A_L_SHOW_ALL_RETRIEVED: &str = "show-all-retrieved";
 const A_S_SHOW_PRIMARY_RETRIEVED: char = 'P';
 const A_L_SHOW_PRIMARY_RETRIEVED: &str = "show-primary-retrieved";
+
+fn arg_version() -> Arg {
+    Arg::new(A_L_VERSION)
+        .help(formatcp!("Print version information and exit. May be combined with -{A_S_QUIET},--{A_L_QUIET}, to really only output the version string."))
+        .short(A_S_VERSION)
+        .long(A_L_VERSION)
+        .action(ArgAction::SetTrue)
+}
 
 fn arg_project_root() -> Arg {
     Arg::new(A_L_PROJECT_ROOT)
@@ -494,7 +504,8 @@ fn arg_show_primary_retrieved() -> Arg {
 }
 
 lazy_static! {
-    static ref ARGS: [Arg; 25] = [
+    static ref ARGS: [Arg; 26] = [
+        arg_version(),
         arg_project_root(),
         arg_raw_panic(),
         arg_variable(),
@@ -526,7 +537,7 @@ lazy_static! {
 fn find_duplicate_short_options() -> Vec<char> {
     let mut short_options: Vec<char> = ARGS.iter().filter_map(clap::Arg::get_short).collect();
     short_options.push('h'); // standard option --help
-    short_options.push('V'); // standard option --version
+    // short_options.push('V'); // standard option --version
     short_options.sort_unstable();
     let mut duplicate_short_options = HashSet::new();
     let mut last_chr = '&';
@@ -543,6 +554,7 @@ fn arg_matcher() -> Command {
     let app = command!()
         .bin_name(clap::crate_name!())
         .help_expected(true)
+        .disable_version_flag(true)
         .args(ARGS.iter());
     let duplicate_short_options = find_duplicate_short_options();
     assert!(
@@ -683,6 +695,17 @@ fn main() -> BoxResult<()> {
 
     if !args.get_flag(A_L_RAW_PANIC) {
         human_panic::setup_panic!();
+    }
+
+    let quiet = args.get_flag(A_L_QUIET);
+
+    let version = args.get_flag(A_L_VERSION);
+    if version {
+        if !quiet {
+            print!("{} ", clap::crate_name!());
+        }
+        println!("{}", clap::crate_version!());
+        std::process::exit(0);
     }
 
     let verbosity = verbosity(&args);
