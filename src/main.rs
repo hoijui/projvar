@@ -540,7 +540,10 @@ fn find_duplicate_short_options() -> Vec<char> {
 }
 
 fn arg_matcher() -> Command {
-    let app = command!().bin_name(clap::crate_name!()).args(ARGS.iter());
+    let app = command!()
+        .bin_name(clap::crate_name!())
+        .help_expected(true)
+        .args(ARGS.iter());
     let duplicate_short_options = find_duplicate_short_options();
     assert!(
         duplicate_short_options.is_empty(),
