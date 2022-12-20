@@ -35,7 +35,7 @@ jobs:
       our_version: ${{ env.OUR_VERSION }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         if: env.OUR_VERSION == ''
         with:
           fetch-depth: 0
@@ -51,12 +51,9 @@ jobs:
 
       - name: Create GitHub release
         id: release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ env.OUR_VERSION }}
-          release_name: ${{ env.OUR_VERSION }}
+          name: ${{ env.OUR_VERSION }}
 
   build-release:
     name: build-release
@@ -75,7 +72,7 @@ jobs:
         build: [linux]
         include:
         - build: linux
-          os: ubuntu-18.04
+          os: ubuntu-20.04
           rust: nightly
           target: x86_64-unknown-linux-musl
         # - build: linux-arm
@@ -101,7 +98,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
         submodules: true
@@ -116,7 +113,7 @@ jobs:
       run: scripts/env
 
     - name: Install packages (Ubuntu)
-      if: matrix.os == 'ubuntu-18.04'
+      if: matrix.os == 'ubuntu-20.04'
       run: |
         scripts/install_deps_ubuntu
 
@@ -126,11 +123,9 @@ jobs:
     #     ci/macos-install-packages
 
     - name: Install Rust
-      uses: actions-rs/toolchain@v1
+      uses: dtolnay/rust-toolchain@master
       with:
         toolchain: ${{ matrix.rust }}
-        profile: minimal
-        override: true
         target: ${{ matrix.target }}
 
     # - name: Use Cross
