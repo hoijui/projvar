@@ -691,6 +691,16 @@ fn required_keys(key_prefix: Option<String>, args: &ArgMatches) -> BoxResult<Has
     Ok(required_keys)
 }
 
+fn print_version_and_exit(quiet: bool) {
+    #![allow(clippy::print_stdout)]
+
+    if !quiet {
+        print!("{} ", clap::crate_name!());
+    }
+    println!("{}", projvar::VERSION);
+    std::process::exit(0);
+}
+
 fn main() -> BoxResult<()> {
     let args = arg_matcher().get_matches();
 
@@ -702,11 +712,7 @@ fn main() -> BoxResult<()> {
 
     let version = args.get_flag(A_L_VERSION);
     if version {
-        if !quiet {
-            print!("{} ", clap::crate_name!());
-        }
-        println!("{}", clap::crate_version!());
-        std::process::exit(0);
+        print_version_and_exit(quiet);
     }
 
     let verbosity = verbosity(&args);

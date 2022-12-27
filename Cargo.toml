@@ -26,6 +26,7 @@ clap = { version = "4.0", features = ["cargo", "derive"] }
 const_format = "0.2"
 enum-map = "2.4"
 git-url = "0.11"
+git-version = "0.3"
 git2 = { version = "0.15", default-features = false } # "default-features = false" is required for MUSL compatibility, to get rid of OpenSSL
 # git-url-parse = "0.4"
 human-panic = "1.0"
