@@ -238,7 +238,6 @@ fn arg_verbose() -> Arg {
             "More verbose log output; useful for debugging. \
             See -{A_S_LOG_LEVEL},--{A_L_LOG_LEVEL} for more fine-graine control.",
         ))
-        .action(ArgAction::SetTrue)
         .short(A_S_VERBOSE)
         .long(A_L_VERBOSE)
         .action(ArgAction::Count)
@@ -248,7 +247,6 @@ fn arg_verbose() -> Arg {
 fn arg_log_level() -> Arg {
     Arg::new(A_L_LOG_LEVEL)
         .help("Set the log-level")
-        .action(ArgAction::SetTrue)
         .value_parser(value_parser!(settings::Verbosity))
         .short(A_S_LOG_LEVEL)
         .long(A_L_LOG_LEVEL)
