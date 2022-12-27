@@ -258,12 +258,12 @@ fn arg_log_level() -> Arg {
 
 fn arg_quiet() -> Arg {
     Arg::new(A_L_QUIET)
-        .help("No logging to stdout (only stderr)")
+        .help("Minimize or suppress output to stdout")
         .long_help(formatcp!(
-            "Supresses all log-output to stdout, \
-            and only shows errors on stderr. \
-            See -{A_S_LOG_LEVEL},--{A_L_LOG_LEVEL} to also disable those. \
-            This does not affect the log level for the log-file.",
+            "Minimize or suppress output to stdout, \
+and only shows log output on stderr. \
+See -{A_S_LOG_LEVEL},--{A_L_LOG_LEVEL} to also disable the later. \
+This does not affect the log level for the log-file.",
         ))
         .action(ArgAction::SetTrue)
         .short(A_S_QUIET)
