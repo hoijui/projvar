@@ -253,6 +253,7 @@ fn arg_log_level() -> Arg {
         .action(ArgAction::Set)
         .required(false)
         .conflicts_with(A_L_VERBOSE)
+        .conflicts_with(A_L_QUIET)
 }
 
 fn arg_quiet() -> Arg {
