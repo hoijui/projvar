@@ -221,47 +221,17 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "3.2.20"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23b71c3ce99b7611011217b366d923f1d0a7e07a92bb2dbf1e84508c673ca3bd"
-dependencies = [
- "atty",
- "bitflags",
- "clap_derive 3.2.18",
- "clap_lex 0.2.4",
- "indexmap",
- "once_cell",
- "strsim",
- "termcolor",
- "textwrap",
-]
-
-[[package]]
-name = "clap"
 version = "4.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0eb41c13df48950b20eb4cd0eefa618819469df1bffc49d11e8487c4ba0037e5"
 dependencies = [
  "atty",
  "bitflags",
- "clap_derive 4.0.21",
- "clap_lex 0.3.0",
+ "clap_derive",
+ "clap_lex",
  "once_cell",
  "strsim",
  "termcolor",
-]
-
-[[package]]
-name = "clap_derive"
-version = "3.2.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea0c8bce528c4be4da13ea6fead8965e95b6073585a2f05204bd8f4119f82a65"
-dependencies = [
- "heck",
- "proc-macro-error",
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
@@ -275,15 +245,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "clap_lex"
-version = "0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2850f2f5a82cbf437dd5af4d49848fbdfc27c157c3d010345776f952765261c5"
-dependencies = [
- "os_str_bytes",
 ]
 
 [[package]]
@@ -1363,7 +1324,7 @@ dependencies = [
  "assert_cmd",
  "assert_fs",
  "chrono",
- "clap 4.0.23",
+ "clap",
  "cmd_lib",
  "const-fnv1a-hash",
  "const_format",
@@ -1520,11 +1481,13 @@ dependencies = [
 
 [[package]]
 name = "repvar"
-version = "0.7.0"
-source = "git+https://github.com/hoijui/repvar.git#6c1c916813131e78fb1b662880c69cfe7687335c"
+version = "0.9.0"
+source = "git+https://github.com/hoijui/repvar.git#0cec0d5767f310c848421c7349148104e2bcaa85"
 dependencies = [
- "clap 3.2.20",
+ "clap",
+ "const_format",
  "dotenv",
+ "git-version",
  "lazy_static",
  "regex",
  "thiserror",
@@ -1816,12 +1779,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "507e9898683b6c43a9aa55b64259b721b52ba226e0f3779137e50ad114a4c90b"
 
 [[package]]
-name = "textwrap"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1141d4d61095b28419e22cb0bbf02755f5e54e0526f97f1e3d1d160e60885fb"
-
-[[package]]
 name = "thiserror"
 version = "1.0.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1979,9 +1936,9 @@ checksum = "59547bce71d9c38b83d9c0e92b6066c4253371f15005def0c30d9657f50c7642"
 
 [[package]]
 name = "typed-builder"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89851716b67b937e393b3daa8423e67ddfc4bbbf1654bcf05488e95e0828db0c"
+checksum = "47a126a40dbff39e8320900cd61b8de053a2706e1f782cd27145792feb8fd41e"
 dependencies = [
  "proc-macro2",
  "quote",
