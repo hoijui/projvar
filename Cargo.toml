@@ -25,7 +25,7 @@ chrono = "0.4"
 clap = { version = "4.0", features = ["cargo", "derive"] }
 const_format = "0.2"
 enum-map = "2.4"
-git-url = "0.11"
+git-url = "0.12"
 git-version = "0.3"
 git2 = { version = "0.15", default-features = false } # "default-features = false" is required for MUSL compatibility, to get rid of OpenSSL
 # git-url-parse = "0.4"
@@ -39,7 +39,7 @@ repvar = { version = "0.9", git = "https://github.com/hoijui/repvar.git" }
 serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = "1.0"
 simplelog = "0.12"
-spdx = "0.9"
+spdx = "0.10"
 strum = "0.24"
 strum_macros = "0.24"
 #enumset = "1.0.7"

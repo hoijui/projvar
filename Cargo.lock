@@ -626,9 +626,9 @@ checksum = "22030e2c5a68ec659fde1e949a745124b48e6fa8b045b7ed5bd1fe4ccc5c4e5d"
 
 [[package]]
 name = "git-features"
-version = "0.24.1"
+version = "0.25.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7bdbe755d2129bc609437b6b18af1116f146128dda6070c15c0aa50201ac17c"
+checksum = "0f98e6ede7b790dfba16bf3c62861ae75c3719485d675b522cf7d7e748a4011c"
 dependencies = [
  "git-hash",
  "libc",
@@ -646,9 +646,9 @@ dependencies = [
 
 [[package]]
 name = "git-path"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f60cbc13bc0fdd95df5f4b80437197e2853116792894b1bf38d1a6b4a64f8c9"
+checksum = "e40e68481a06da243d3f4dfd86a4be39c24eefb535017a862e845140dcdb878a"
 dependencies = [
  "bstr 1.1.0",
  "thiserror",
@@ -656,9 +656,9 @@ dependencies = [
 
 [[package]]
 name = "git-url"
-version = "0.11.0"
+version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7dbd91c55b1b03a833ff8278776fed272918cd61cd48efe9a97ad1fea7ef93ec"
+checksum = "8651924c9692a778f09141ca44d1bf2dada229fe9b240f1ff1bdecd9621a1a93"
 dependencies = [
  "bstr 1.1.0",
  "git-features",
@@ -1706,9 +1706,9 @@ dependencies = [
 
 [[package]]
 name = "spdx"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a346909b3fd07776f9b96b98d4a58e3666f831c9a672c279b10f795a34c36425"
+checksum = "52dd48832ddda0d79ca6062064d530680e24c5ee85ba1d9fae41f102b2d9f34f"
 dependencies = [
  "smallvec",
 ]
