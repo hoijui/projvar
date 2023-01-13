@@ -10,7 +10,7 @@ extern crate remain;
 extern crate url;
 
 use clap::builder::ValueParser;
-use clap::{command, crate_name, value_parser, Arg, ArgAction, ArgMatches, Command, ValueHint};
+use clap::{command, value_parser, Arg, ArgAction, ArgMatches, Command, ValueHint};
 use const_format::formatcp;
 use lazy_static::lazy_static;
 use projvar::BoxResult;
@@ -84,8 +84,6 @@ const A_S_OVERWRITE: char = 'o';
 const A_L_OVERWRITE: &str = "overwrite";
 const A_S_LIST: char = 'l';
 const A_L_LIST: &str = "list";
-const A_S_LOG_FILE: char = 'L';
-const A_L_LOG_FILE: &str = "log-file";
 const A_S_DATE_FORMAT: char = 'T';
 const A_L_DATE_FORMAT: &str = "date-format";
 const A_S_SHOW_ALL_RETRIEVED: char = 'A';
@@ -430,23 +428,6 @@ fn arg_list() -> Arg {
         .required(false)
 }
 
-fn arg_log_file() -> Arg {
-    lazy_static! {
-        static ref LOG_FILE_NAME: String = format!("{}.log.txt", crate_name!());
-    }
-    Arg::new(A_L_LOG_FILE)
-        .help("Write log output to a file")
-        .long_help("Writes a detailed log to the specifed file.")
-        .num_args(1)
-        .value_parser(value_parser!(std::path::PathBuf))
-        .value_hint(ValueHint::FilePath)
-        .short(A_S_LOG_FILE)
-        .long(A_L_LOG_FILE)
-        .action(ArgAction::Set)
-        .required(false)
-        .default_missing_value(&**LOG_FILE_NAME)
-}
-
 fn arg_date_format() -> Arg {
     Arg::new(A_L_DATE_FORMAT)
         .help("Date format for generated dates")
@@ -503,7 +484,7 @@ fn arg_show_primary_retrieved() -> Arg {
 }
 
 lazy_static! {
-    static ref ARGS: [Arg; 26] = [
+    static ref ARGS: [Arg; 25] = [
         arg_version(),
         arg_project_root(),
         arg_raw_panic(),
@@ -526,7 +507,6 @@ lazy_static! {
         arg_dry(),
         arg_overwrite(),
         arg_list(),
-        arg_log_file(),
         arg_date_format(),
         arg_show_all_retrieved(),
         arg_show_primary_retrieved(),
@@ -594,11 +574,17 @@ fn overwrite(args: &ArgMatches) -> settings::Overwrite {
     overwrite
 }
 
-/// Returns the logging verbosities to be used.
-/// The first one is for stdout&stderr,
-/// the second one for log-file(s).
-fn verbosity(args: &ArgMatches) -> (Verbosity, Verbosity) {
-    let common = if let Some(specified) = args.get_one::<Verbosity>(A_L_LOG_LEVEL).copied() {
+/// Returns the logging verbositiy to be used.
+/// We only log to stderr;
+/// if the user wnats to log anywere else,
+/// they have to redirect from there.
+/// We are simple enough to not having to worry about
+/// complex logging schemes.
+/// ... right? :/
+fn verbosity(args: &ArgMatches) -> Verbosity {
+    if args.get_flag(A_L_QUIET) {
+        Verbosity::None
+    } else if let Some(specified) = args.get_one::<Verbosity>(A_L_LOG_LEVEL).copied() {
         specified
     } else {
         // Set the default base level
@@ -609,15 +595,7 @@ fn verbosity(args: &ArgMatches) -> (Verbosity, Verbosity) {
         };
         let num_verbose = *args.get_one::<u8>(A_L_VERBOSE).unwrap_or(&0);
         level.up_max(num_verbose)
-    };
-
-    let std = if args.get_flag(A_L_QUIET) {
-        Verbosity::None
-    } else {
-        common
-    };
-
-    (std, common)
+    }
 }
 
 fn repo_path(args: &ArgMatches) -> PathBuf {
@@ -702,6 +680,8 @@ fn print_version_and_exit(quiet: bool) {
 }
 
 fn main() -> BoxResult<()> {
+    let log_filter_reload_handle = logger::setup_logging()?;
+
     let args = arg_matcher().get_matches();
 
     if !args.get_flag(A_L_RAW_PANIC) {
@@ -716,9 +696,7 @@ fn main() -> BoxResult<()> {
     }
 
     let verbosity = verbosity(&args);
-
-    let log_file = args.get_one(A_L_LOG_FILE).copied();
-    logger::init(log_file, verbosity);
+    logger::set_log_level(&log_filter_reload_handle, verbosity)?;
 
     if args.get_flag(A_L_LIST) {
         let environment = Environment::stub();

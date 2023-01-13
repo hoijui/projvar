@@ -2,54 +2,57 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-extern crate simplelog;
-
-use std::fs::File;
-use std::path::Path;
+use std::io;
 
 use crate::settings::Verbosity;
-use simplelog::{
-    ColorChoice, CombinedLogger, ConfigBuilder, LevelFilter, SharedLogger, TermLogger,
-    TerminalMode, WriteLogger,
+use projvar::BoxResult;
+use tracing::metadata::LevelFilter;
+use tracing_subscriber::{
+    fmt,
+    prelude::*,
+    reload::{self, Handle},
+    Registry,
 };
 
 fn verbosity_to_level(verbosity: Verbosity) -> LevelFilter {
     match verbosity {
-        Verbosity::None => LevelFilter::Off,
-        Verbosity::Errors => LevelFilter::Error,
-        Verbosity::Warnings => LevelFilter::Warn,
-        Verbosity::Info => LevelFilter::Info,
-        Verbosity::Debug => LevelFilter::Debug,
-        Verbosity::Trace => LevelFilter::Trace,
+        Verbosity::None => LevelFilter::OFF,
+        Verbosity::Errors => LevelFilter::ERROR,
+        Verbosity::Warnings => LevelFilter::WARN,
+        Verbosity::Info => LevelFilter::INFO,
+        Verbosity::Debug => LevelFilter::DEBUG,
+        Verbosity::Trace => LevelFilter::TRACE,
     }
 }
 
-pub fn init(file: Option<&Path>, verbosity: (Verbosity, Verbosity)) {
-    // only show the log-level (no time, no source-code location, ...)
-    let config = ConfigBuilder::new()
-        .set_max_level(LevelFilter::Error)
-        .set_time_level(LevelFilter::Off)
-        .set_thread_level(LevelFilter::Off)
-        .set_target_level(LevelFilter::Off)
-        .set_location_level(LevelFilter::Off)
-        .build();
-    let mut loggers: Vec<Box<(dyn SharedLogger + 'static)>> = vec![TermLogger::new(
-        // LevelFilter::Info,
-        verbosity_to_level(verbosity.0),
-        config.clone(),
-        TerminalMode::Mixed,
-        ColorChoice::Auto,
-    )];
-    if let Some(file_path) = file {
-        loggers.push(WriteLogger::new(
-            verbosity_to_level(verbosity.1),
-            config,
-            File::create(file_path).unwrap(),
-        ));
+/// Sets up logging, with a way to change the log level later on,
+/// and with all output going to stderr,
+/// as suggested by <https://clig.dev/>.
+///
+/// # Errors
+///
+/// If initializing the registry (logger) failed.
+pub fn setup_logging() -> BoxResult<Handle<LevelFilter, Registry>> {
+    let level_filter = if cfg!(debug_assertions) {
+        LevelFilter::DEBUG
+    } else {
+        LevelFilter::INFO
     };
-    CombinedLogger::init(loggers).unwrap();
-    log::debug!("Logging activated.");
-    if let Some(file_path) = file {
-        log::info!("Logging to file '{:?}'.", file_path);
-    }
+    let (filter, reload_handle_filter) = reload::Layer::new(level_filter);
+
+    let l_stderr = fmt::layer().map_writer(move |_| io::stderr);
+
+    let registry = tracing_subscriber::registry().with(filter).with(l_stderr);
+    registry.try_init()?;
+
+    Ok(reload_handle_filter)
+}
+
+pub fn set_log_level(
+    reload_handle: &Handle<LevelFilter, Registry>,
+    verbosity: Verbosity,
+) -> BoxResult<()> {
+    let level_filter = verbosity_to_level(verbosity);
+    reload_handle.modify(|filter| *filter = level_filter)?;
+    Ok(())
 }

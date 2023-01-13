@@ -152,7 +152,7 @@ pub struct Settings /*<S: ::std::hash::BuildHasher>*/ {
     pub hosting_type: HostingType,
     pub only_required: bool,
     pub key_prefix: Option<String>,
-    pub verbosity: (Verbosity, Verbosity),
+    pub verbosity: Verbosity,
 }
 
 impl Settings {
@@ -169,7 +169,7 @@ impl Settings {
             hosting_type: HostingType::Unknown,
             only_required: false,
             key_prefix: Some(constants::DEFAULT_KEY_PREFIX.to_owned()),
-            verbosity: (Verbosity::None, Verbosity::None),
+            verbosity: Verbosity::None,
         }
     }
 
