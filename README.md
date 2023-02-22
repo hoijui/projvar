@@ -281,3 +281,13 @@ The list of all supported keys/properties (as shown by `--list`):
 | [x] | `PROJECT_REPO_WEB_URL` | The repo web UI URL, for example: https://gitlab.com/OSEGermany/OHS-3105 |
 | [x] | `PROJECT_VERSION` | The project version, for example: "1.10.3", "0.2.0-1-ga5387ac-dirty" |
 | [x] | `PROJECT_VERSION_DATE` | Date this version was committed to source control, for example: "2021-12-31 23:59:59" (see --date-format) |
+
+## Funding
+
+This project was funded by the European Regional Development Fund (ERDF)
+in the context of the [INTERFACER Project](https://www.interfacerproject.eu/),
+from August 2021 (project start)
+until March 2023.
+
+![Logo of the EU ERDF program](
+    https://cloud.fabcity.hamburg/s/TopenKEHkWJ8j5P/download/logo-eu-erdf.png)
