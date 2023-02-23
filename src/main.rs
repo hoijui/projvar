@@ -540,8 +540,7 @@ fn arg_matcher() -> Command {
     let duplicate_short_options = find_duplicate_short_options();
     assert!(
         duplicate_short_options.is_empty(),
-        "Duplicate argument short options: {:?}",
-        duplicate_short_options
+        "Duplicate argument short options: {duplicate_short_options:?}"
     );
     app
 }
