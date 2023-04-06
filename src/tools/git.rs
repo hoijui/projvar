@@ -449,7 +449,9 @@ This may indicate either:
             })?
             .time();
         let commit_time_chrono = DateTime::<Utc>::from_utc(
-            NaiveDateTime::from_timestamp(commit_time_git2.seconds(), 0),
+            NaiveDateTime::from_timestamp_opt(commit_time_git2.seconds(), 0).ok_or_else(|| {
+                Error::from("Failed to peal HEAD to commit for figuring out the commit date")
+            })?,
             Utc,
         );
         Ok(commit_time_chrono.format(date_format).to_string())
