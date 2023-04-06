@@ -877,7 +877,10 @@ pub fn clone_url_to_web_url(environment: &Environment, any_clone_url: &str) -> R
                 }),
                 Ok(mut url) => {
                     Ok(match environment.settings.hosting_type(&url) {
-                        HostingType::GitHub | HostingType::GitLab | HostingType::BitBucket => {
+                        HostingType::GitHub
+                        | HostingType::GitLab
+                        | HostingType::BitBucket
+                        | HostingType::Gitea => {
                             let old_path = url.path().to_owned();
                             url.set_path(R_DOT_GIT_SUFFIX.replace(&old_path, "").as_ref());
                             url.set_username("").map_err(|_err| Error::BadInputValue {
