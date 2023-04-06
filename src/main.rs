@@ -767,7 +767,7 @@ fn main() -> BoxResult<()> {
             } else {
                 log::trace!("Fetching variables from file '{}' ...", var_file.display());
             }
-            let mut reader = repvar::tools::create_input_reader(Some(var_file))?;
+            let mut reader = cli_utils::create_input_reader(Some(var_file))?;
             environment
                 .vars
                 .extend(var::parse_vars_file_reader(&mut reader)?);

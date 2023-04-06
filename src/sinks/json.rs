@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022 Robin Vobruba <hoijui.quaero@gmail.com>
+// SPDX-FileCopyrightText: 2022-2023 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -39,7 +39,7 @@ impl super::VarSink for VarSink {
         );
         let previous_vars: HashMap<String, String> = if self.file.exists() {
             let mut content = String::new();
-            repvar::tools::create_input_reader(self.file.to_str())?.read_to_string(&mut content)?;
+            cli_utils::create_input_reader(Some(&self.file))?.read_to_string(&mut content)?;
             serde_json::from_str(&content)?
         } else {
             HashMap::new()

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+// SPDX-FileCopyrightText: 2021-2023 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -14,7 +14,6 @@ use assert_cmd::prelude::*;
 use lazy_static::lazy_static;
 use std::ffi::OsStr;
 use std::path::Path;
-use std::process::Stdio;
 use std::{collections::HashMap, fmt::Display, process::Command};
 
 lazy_static! {
@@ -158,7 +157,7 @@ where
     cmd.assert().success();
 
     assert!(out_file.exists());
-    let mut output_reader = repvar::tools::create_input_reader(Some(&out_file_str))?;
+    let mut output_reader = cli_utils::create_input_reader(Some(&out_file_str))?;
     let mut actual_vars = var::parse_vars_file_reader(&mut output_reader)?;
 
     compare(expected_pats, &mut actual_vars)?;

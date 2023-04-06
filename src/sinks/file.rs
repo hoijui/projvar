@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+// SPDX-FileCopyrightText: 2021-2023 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -30,7 +30,7 @@ impl super::VarSink for VarSink {
             self.file.display()
         );
         let previous_vars = if self.file.exists() {
-            var::parse_vars_file_reader(repvar::tools::create_input_reader(self.file.to_str())?)?
+            var::parse_vars_file_reader(cli_utils::create_input_reader(Some(&self.file))?)?
         } else {
             HashMap::new()
         };

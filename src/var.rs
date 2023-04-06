@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+// SPDX-FileCopyrightText: 2021-2023 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -261,7 +261,7 @@ pub fn parse_vars_file_reader(mut reader: impl BufRead) -> BoxResult<HashMap<Str
     }
     let mut vars = HashMap::<String, String>::new();
 
-    for line in repvar::tools::lines_iterator(&mut reader) {
+    for line in cli_utils::lines_iterator(&mut reader, true) {
         let line = line?;
         let line = line.trim();
         if !R_IGNORE_LINE.is_match(line) {
