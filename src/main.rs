@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+// SPDX-FileCopyrightText: 2021-2023 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -760,12 +760,12 @@ fn main() -> BoxResult<()> {
         repvar::tools::append_env(&mut environment.vars);
     }
     // fetch variables files
-    if let Some(var_files) = args.get_many(A_L_VARIABLES_FILE) {
-        for var_file in var_files.copied() {
-            if var_file == "-" {
+    if let Some(var_files) = args.get_many::<PathBuf>(A_L_VARIABLES_FILE) {
+        for var_file in var_files.cloned() {
+            if var_file.to_string_lossy() == "-" {
                 log::trace!("Fetching variables from stdin ...");
             } else {
-                log::trace!("Fetching variables from file '{}' ...", var_file);
+                log::trace!("Fetching variables from file '{}' ...", var_file.display());
             }
             let mut reader = repvar::tools::create_input_reader(Some(var_file))?;
             environment
