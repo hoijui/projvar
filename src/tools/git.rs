@@ -200,7 +200,7 @@ This may indicate either:
     pub fn sha(&self) -> Result<Option<String>, Error> {
         let head = self.repo.head().map_err(|from| Error {
             from,
-            message: String::from("Failed get repo HEAD for figuring out the SHA1"),
+            message: String::from("Failed to get repo HEAD for figuring out the SHA1"),
         })?;
         Ok(
             //Some(
