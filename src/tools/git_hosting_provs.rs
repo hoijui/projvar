@@ -110,7 +110,7 @@ pub enum HostingType {
 
 impl HostingType {
     #[must_use]
-    pub fn is_oss(self) -> bool {
+    pub const fn is_oss(self) -> bool {
         match self {
             HostingType::GitHub | HostingType::BitBucket | HostingType::Unknown => false,
             HostingType::GitLab
