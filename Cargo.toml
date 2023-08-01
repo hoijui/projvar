@@ -33,6 +33,8 @@ git2 = { version = "0.16", default-features = false } # "default-features = fals
 human-panic = "1.0"
 lazy_static = "1.4"
 log = "0.4"
+# HACK We specify this version exactly to prevent a bug with proc-macro2 1.0.56
+proc-macro2 = "1.0.60"
 regex = "1.5"
 remain = "0.2"
 repvar = { version = "0.11", git = "https://github.com/hoijui/repvar.git" }
