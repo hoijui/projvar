@@ -382,15 +382,15 @@ const VAR_BUILD_ARCH: Variable = Variable {
 };
 const VAR_BUILD_BRANCH: Variable = Variable {
     key: KEY_BUILD_BRANCH,
-    description: r#"The development branch name, for example: \
-        "master", \
-        "develop""#,
+    description: "The development branch name, for example: \
+        \"master\", \
+        \"develop\"",
     default_required: false,
 };
 const VAR_BUILD_DATE: Variable = Variable {
     key: KEY_BUILD_DATE,
-    description: r#"Date of this build, for example: \
-        "2021-12-31 23:59:59" (see --date-format)"#,
+    description: "Date of this build, for example: \
+        \"2021-12-31 23:59:59\" (see --date-format)",
     default_required: false,
 };
 const VAR_BUILD_HOSTING_URL: Variable = Variable {
@@ -431,19 +431,19 @@ const VAR_CI: Variable = Variable {
 };
 const VAR_LICENSE: Variable = Variable {
     key: KEY_LICENSE,
-    description: r#"The main License identifier of the sources, \
+    description: "The main License identifier of the sources, \
         prefferably from the SPDX specs, for example: \
-        "AGPL-3.0-or-later", \
-        "CC-BY-SA-4.0""#,
+        \"AGPL-3.0-or-later\", \
+        \"CC-BY-SA-4.0\"",
     default_required: true,
 };
 const VAR_LICENSES: Variable = Variable {
     key: KEY_LICENSES,
-    description: r#"The identifiers of all the licenses of this project, \
+    description: "The identifiers of all the licenses of this project, \
         prefferably from the SPDX specs, comma separated, for example: \
-        "AGPL-3.0-or-later, \
+        \"AGPL-3.0-or-later, \
         CC0-1.0, \
-        Unlicense""#,
+        Unlicense\"",
     default_required: true,
 };
 const VAR_NAME: Variable = Variable {
@@ -527,16 +527,16 @@ const VAR_REPO_WEB_URL: Variable = Variable {
 };
 const VAR_VERSION: Variable = Variable {
     key: KEY_VERSION,
-    description: r#"The project version, for example: \
-        "1.10.3", \
-        "0.2.0-1-ga5387ac-dirty""#,
+    description: "The project version, for example: \
+        \"1.10.3\", \
+        \"0.2.0-1-ga5387ac-dirty\"",
     default_required: true,
 };
 const VAR_VERSION_DATE: Variable = Variable {
     key: KEY_VERSION_DATE,
-    description: r#"Date this version was committed to source control, for example: \
-        "2021-12-31 23:59:59" \
-        (see --date-format)"#,
+    description: "Date this version was committed to source control, for example: \
+        \"2021-12-31 23:59:59\" \
+        (see --date-format)",
     default_required: true,
 };
 
