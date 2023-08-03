@@ -130,10 +130,9 @@ As for now, you have two choices:
 ## Usage
 
 ```bash
+$ projvar --version
+projvar 0.17.0
 $ projvar --help
-projvar 0.5.1
-
-Robin Vobruba <hoijui.quaero@gmail.com>
 
     A tiny CLI tool that tries to gather project specific meta-data in different ways,
     to store them into environment variables in a file
@@ -141,117 +140,116 @@ Robin Vobruba <hoijui.quaero@gmail.com>
     See --list for the keys set by this tool.
 
 
-USAGE:
-    osh [OPTIONS]
+Usage: projvar [OPTIONS]
 
-OPTIONS:
-    -a, --all
-            Marks all properties as required. See --none,--fail,--require,--require-not.
+Options:
+  -V, --version
+          Print version information and exit. May be combined with -q,--quiet, to really only output the version string.
 
-    -A, --show-all-retrieved <MD-FILE>...
-            Shows a table (in Markdown syntax) of all properties and the values retrieved for each
-            from each individual source. Writes to log(Info), if no target file is given as
-            argument.
+  -C, --project-root <DIR>
+          The root directory of the project, mainly used for SCM (e.g. git) information gathering.
 
-    -C, --project-root <DIR>
-            The root directory of the project, mainly used for SCM (e.g. git) information gathering.
-            [default: .]
+          [default: .]
 
-    -d, --dry
-            Set Whether to skip the actual setting of environment variables.
+      --raw-panic
+          Do not wrap rusts native panic handling functionality in a more end-user-friendly way. This is particularly useful when running on CI.
 
-    -D, --variable <KEY=VALUE>...
-            A key-value pair (aka a variable) to be used as input, as it it was specified as an
-            environment variable. Value provided with this take precedense over environment
-            variables - they overwrite them. See -I,--variable-file for supplying a lot of such
-            pairs at once.
+  -D, --variable <KEY=VALUE>
+          A key-value pair (aka a variable) to be used as input, as it it was specified as an environment variable. Values provided with this take precedense over environment variables - they overwrite them. See -I,--variables-file for supplying a lot of such pairs at once.
 
-    -e, --env-out
-            Write resulting values directy into the environment
+  -I, --variables-file <FILE>
+          An input file containing KEY=VALUE pairs, one per line (BASH style). Empty lines, and those starting with "#" or "//" are ignored. See -D,--variable for specifying one pair at a time.
 
-    -f, --fail
-            Fail if no value is available for any of the required properties (see
-            --all,--none,--require,--require-not)
+  -x, --no-env-in
+          Disable the use of environment variables as input
 
-    -F, --log-level <log-level>...
-            Set the log-level [possible values: None, Errors, Warnings, Info, Debug, Trace]
+  -e, --env-out
+          Write resulting values directy into the environment
 
-    -h, --help
-            Print help information
+  -O, --file-out <FILE>
+          Write evaluated values into a file. Two file formats are supported: * ENV: one KEY=VALUE pair per line (BASH syntax) * JSON: a dictionary of KEY: "value" You can choose which format is used by the file-extension.
+                      Note that "-" has no special meaning here; it does not mean stdout, but rather the file "./-".
 
-    -I, --variables-file <FILE>...
-            An input file containing KEY=VALUE pairs, one per line (BASH style). Empty lines, and
-            those starting with "#" or "//" are ignored. See -D,--variable for specifying one pair
-            at a time.
+          [default: .projvars.env.txt]
 
-        --key-prefix <STRING>
-            The key prefix to be used when writing out values in the sinks. For example "PROJECT_"
-            -> "PROJECT_VERSION", "PROJECT_NAME", ... [default: PROJECT_]
+  -t, --hosting-type <hosting-type>
+          As usually most kinds of repo URL property values are derived from the clone URL, it is essential to know how to construct them. Different hosting softwares construct them differently. By default, we try to derive it from the clone URL domain, but if this is not possible, this switch allows to set the hosting software manually.
 
-    -l, --list
-            Prints a list of all the environment variables that are potentially set by this tool
-            onto stdout and exits.
+          Possible values:
+          - git-hub:    <https://github.com> - proprietary
+          - git-lab:    <https://about.gitlab.com> - OSS
+          - bit-bucket: <https://bitbucket.org> - proprietary
+          - source-hut: <https://sr.ht/~sircmpwn/sourcehut> - OSS - LowTech (no JS) hacker tool, (almost) suckless style
+          - gitea:      <https://gitea.io> - OSS
+          - girocco:    <https://repo.or.cz/girocco.git> - OSS
+          - rocket-git: <https://rocketgit.com> - OSS
+          - allura:     <https://allura.apache.org> - OSS
+          - unknown:    NOTE: The rust masters said, this is better then Option<None>!
 
-    -L, --log-file <log-file>
-            Writes a detailed log to the specifed file.
+  -v, --verbose...
+          More verbose log output; useful for debugging. See -F,--log-level for more fine-graine control.
 
-    -n, --none
-            Marks all properties as *not* required. See --all,--fail,--require,--require-not.
+  -F, --log-level <log-level>
+          Set the log-level
 
-    -N, --require-not <KEY>...
-            A key of a variable whose value is *not* required. For example PROJECT_NAME (see --list
-            for all possible keys). Can be used either on the base of the default requried list or
-            all (see --fail,--all,--none,--require)
+          [possible values: none, errors, warnings, info, debug, trace]
 
-    -o, --overwrite <overwrite>
-            Whether to overwrite already set values in the output. [default: All] [possible values:
-            All, None, Main, Alternative]
+  -q, --quiet
+          Minimize or suppress output to stdout, and only shows log output on stderr. See -F,--log-level to also disable the later. This does not affect the log level for the log-file.
 
-    -O, --file-out <FILE>...
-            Write evaluated values into a file, one KEY-VALUE pair per line (BASH syntax). Note that
-            "-" has no special meaning here; it does not mean stdout, but rather the file "./-".
-            [default: .projvars.env.txt]
+  -f, --fail
+          Fail if no value is available for any of the required properties. See --all, --none, --require, --require-not.
 
-        --only-required
-            Only fetch and output the required values (see --all,--none,--require, --require-not).
+  -a, --all
+          Marks all properties as required. See --none, --fail, --require, --require-not.
 
-    -P, --show-primary-retrieved <MD-FILE>...
-            Shows a list (in Markdown syntax) of all properties and the primary values retrieved for
-            each, accumulated over the sources. Writes to log(Info), if no target file is given as
-            argument.
+  -n, --none
+          Marks all properties as *not* required. See --all, --fail, --require, --require-not.
 
-    -q, --quiet
-            Supresses all log-output to stdout, and only shows errors on stderr (see -L,--log-level
-            to also disable those). This does not affect the log level for the log-file.
+  -R, --require <KEY>
+          Mark a propery as required. \
+                      You may use the property name (e.g. "Name") \
+                      or the variable key (e.g. "PROJECT_NAME"); \
+                      See --list for all possible keys. \
+                      If at least one such option is present, \
+                      the default required values list is cleared. \
+                      See --fail, --all, --none, --require-not.
 
-    -R, --require <KEY>...
-            Mark a propery as required. You may use the property name (e.g. "Name") or the variable
-            key (e.g. "PROJECT_NAME"); See --list for all possible keys. If at least one such option
-            is present, the default required values list is cleared (see
-            --fail,--all,--none,--require-not).
+  -N, --require-not <KEY>
+          A key of a variable whose value is *not* required. For example PROJECT_NAME (see --list for all possible keys). Can be used either on the base of the default requried list or all. See --fail, --all, --none, --require.
 
-    -t, --hosting-type <hosting-type>
-            As usually most kinds of repo URL property values are derived from the clone URL, it is
-            essential to know how to construct them. Different hosting softwares construct them
-            differently. By default, we try to derive it from the clone URL domain, but if this is
-            not possible, this switch allows to set the hosting software manually. [default:
-            Unknown] [possible values: GitHub, GitLab, BitBucket, SourceHut, Gitea, Girocco,
-            RocketGit, Allura, Unknown]
+      --only-required
+          Only output the required values. See --all, --none, --require, --require-not.
 
-    -T, --date-format <date-format>
-            Date format string for generated (vs supplied) dates. For details, see
-            https://docs.rs/chrono/latest/chrono/format/strftime/index.html [default: "%Y-%m-%d
-            %H:%M:%S"]
+      --key-prefix <STRING>
+          The key prefix to be used when writing out values in the sinks. For example "PROJECT_" -> "PROJECT_VERSION", "PROJECT_NAME", ...
 
-    -v, --verbose
-            More verbose log output; useful for debugging. See -L,--log-level for more fine-graine
-            control.
+          [default: PROJECT_]
 
-    -V, --version
-            Print version information
+  -d, --dry
+          Set Whether to skip the actual setting of environment variables.
 
-    -x, --no-env-in
-            Disable the use of environment variables as input
+  -o, --overwrite <overwrite>
+          Whether to overwrite already set values in the output.
+
+          [possible values: all, none, main, alternative]
+
+  -l, --list
+          Prints a list of all the environment variables that are potentially set by this tool onto stdout and exits.
+
+  -T, --date-format <date-format>
+          Date format string for generated (vs supplied) dates. For details, see https://docs.rs/chrono/latest/chrono/format/strftime/index.html
+
+          [default: "%Y-%m-%d %H:%M:%S"]
+
+  -A, --show-all-retrieved [<MD-FILE>]
+          Shows a table (in Markdown syntax) of all properties and the values retrieved for each from each individual source. Writes to log(Info), if no target file is given as argument.
+
+  -P, --show-primary-retrieved [<MD-FILE>]
+          Shows a list (in Markdown syntax) of all properties and the primary values retrieved for each, accumulated over the sources. Writes to log(Info), if no target file is given as argument.
+
+  -h, --help
+          Print help (see a summary with '-h')
 ```
 
 The list of all supported keys/properties (as shown by `--list`):
