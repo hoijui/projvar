@@ -269,8 +269,9 @@ The list of all supported keys/properties (as shown by `--list`):
 | [x] | `PROJECT_LICENSES` | The identifiers of all the licenses of this project, prefferably from the SPDX specs, comma separated, for example: "AGPL-3.0-or-later, CC0-1.0, Unlicense" |
 | [x] | `PROJECT_NAME` | The human focused name of the project. |
 | [x] | `PROJECT_NAME_MACHINE_READABLE` | The machine readable name of the project. |
-| [x] | `PROJECT_REPO_CLONE_URL` | The repo clone URL, HTTP(S) version. This is commonly used for anonymous fetch-only access. |
-| [ ] | `PROJECT_REPO_CLONE_URL_SSH` | The repo clone URL, SSH version. This is commonly used for authenticated, fetch and push access. |
+| [x] | `PROJECT_REPO_CLONE_URL` | The original repo clone URL; may use any valid git URL scheme. May not conform to the URL specification. It is commonly used for anonymous fetch-only access. |
+| [ ] | `PROJECT_REPO_CLONE_URL_HTTP` | The repo clone URL, HTTP(S) version. It always conforms to the URL specification. It is commonly used for anonymous fetch-only access. |
+| [ ] | `PROJECT_REPO_CLONE_URL_SSH` | The repo clone URL, SSH version. It always conforms to the URL specification. It is commonly used for authenticated, fetch and push access. |
 | [x] | `PROJECT_REPO_COMMIT_PREFIX_URL` | The repo commit prefix URL. Add commit SHA. The part in []: [https://github.com/hoijui/nim-ci/commit]/23f84b91] |
 | [x] | `PROJECT_REPO_ISSUES_URL` | The repo issues URL, for example: https://gitlab.com/openflexure/openflexure-microscope/issues |
 | [x] | `PROJECT_REPO_RAW_VERSIONED_PREFIX_URL` | The repo raw prefix URL. Add version (tag, branch, SHA) and file path. The part in []: [https://raw.githubusercontent.com/hoijui/nim-ci]/master/.github/workflows/docker.yml] |
