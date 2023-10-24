@@ -12,7 +12,7 @@ description = """
     for later use by other tools.
     See --list for the keys set by this tool.
     """
-repository = "https://github.com/hoijui/repvar"
+repository = "https://github.com/hoijui/projvar"
 keywords = ["cli", "ci"]
 categories = ["command-line-utilities", "text-processing"]
 license = "GPL-3.0-or-later"
