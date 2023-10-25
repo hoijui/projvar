@@ -34,10 +34,9 @@ SPDX-License-Identifier: CC0-1.0
     https://raw.githubusercontent.com/osegermany/tiny-files/master/res/media/img/badge-oseg.svg)](
     https://opensourceecology.de)
 
-`projvar` is a CLI ([Command-line Interface](
-https://en.wikipedia.org/wiki/Command-line_interface)) tool,
-with the aim of supplying a certain base set of meta data values
-for a given project,
+A CLI ([Command-line Interface](
+https://en.wikipedia.org/wiki/Command-line_interface)) tool
+taht extracts a base set of meta data properties from a given project,
 using various sources.
 
 ## Example scenarios
