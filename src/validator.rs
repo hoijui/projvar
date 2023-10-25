@@ -267,7 +267,7 @@ fn validate_license(environment: &mut Environment, value: &str) -> Result {
                     }),
                 }
             },
-            |_| {
+            |()| {
                 Ok(Validity::High {
                     msg: Some("Consists of an SPDX license identifier".to_owned()),
                 })
