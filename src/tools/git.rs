@@ -59,12 +59,17 @@ pub fn is_git_dirty_version(vers: &str) -> bool {
     R_DIRTY_VERSION.is_match(vers)
 }
 
-///
-/// "--tags", "--dirty", "--broken", "--always"
+/// Returns the result of `git describe` with options:
+/// - "--tags"
+/// - "--dirty"
+/// - MISSING: "--always" (not possible)
+///   You should handle this case external to this function,
+///   by using a (shortened-)hash, if this function returns `Err`.
+/// - MISSING: "--broken"
+///   We might also want this,
+//    which is not possible with git2-rs,
+//    but it is really not important.
 fn _version(repo: &git2::Repository) -> Result<String, Error> {
-    // NOTE We might also want '--broken',
-    //      which is not possible with git2-rs,
-    //      but it is really not important
     repo.describe(
         git2::DescribeOptions::new()
             .pattern("*[0-9]*.[0-9]*.[0-9]*")
