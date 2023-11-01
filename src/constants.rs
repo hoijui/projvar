@@ -17,6 +17,8 @@ pub const D_GIT_SOURCE_HUT: &str = "git.sr.ht";
 
 pub const D_REPO_OR_CZ: &str = "repo.or.cz";
 
+pub const D_ROCKET_GIT_COM: &str = "rocketgit.com";
+
 pub const D_CODE_BERG_ORG: &str = "codeberg.org";
 
 pub const D_SOURCE_FORGE_NET: &str = "sourceforge.net";

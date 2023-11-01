@@ -27,6 +27,8 @@ pub enum PublicSite {
     /// <https://repo.or.cz> - hosts only OS, software is OSS: Girocco
     RepoOrCz,
     /// <https://sourceforge.net> - hosts only OS, software is OSS: Allura
+    RocketGitCom,
+    /// <https://rocketgit.com> - hosts only OS, software is OSS: RocketGit
     SourceForgeNet,
     /// NOTE: The rust masters said, this is better then Option<None>!
     Unknown,
@@ -68,6 +70,7 @@ impl From<Host<&str>> for PublicSite {
             Host::Domain(constants::D_BIT_BUCKET_ORG) => Self::BitBucketOrg,
             Host::Domain(constants::D_GIT_SOURCE_HUT) => Self::SourceHut,
             Host::Domain(constants::D_REPO_OR_CZ) => Self::RepoOrCz,
+            Host::Domain(constants::D_ROCKET_GIT_COM) => Self::RocketGitCom,
             Host::Domain(constants::D_CODE_BERG_ORG) => Self::CodeBergOrg,
             Host::Domain(constants::D_SOURCE_FORGE_NET) => Self::SourceForgeNet,
             Host::Domain(_) | Host::Ipv4(_) | Host::Ipv6(_) => Self::Unknown,
@@ -137,6 +140,7 @@ impl From<PublicSite> for HostingType {
             PublicSite::BitBucketOrg => Self::BitBucket,
             PublicSite::SourceHut => Self::SourceHut,
             PublicSite::RepoOrCz => Self::Girocco,
+            PublicSite::RocketGitCom => Self::RocketGit,
             PublicSite::CodeBergOrg => Self::Gitea,
             PublicSite::SourceForgeNet => Self::Allura,
             PublicSite::Unknown => Self::Unknown,
