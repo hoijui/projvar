@@ -436,11 +436,28 @@ This may indicate either:
     /// Returns the version of the current state of the repo.
     /// This is basically the result of "git describe --tags --all <and-some-more...>".
     ///
+    ///
     /// # Errors
     ///
     /// If some git-related magic goes south.
     pub fn version(&self) -> Result<String, Error> {
-        _version(&self.repo)
+        if _has_tags(&self.repo) {
+            _version(&self.repo)
+        } else {
+            log::warn!(
+                "The git repository has no tags.
+Please consider adding at least a tag '0.1.0' to the first commit of the repo history; \
+for example with:
+git tag -a -m 'Release 0.1.0' 0.1.0 $(git rev-list --max-parents=0 HEAD)"
+            );
+            match self.sha()? {
+                Some(sha_str) => Ok(sha_str),
+                None => Err(Error::from(
+                    "The repo has no tags, so we can not use git describe, \
+and there is no commit checked out either",
+                )),
+            }
+        }
     }
 
     /// Returns the commit-time (not author-time)
