@@ -59,6 +59,16 @@ pub fn is_git_dirty_version(vers: &str) -> bool {
     R_DIRTY_VERSION.is_match(vers)
 }
 
+/// Returns true if the repo contains any tags.
+fn _has_tags(repo: &git2::Repository) -> bool {
+    let mut has_tags = false;
+    repo.tag_foreach(|_, _| {
+        has_tags = true;
+        false
+    });
+    has_tags
+}
+
 /// Returns the result of `git describe` with options:
 /// - "--tags"
 /// - "--dirty"
