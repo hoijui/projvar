@@ -343,6 +343,7 @@ fn arg_require_none() -> Arg {
 }
 
 fn arg_require() -> Arg {
+    #![allow(clippy::needless_raw_string_hashes)]
     Arg::new(A_L_REQUIRE)
         .help("Mark a propery as required")
         .long_help(formatcp!(
