@@ -59,14 +59,10 @@ pub enum Error {
     /// Represents all other cases of `std::error::Error`.
     #[error(transparent)]
     Other(#[from] Box<dyn std::error::Error + Send + Sync>),
-    // /// Represents all other errors, especially those not fitting any of the above,
-    // /// and which do not derive from `std::error::Error`.
-    // #[error("No info about the errror is available")]
-    // Empty {
-    //     key: Key,
-    //     msg: String,
-    //     input: String,
-    // },
+
+    /// This can never happen.
+    #[error(transparent)]
+    Impossible(#[from] core::convert::Infallible),
 }
 
 /// Extracts the project name from the project slug,
@@ -841,7 +837,7 @@ pub fn web_url_to_build_hosting_url(environment: &Environment, web_url: &str) ->
                     build_hostify_url!(url, web_url, public_site, DS_CODE_BERG_PAGE)
                 }
                 PublicSite::SourceForgeNet => {
-                    let url_path = PathBuf::from_str(url.path()).expect("Impossible");
+                    let url_path = PathBuf::from_str(url.path())?;
                     let proj_name_opt = url_path.file_name().map(OsStr::to_string_lossy);
                     proj_name_opt.map(|proj_name| format!("https://{proj_name}.{}", constants::DS_SOURCE_FORGE_IO))
                 }
