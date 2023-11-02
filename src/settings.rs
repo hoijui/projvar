@@ -173,6 +173,9 @@ impl Settings {
         }
     }
 
+    /// Returns either the initially specified hosting type,
+    /// or tries to evaluate the hosting type
+    /// from the given (possible) repo hosting URL (any form of it).
     #[must_use]
     pub fn hosting_type(&self, url: &Url) -> HostingType {
         if let HostingType::Unknown = self.hosting_type {
