@@ -32,6 +32,14 @@ macro_rules! let_named_cap {
 //pub(crate) use let_named_cap;
 
 impl<'a> PartsRef<'a> {
+    /// Parses a git clone URL of any type -
+    /// including non URL spec compliant ones -
+    /// into a set of basic parts.
+    ///
+    /// # Errors
+    ///
+    /// If our internal regex to parse a git clone URL
+    /// does not match the supplied string.
     pub fn parse<'b>(any_clone_url: &'b str) -> Result<PartsRef<'a>, String>
     where
         'b: 'a,

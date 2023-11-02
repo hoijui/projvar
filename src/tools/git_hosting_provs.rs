@@ -67,21 +67,28 @@ impl Default for PublicSite {
 impl From<Host<&str>> for PublicSite {
     fn from(host: Host<&str>) -> Self {
         match host {
-            Host::Domain(constants::D_GIT_HUB_COM)
-            | Host::Domain(constants::DS_GIT_HUB_IO_SUFIX)
-            | Host::Domain(constants::D_GIT_HUB_COM_RAW) => Self::GitHubCom,
-            Host::Domain(constants::D_GIT_LAB_COM)
-            | Host::Domain(constants::DS_GIT_LAB_IO_SUFIX) => Self::GitLabCom,
+            Host::Domain(
+                constants::D_GIT_HUB_COM
+                | constants::DS_GIT_HUB_IO_SUFIX
+                | constants::D_GIT_HUB_COM_RAW,
+            ) => Self::GitHubCom,
+            Host::Domain(constants::D_GIT_LAB_COM | constants::DS_GIT_LAB_IO_SUFIX) => {
+                Self::GitLabCom
+            }
             Host::Domain(constants::D_BIT_BUCKET_ORG) => Self::BitBucketOrg,
             Host::Domain(constants::D_GIT_SOURCE_HUT) => Self::SourceHut,
             Host::Domain(constants::D_REPO_OR_CZ) => Self::RepoOrCz,
-            Host::Domain(constants::D_ROCKET_GIT_COM)
-            | Host::Domain(constants::D_SSH_ROCKET_GIT_COM)
-            | Host::Domain(constants::D_GIT_ROCKET_GIT_COM) => Self::RocketGitCom,
-            Host::Domain(constants::D_CODE_BERG_ORG)
-            | Host::Domain(constants::DS_CODE_BERG_PAGE) => Self::CodeBergOrg,
-            Host::Domain(constants::D_SOURCE_FORGE_NET)
-            | Host::Domain(constants::DS_SOURCE_FORGE_IO) => Self::SourceForgeNet,
+            Host::Domain(
+                constants::D_ROCKET_GIT_COM
+                | constants::D_SSH_ROCKET_GIT_COM
+                | constants::D_GIT_ROCKET_GIT_COM,
+            ) => Self::RocketGitCom,
+            Host::Domain(constants::D_CODE_BERG_ORG | constants::DS_CODE_BERG_PAGE) => {
+                Self::CodeBergOrg
+            }
+            Host::Domain(constants::D_SOURCE_FORGE_NET | constants::DS_SOURCE_FORGE_IO) => {
+                Self::SourceForgeNet
+            }
             Host::Domain(_) | Host::Ipv4(_) | Host::Ipv6(_) => Self::Unknown,
         }
     }
@@ -124,13 +131,13 @@ impl HostingType {
     #[must_use]
     pub const fn is_oss(self) -> bool {
         match self {
-            HostingType::GitHub | HostingType::BitBucket | HostingType::Unknown => false,
-            HostingType::GitLab
-            | HostingType::SourceHut
-            | HostingType::Gitea
-            | HostingType::Girocco
-            | HostingType::RocketGit
-            | HostingType::Allura => true,
+            Self::GitHub | Self::BitBucket | Self::Unknown => false,
+            Self::GitLab
+            | Self::SourceHut
+            | Self::Gitea
+            | Self::Girocco
+            | Self::RocketGit
+            | Self::Allura => true,
         }
     }
 
@@ -139,30 +146,24 @@ impl HostingType {
         match protocol {
             TransferProtocol::Https | TransferProtocol::Ssh => true,
             TransferProtocol::Git => match self {
-                HostingType::Girocco | HostingType::RocketGit => true,
-                HostingType::GitHub
-                | HostingType::BitBucket
-                | HostingType::Unknown
-                | HostingType::GitLab
-                | HostingType::SourceHut
-                | HostingType::Gitea
-                | HostingType::Allura => false,
+                Self::Girocco | Self::RocketGit => true,
+                Self::GitHub
+                | Self::BitBucket
+                | Self::Unknown
+                | Self::GitLab
+                | Self::SourceHut
+                | Self::Gitea
+                | Self::Allura => false,
             },
         }
     }
 
     #[must_use]
-    pub fn def_ssh_user(self) -> &'static str {
+    pub const fn def_ssh_user(self) -> &'static str {
         match self {
-            HostingType::GitHub
-            | HostingType::GitLab
-            | HostingType::BitBucket
-            | HostingType::SourceHut => "git@",
-            HostingType::Gitea
-            | HostingType::Girocco
-            | HostingType::Allura
-            | HostingType::Unknown => "",
-            HostingType::RocketGit => "rocketgit@",
+            Self::GitHub | Self::GitLab | Self::BitBucket | Self::SourceHut => "git@",
+            Self::Gitea | Self::Girocco | Self::Allura | Self::Unknown => "",
+            Self::RocketGit => "rocketgit@",
         }
     }
 }

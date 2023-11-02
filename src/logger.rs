@@ -14,7 +14,7 @@ use tracing_subscriber::{
     Registry,
 };
 
-fn verbosity_to_level(verbosity: Verbosity) -> LevelFilter {
+const fn verbosity_to_level(verbosity: Verbosity) -> LevelFilter {
     match verbosity {
         Verbosity::None => LevelFilter::OFF,
         Verbosity::Errors => LevelFilter::ERROR,

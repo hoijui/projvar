@@ -23,6 +23,7 @@ use crate::{
     EnumIter,
     IntoStaticStr,
     PartialEq,
+    Eq,
     PartialOrd,
     Copy,
     Clone,
@@ -47,7 +48,7 @@ lazy_static! {
 }
 
 impl Verbosity {
-    fn index(self) -> usize {
+    const fn index(self) -> usize {
         self as usize
     }
 
@@ -71,9 +72,9 @@ impl Verbosity {
 impl From<bool> for Verbosity {
     fn from(verbose: bool) -> Self {
         if verbose {
-            Verbosity::Info
+            Self::Info
         } else {
-            Verbosity::Warnings
+            Self::Warnings
         }
     }
 }
@@ -88,18 +89,18 @@ pub enum Overwrite {
 
 impl Overwrite {
     #[must_use]
-    pub fn main(&self) -> bool {
+    pub const fn main(&self) -> bool {
         match self {
-            Overwrite::All | Overwrite::Main => true,
-            Overwrite::None | Overwrite::Alternative => false,
+            Self::All | Self::Main => true,
+            Self::None | Self::Alternative => false,
         }
     }
 
     #[must_use]
-    pub fn alt(&self) -> bool {
+    pub const fn alt(&self) -> bool {
         match self {
-            Overwrite::All | Overwrite::Alternative => true,
-            Overwrite::None | Overwrite::Main => false,
+            Self::All | Self::Alternative => true,
+            Self::None | Self::Main => false,
         }
     }
 }
@@ -123,9 +124,9 @@ pub enum FailOn {
 impl From<bool> for FailOn {
     fn from(verbose: bool) -> Self {
         if verbose {
-            FailOn::AnyMissingValue
+            Self::AnyMissingValue
         } else {
-            FailOn::Error
+            Self::Error
         }
     }
 }
@@ -156,10 +157,10 @@ pub struct Settings /*<S: ::std::hash::BuildHasher>*/ {
 }
 
 impl Settings {
-    fn stub() -> Settings {
+    fn stub() -> Self {
         let mut all_keys = HashSet::<Key>::new();
         all_keys.extend(Key::iter());
-        Settings {
+        Self {
             repo_path: None,
             required_keys: all_keys,
             overwrite: Overwrite::All,
@@ -178,7 +179,7 @@ impl Settings {
     /// from the given (possible) repo hosting URL (any form of it).
     #[must_use]
     pub fn hosting_type(&self, url: &Url) -> HostingType {
-        if let HostingType::Unknown = self.hosting_type {
+        if HostingType::Unknown == self.hosting_type {
             HostingType::from(PublicSite::from(url.host()))
         } else {
             self.hosting_type
@@ -187,7 +188,7 @@ impl Settings {
 
     #[must_use]
     pub fn hosting_type_from_host(&self, host: &str) -> HostingType {
-        if let HostingType::Unknown = self.hosting_type {
+        if HostingType::Unknown == self.hosting_type {
             let host_assumed_domain = url::Host::Domain(host);
             HostingType::from(PublicSite::from(host_assumed_domain))
         } else {
@@ -197,7 +198,7 @@ impl Settings {
 
     #[must_use]
     pub fn hosting_type_from_hosting_suffix(&self, url: &Url) -> HostingType {
-        if let HostingType::Unknown = self.hosting_type {
+        if HostingType::Unknown == self.hosting_type {
             HostingType::from(PublicSite::from_hosting_domain_option(url.host().as_ref()))
         } else {
             self.hosting_type

@@ -62,7 +62,7 @@ impl fmt::Display for VarSink {
         write!(
             f,
             "{}(file: {})",
-            std::any::type_name::<VarSink>(),
+            std::any::type_name::<Self>(),
             self.file.as_path().to_str().ok_or(fmt::Error {})?
         )
     }

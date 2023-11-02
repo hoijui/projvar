@@ -18,7 +18,7 @@ pub type Result = std::result::Result<Validity, Error>;
 pub type Validator = fn(&mut Environment, &str) -> Result;
 
 #[must_use]
-pub fn res_to_confidences(res: &Result) -> [Confidence; 2] {
+pub const fn res_to_confidences(res: &Result) -> [Confidence; 2] {
     match &res {
         Ok(validity) => [validity.confidence(), 0],
         Err(error) => [
@@ -69,7 +69,7 @@ pub enum Validity {
 
 impl Validity {
     #[must_use]
-    pub fn confidence(&self) -> Confidence {
+    pub const fn confidence(&self) -> Confidence {
         match self {
             Self::High { msg: _ } => 250,
             Self::Middle { msg: _ } => 230,
@@ -81,7 +81,7 @@ impl Validity {
     }
 
     #[must_use]
-    pub fn is_good(&self) -> bool {
+    pub const fn is_good(&self) -> bool {
         match self {
             Self::High { msg: _ } | Self::Middle { msg: _ } | Self::Low { msg: _ } => true,
             Self::Missing | Self::Suboptimal { msg: _, source: _ } | Self::Unknown => false,
@@ -837,9 +837,14 @@ fn validate_ci(environment: &mut Environment, value: &str) -> Result {
     check_empty(environment, value, "CI")?;
     match value {
         "true" => Ok(Validity::High { msg: None }),
-        "false" => Ok(Validity::Middle { msg: "Nothing wrong with that, but any 'true' value will get prefference over 'false'".to_owned() }),
+        "false" => Ok(Validity::Middle {
+            msg: "Nothing wrong with that, but any 'true' value will get prefference over 'false'"
+                .to_owned(),
+        }),
         &_ => Err(Error::BadValue {
-            msg: r#"CI can be 'true', 'false' or be ommitted (None), which get interpreted as 'false'"#.to_owned(),
+            msg:
+                r"CI can be 'true', 'false' or be ommitted (None), which get interpreted as 'false'"
+                    .to_owned(),
             value: value.to_owned(),
         }),
     }

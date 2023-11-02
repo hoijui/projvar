@@ -213,7 +213,7 @@ impl Key {
     /// # Errors
     ///
     /// If the given identifier could not be mapped to any `Key` variant.
-    pub fn from_name_or_var_key(key_prefix: &Regex, id: &str) -> Result<Key, InvalidKey> {
+    pub fn from_name_or_var_key(key_prefix: &Regex, id: &str) -> Result<Self, InvalidKey> {
         Self::from_str(id)
             .or_else(|_| {
                 Self::from_str(&upper_snake_to_camel_case(
@@ -553,7 +553,7 @@ const VAR_VERSION_DATE: Variable = Variable {
 /// Returns a reference to the variable settings associated with the given key.
 #[must_use]
 #[remain::check]
-pub fn get(key: Key) -> &'static Variable {
+pub const fn get(key: Key) -> &'static Variable {
     #[remain::sorted]
     match key {
         Key::BuildArch => &VAR_BUILD_ARCH,

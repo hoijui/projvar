@@ -10,7 +10,7 @@ use crate::cleanup;
 use crate::environment::Environment;
 use crate::license;
 use crate::std_error;
-use crate::var::{Confidence, Key, C_HIGH, C_LOW, C_MIDDLE};
+use crate::var::{Confidence, Key, C_HIGH, C_LOW};
 use std::path::{Path, PathBuf};
 use std::{env, fs};
 
@@ -167,7 +167,7 @@ impl super::VarSource for VarSource {
     }
 
     fn type_name(&self) -> &'static str {
-        std::any::type_name::<VarSource>()
+        std::any::type_name::<Self>()
     }
 
     fn properties(&self) -> &Vec<String> {

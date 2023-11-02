@@ -27,7 +27,7 @@ pub struct Error {
 
 impl From<&str> for Error {
     fn from(message: &str) -> Self {
-        Error {
+        Self {
             from: git2::Error::from_str("PLACEHOLDER"),
             message: String::from(message),
         }
@@ -67,6 +67,7 @@ pub enum TransferProtocol {
 }
 
 impl TransferProtocol {
+    #[must_use]
     pub const fn scheme_str(self) -> &'static str {
         match self {
             Self::Git => "git",
@@ -75,6 +76,7 @@ impl TransferProtocol {
         }
     }
 
+    #[must_use]
     pub const fn to_clone_url_key(self) -> Key {
         match self {
             Self::Git => Key::RepoCloneUrlGit,
@@ -109,7 +111,7 @@ pub fn is_git_dirty_version(vers: &str) -> bool {
 /// Returns true if the repo contains any tags.
 fn _has_tags(repo: &git2::Repository) -> bool {
     let mut has_tags = false;
-    repo.tag_foreach(|_, _| {
+    let _ = repo.tag_foreach(|_, _| {
         has_tags = true;
         false
     });
@@ -155,7 +157,7 @@ impl TryFrom<Option<&str>> for Repo {
     type Error = git2::Error;
     fn try_from(repo_root: Option<&str>) -> Result<Self, Self::Error> {
         let repo_root = repo_root.unwrap_or(".");
-        Ok(Repo {
+        Ok(Self {
             repo: Repository::open(repo_root)?,
         })
     }
@@ -165,7 +167,7 @@ impl TryFrom<Option<&Path>> for Repo {
     type Error = git2::Error;
     fn try_from(repo_root: Option<&Path>) -> Result<Self, Self::Error> {
         let repo_root = repo_root.unwrap_or_else(|| Path::new("."));
-        Ok(Repo {
+        Ok(Self {
             repo: Repository::open(repo_root)?,
         })
     }
@@ -187,7 +189,7 @@ impl Repo {
     // }
 
     #[must_use]
-    pub fn inner(&self) -> &git2::Repository {
+    pub const fn inner(&self) -> &git2::Repository {
         &self.repo
     }
 

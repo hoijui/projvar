@@ -27,6 +27,6 @@ impl super::VarSink for VarSink {
 
 impl fmt::Display for VarSink {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", std::any::type_name::<VarSink>())
+        write!(f, "{}", std::any::type_name::<Self>())
     }
 }

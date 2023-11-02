@@ -77,9 +77,10 @@ pub fn cli_list(
         sinks.clear();
     } else if sinks.is_empty() {
         log::warn!("No sinks registered! The results of this run will not be stored anywhere.");
-    }
-    for sink in &sinks {
-        log::trace!("Registered sink {}.", sink);
+    } else {
+        for sink in &sinks {
+            log::trace!("Registered sink {}.", sink);
+        }
     }
     sinks
 }

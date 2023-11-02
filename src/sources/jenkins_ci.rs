@@ -24,7 +24,7 @@ impl super::VarSource for VarSource {
     }
 
     fn type_name(&self) -> &'static str {
-        std::any::type_name::<VarSource>()
+        std::any::type_name::<Self>()
     }
 
     fn properties(&self) -> &Vec<String> {

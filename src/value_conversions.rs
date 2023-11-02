@@ -563,11 +563,11 @@ pub fn clone_url_conversion(
     }
 
     let clone_url_parts = git_clone_url::PartsRef::parse(any_clone_url).map_err(|err_str| {
+        let scheme = protocol.scheme_str();
         Error::BadInputValue {
             key: protocol.to_clone_url_key(),
             msg: format!(
-                "Evaluated resulting clone URL is empty -> something went very wrong; Unable to convert clone URL to {} using regex '{err_str}'",
-                protocol.scheme_str(),
+                "Evaluated resulting clone URL is empty -> something went very wrong; Unable to convert clone URL to {scheme} using regex '{err_str}'",
             ),
             input: any_clone_url.to_owned(),
         }
@@ -609,14 +609,11 @@ pub fn clone_url_conversion(
     };
 
     let path_and_rest = clone_url_parts.path_and_rest;
-    let protocol_str = protocol.scheme_str();
+    let scheme = protocol.scheme_str();
     Ok(Some(match protocol {
-        TransferProtocol::Https | TransferProtocol::Git => format!(
-            "{protocol}://{host}/{path_and_rest}",
-            protocol = protocol_str,
-            // user = user.to_lowercase(),
-            path_and_rest = path_and_rest,
-        ),
+        TransferProtocol::Https | TransferProtocol::Git => {
+            format!("{scheme}://{host}/{path_and_rest}",)
+        }
         TransferProtocol::Ssh => {
             let host_path_sep = if host == constants::D_GIT_SOURCE_HUT {
                 // This is **not** URL spec compatible,
@@ -627,9 +624,8 @@ pub fn clone_url_conversion(
                 '/'
             };
             format!(
-                "{protocol}://{user}{host}{host_path_sep}{path_and_rest}",
-                // "{protocol}://{host}/{path_and_rest}", // anonymized (without user)
-                protocol = protocol_str,
+                "{scheme}://{user}{host}{host_path_sep}{path_and_rest}",
+                // "{scheme}://{host}/{path_and_rest}", // anonymized (without user)
                 user = user_at.to_lowercase(),
                 path_and_rest = path_and_rest,
             )

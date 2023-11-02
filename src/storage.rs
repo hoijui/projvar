@@ -39,8 +39,8 @@ macro_rules! quote_empty {
 
 impl Storage {
     /// Creates a new, empty instance of a storage.
-    pub fn new() -> Storage {
-        Storage {
+    pub fn new() -> Self {
+        Self {
             key_values: HashMap::new(),
             key_primary: HashMap::new(),
         }

@@ -57,9 +57,9 @@ pub fn run(
 ) -> BoxResult<()> {
     sources.sort_unstable_by(|s1, s2| {
         let o_hierarchy = s1.hierarchy().cmp(&s2.hierarchy());
-        if let Ordering::Equal = o_hierarchy {
+        if Ordering::Equal == o_hierarchy {
             let o_type = s1.type_name().cmp(s2.type_name());
-            if let Ordering::Equal = o_type {
+            if Ordering::Equal == o_type {
                 let o_props = s1.properties().cmp(s2.properties());
                 o_props
             } else {
@@ -106,7 +106,7 @@ pub fn run(
             None => {
                 if required {
                     log::warn!("Missing value for required key '{:?}'", key);
-                    if let FailOn::AnyMissingValue = environment.settings.fail_on {
+                    if matches!(environment.settings.fail_on, FailOn::AnyMissingValue) {
                         return Err(validator::Error::Missing.into()); // TODO Should/could this be handled in the validator already?
                     }
                 } else {

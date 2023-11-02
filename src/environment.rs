@@ -20,11 +20,11 @@ pub struct Environment {
 
 impl Environment {
     #[must_use]
-    pub fn new(settings: Settings) -> Environment {
+    pub fn new(settings: Settings) -> Self {
         let vars = HashMap::<String, String>::new();
         let output = Storage::new();
         let repo = git::Repo::try_from(settings.repo_path.as_deref()).ok();
-        Environment {
+        Self {
             settings,
             vars,
             output,
@@ -33,12 +33,12 @@ impl Environment {
     }
 
     #[must_use]
-    pub fn stub() -> Environment {
+    pub fn stub() -> Self {
         Self::new(STUB.clone())
     }
 
     #[must_use]
-    pub fn repo(&self) -> Option<&git::Repo> {
+    pub const fn repo(&self) -> Option<&git::Repo> {
         // TODO DEPRECATED Just use the repo property directly, instead
         self.repo.as_ref()
     }
