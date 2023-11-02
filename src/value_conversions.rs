@@ -574,7 +574,7 @@ pub fn clone_url_conversion(
     })?;
     let hosting_type = environment
         .settings
-        .hosting_type_from_host(&clone_url_parts.host);
+        .hosting_type_from_host(clone_url_parts.host);
 
     let host = if matches!(hosting_type, HostingType::RocketGit) {
         let prefix = match protocol {
@@ -593,21 +593,19 @@ pub fn clone_url_conversion(
     let user_at = if matches!(protocol, TransferProtocol::Ssh) {
         // use the default user for the given hosting-type
         Cow::Borrowed(hosting_type.def_ssh_user())
-    } else {
-        if let Some(user) = user_opt {
-            if user == "git" {
-                Cow::Borrowed("git@")
-            } else if user.is_empty() {
-                // no user
-                Cow::Borrowed("")
-            } else {
-                // same user
-                Cow::Owned(format!("{user}@"))
-            }
-        } else {
+    } else if let Some(user) = user_opt {
+        if user == "git" {
+            Cow::Borrowed("git@")
+        } else if user.is_empty() {
             // no user
             Cow::Borrowed("")
+        } else {
+            // same user
+            Cow::Owned(format!("{user}@"))
         }
+    } else {
+        // no user
+        Cow::Borrowed("")
     };
 
     let path_and_rest = clone_url_parts.path_and_rest;

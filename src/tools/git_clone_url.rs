@@ -32,7 +32,6 @@ macro_rules! let_named_cap {
 //pub(crate) use let_named_cap;
 
 impl<'a> PartsRef<'a> {
-    #[must_use]
     pub fn parse<'b>(any_clone_url: &'b str) -> Result<PartsRef<'a>, String>
     where
         'b: 'a,

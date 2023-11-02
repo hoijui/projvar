@@ -102,7 +102,7 @@ fn licenses(
 fn license(environment: &mut Environment) -> Result<Option<String>, std_error::Error> {
     if let Some(licenses) = licenses(environment, true)? {
         if licenses.len() == 1 {
-            return Ok(licenses.get(0).map(ToOwned::to_owned));
+            return Ok(licenses.first().map(ToOwned::to_owned));
         }
     }
     Ok(None)

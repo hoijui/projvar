@@ -184,7 +184,7 @@ impl Storage {
         // or creates, inserts and returns a new one,
         // if none is present yet.
         // See: <https://stackoverflow.com/a/41418147>
-        (*self.key_values.entry(key).or_insert_with(HashMap::new))
+        (*self.key_values.entry(key).or_default())
             .insert(source_index, (confidence, value.clone()));
         // here, the last to add, wins (should be the source with the highest hierarchy)
         self.key_primary.insert(key, (confidence, value));
