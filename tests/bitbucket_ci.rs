@@ -32,7 +32,7 @@ const BITBUCKET_PR_DESTINATION_BRANCH: [Option<&str>; 5] = [
     Some("something"),
     None,
 ];
-const BITBUCKET_GIT_HTTP_ORIGIN: &str = "http://bitbucket.org/my-user/my-proj";
+const BITBUCKET_GIT_HTTP_ORIGIN: &str = "https://bitbucket.org/my-user/my-proj";
 const BITBUCKET_GIT_SSH_ORIGIN: &str = "git@bitbucket.org:my-user/my-proj.git";
 const BITBUCKET_PROJECT_KEY: [Option<&str>; 2] = [Some("my-project-group"), None];
 const BITBUCKET_PROJECT_UUID: &str = "123e4567-e89b-12d3-a456-426614174001";
@@ -93,7 +93,7 @@ fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatch
         ),
         (
             "PROJECT_REPO_CLONE_URL_HTTP",
-            (Box::new(&"http://bitbucket.org/my-user/my-proj"), true),
+            (Box::new(&"https://bitbucket.org/my-user/my-proj"), true),
         ),
         (
             "PROJECT_REPO_CLONE_URL_SSH",
@@ -105,32 +105,32 @@ fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatch
         (
             "PROJECT_REPO_COMMIT_PREFIX_URL",
             (
-                Box::new(&"http://bitbucket.org/my-user/my-proj/commits"),
+                Box::new(&"https://bitbucket.org/my-user/my-proj/commits"),
                 true,
             ),
         ),
         (
             "PROJECT_REPO_ISSUES_URL",
             (
-                Box::new(&"http://bitbucket.org/my-user/my-proj/issues"),
+                Box::new(&"https://bitbucket.org/my-user/my-proj/issues"),
                 true,
             ),
         ),
         (
             "PROJECT_REPO_RAW_VERSIONED_PREFIX_URL",
-            (Box::new(&"http://bitbucket.org/my-user/my-proj/raw"), true),
+            (Box::new(&"https://bitbucket.org/my-user/my-proj/raw"), true),
         ),
         (
             "PROJECT_REPO_VERSIONED_DIR_PREFIX_URL",
-            (Box::new(&"http://bitbucket.org/my-user/my-proj/src"), true),
+            (Box::new(&"https://bitbucket.org/my-user/my-proj/src"), true),
         ),
         (
             "PROJECT_REPO_VERSIONED_FILE_PREFIX_URL",
-            (Box::new(&"http://bitbucket.org/my-user/my-proj/src"), true),
+            (Box::new(&"https://bitbucket.org/my-user/my-proj/src"), true),
         ),
         (
             "PROJECT_REPO_WEB_URL",
-            (Box::new(&"http://bitbucket.org/my-user/my-proj"), true),
+            (Box::new(&"https://bitbucket.org/my-user/my-proj"), true),
         ),
         ("PROJECT_VERSION", (Box::new(&"0.1.0"), true)),
     ]

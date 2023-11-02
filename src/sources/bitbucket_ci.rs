@@ -66,12 +66,12 @@ impl super::VarSource for VarSource {
                 Key::RepoCloneUrlHttp => var(environment, "BITBUCKET_GIT_HTTP_ORIGIN", C_HIGH),
                 Key::RepoWebUrl => {
                     // BITBUCKET_REPO_FULL_NAME = The full name of the repository
-                    // (everything that comes after http://bitbucket.org/).
+                    // (everything that comes after https://bitbucket.org/).
                     var(environment, "BITBUCKET_REPO_FULL_NAME", C_HIGH).map(
                         |(confidence, project_slug)| {
-                            (confidence, format!("http://bitbucket.org/{project_slug}"))
+                            (confidence, format!("https://bitbucket.org/{project_slug}"))
                         },
-                    ) // TODO Maybe use a constant here? (for "http://bitbucket.org")
+                    ) // TODO Maybe use a constant here? (for "https://bitbucket.org")
                 }
                 Key::Version => self
                     .retrieve(environment, Key::BuildTag)?
