@@ -13,7 +13,9 @@ use uuid::Uuid;
 use assert_cmd::prelude::*;
 use lazy_static::lazy_static;
 use std::ffi::OsStr;
+use std::fs;
 use std::path::Path;
+use std::path::PathBuf;
 use std::{collections::HashMap, fmt::Display, process::Command};
 
 lazy_static! {
@@ -122,6 +124,61 @@ pub fn compare(
     }
 }
 
+fn projvar_test_internal<I, K, V>(
+    expected_pats: &HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>,
+    args: &[&str],
+    cwd: &Path,
+    envs: I,
+    debug: bool,
+) -> BoxResult<()>
+where
+    I: IntoIterator<Item = (K, V)>,
+    K: AsRef<OsStr>,
+    V: AsRef<OsStr>,
+{
+    let tmp_out_file = assert_fs::NamedTempFile::new("projvar.out.env")?;
+    tmp_out_file.touch()?;
+    let out_file = if debug {
+        // NOTE For debugging **A SINGLE TEST**!
+        let out_file = PathBuf::from("/tmp/projvar-test-out.env");
+        if out_file.exists() {
+            fs::remove_file(&out_file)?;
+        }
+        out_file
+    } else {
+        tmp_out_file.path().to_path_buf()
+    };
+    let out_file_str = &out_file.display().to_string();
+
+    let mut cmd = Command::cargo_bin("projvar")?;
+    cmd.arg("-O").arg(&out_file_str);
+    if debug {
+        cmd.arg("-A").arg("/tmp/pv-dbg-out-all.md");
+        cmd.arg("-F").arg("trace");
+        cmd.arg("-F").arg("warnings");
+    }
+    cmd.current_dir(cwd);
+    cmd.args(args);
+    cmd.env_clear();
+    cmd.envs(envs);
+
+    if debug {
+        let output = cmd.output()?;
+        let stdout_utf8 = std::str::from_utf8(&output.stdout)?;
+        println!("{stdout_utf8}");
+    } else {
+        cmd.assert().success();
+    }
+
+    assert!(out_file.exists());
+    let mut output_reader = cli_utils::create_input_reader(Some(&out_file_str))?;
+    let mut actual_vars = var::parse_vars_file_reader(&mut output_reader)?;
+
+    compare(expected_pats, &mut actual_vars)?;
+
+    Ok(())
+}
+
 pub fn projvar_test<I, K, V>(
     expected_pats: &HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>,
     args: &[&str],
@@ -133,36 +190,7 @@ where
     K: AsRef<OsStr>,
     V: AsRef<OsStr>,
 {
-    let tmp_out_file = assert_fs::NamedTempFile::new("projvar.out.env")?;
-    tmp_out_file.touch()?;
-    let out_file = tmp_out_file.path();
-    // NOTE Use this instead of the above for debugging **A SINGLE TEST**!
-    // let out_file = PathBuf::from("/tmp/projvar-test-out.env");
-    // if out_file.exists() {
-    //     fs::remove_file(&out_file)?;
-    // }
-    let out_file_str = &out_file.display().to_string();
-
-    let mut cmd = Command::cargo_bin("projvar")?;
-    cmd.arg("-O").arg(&out_file_str);
-    // NOTE Uncomment this for debugging
-    // cmd.arg("-A").arg("/tmp/pv-dbg-out-all.md");
-    // cmd.arg("-F").arg("trace");
-    // cmd.arg("-F").arg("warnings");
-    cmd.current_dir(cwd);
-    cmd.args(args);
-    cmd.env_clear();
-    cmd.envs(envs);
-
-    cmd.assert().success();
-
-    assert!(out_file.exists());
-    let mut output_reader = cli_utils::create_input_reader(Some(&out_file_str))?;
-    let mut actual_vars = var::parse_vars_file_reader(&mut output_reader)?;
-
-    compare(expected_pats, &mut actual_vars)?;
-
-    Ok(())
+    projvar_test_internal(expected_pats, args, cwd, envs, false)
 }
 
 pub fn projvar_test_clean(
@@ -170,10 +198,11 @@ pub fn projvar_test_clean(
     args: &[&str],
 ) -> BoxResult<()> {
     let tmp_proj_dir_empty = assert_fs::TempDir::new()?;
-    projvar_test(
+    projvar_test_internal(
         expected_pats,
         args,
         tmp_proj_dir_empty.path(),
         HashMap::<String, String>::new(),
+        false,
     )
 }
