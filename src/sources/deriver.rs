@@ -1,10 +1,12 @@
-// SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+// SPDX-FileCopyrightText: 2021 - 2023 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use url::Url;
+
 use crate::environment::Environment;
+use crate::tools::git::TransferProtocol;
 use crate::value_conversions;
-use crate::value_conversions::Protocol;
 use crate::var::Key;
 
 use super::Hierarchy;
@@ -80,23 +82,35 @@ fn name_machine_readable(environment: &Environment) -> RetrieveRes {
     })
 }
 
-fn repo_clone_url_specific(environment: &Environment, ssh: bool) -> RetrieveRes {
-    let (key, protocol) = if ssh {
-        (Key::RepoCloneUrlSsh, Protocol::Ssh)
+fn repo_clone_url_specific(environment: &Environment, protocol: TransferProtocol) -> RetrieveRes {
+    let either_url = environment
+        .output
+        .get(Key::RepoWebUrl)
+        .or_else(|| environment.output.get(Key::RepoCloneUrl));
+    if let Some((_confidence, url_str)) = either_url {
+        let url = Url::parse(url_str)?;
+        let hosting_type = environment.settings.hosting_type(&url);
+        if !hosting_type.supports_clone_url(protocol) {
+            return Ok(None);
+        }
     } else {
-        (Key::RepoCloneUrlHttp, Protocol::Https)
-    };
+        return Ok(None);
+    }
+    let key = protocol.to_clone_url_key();
     let from_web_url =
         conv_val_with_env!(environment, RepoWebUrl, key, web_url_to_clone_url, protocol);
     Ok(match from_web_url {
         Some(_) => from_web_url,
-        None => conv_val!(
-            environment,
-            RepoCloneUrl,
-            key,
-            clone_url_conversion,
-            protocol
-        ),
+        None => {
+            conv_val!(
+                environment,
+                RepoCloneUrl,
+                key,
+                clone_url_conversion,
+                environment,
+                protocol
+            )
+        }
     })
 }
 
@@ -148,10 +162,17 @@ impl super::VarSource for VarSource {
                     RepoWebUrl,
                     key,
                     web_url_to_clone_url,
-                    Protocol::Https
+                    TransferProtocol::Https
                 ),
-                Key::RepoCloneUrlHttp => repo_clone_url_specific(environment, false)?,
-                Key::RepoCloneUrlSsh => repo_clone_url_specific(environment, true)?,
+                Key::RepoCloneUrlGit => {
+                    repo_clone_url_specific(environment, TransferProtocol::Git)?
+                }
+                Key::RepoCloneUrlHttp => {
+                    repo_clone_url_specific(environment, TransferProtocol::Https)?
+                }
+                Key::RepoCloneUrlSsh => {
+                    repo_clone_url_specific(environment, TransferProtocol::Ssh)?
+                }
                 Key::RepoCommitPrefixUrl => {
                     conv_val_with_env!(environment, RepoWebUrl, key, web_url_to_commit_prefix_url)
                 }

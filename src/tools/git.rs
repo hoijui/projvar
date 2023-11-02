@@ -14,6 +14,8 @@ use std::path::PathBuf;
 use std::str;
 use thiserror::Error;
 
+use crate::var::Key;
+
 /// This enumerates all possible errors returned by this module.
 /// Represents all other cases of `std::io::Error`.
 #[derive(Error, Debug)]
@@ -36,6 +38,51 @@ impl From<&str> for Error {
 /// For formatting specifiers, see:
 /// <https://docs.rs/chrono/latest/chrono/format/strftime/index.html>
 pub const DATE_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
+
+/// These are the protocols that git supports for transportation,
+/// i.e. when cloning, fetching and pushing.
+/// Documentation:
+/// <https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols>
+#[derive(Clone, Copy)]
+pub enum TransferProtocol {
+    /// Gits own, fully anonymous/un-authenticated protocol
+    /// Documentation:
+    /// <https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols#_the_git_protocol>
+    /// Example:
+    /// "git://repo.or.cz/girocco.git"
+    Git,
+    /// HTTP(S) - Hyper-Text Transfer Protocol (Secure)
+    /// Documentation:
+    /// <https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols#_the_http_protocols>
+    /// Example:
+    /// "https://gitlab.com/hoijui/kicad-text-injector.git"
+    Https,
+    /// SSH - Secure SHell
+    /// Documentation:
+    /// <https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols#_the_ssh_protocol>
+    /// Example:
+    /// "git@gitlab.com/hoijui/kicad-text-injector.git"
+    // /// ssh://gitlab.com/hoijui/kicad-text-injector.git
+    Ssh,
+}
+
+impl TransferProtocol {
+    pub const fn scheme_str(self) -> &'static str {
+        match self {
+            Self::Git => "git",
+            Self::Https => "https",
+            Self::Ssh => "ssh",
+        }
+    }
+
+    pub const fn to_clone_url_key(self) -> Key {
+        match self {
+            Self::Git => Key::RepoCloneUrlGit,
+            Self::Https => Key::RepoCloneUrlHttp,
+            Self::Ssh => Key::RepoCloneUrlSsh,
+        }
+    }
+}
 
 /// Checks whether a given version string is a git broken version.
 /// Broken means, the repository is corrupt,

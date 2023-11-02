@@ -2,6 +2,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::borrow::Cow;
+use std::ffi::OsStr;
+use std::path::PathBuf;
+use std::str::FromStr;
+
+use crate::tools::git::TransferProtocol;
+use crate::tools::git_clone_url;
 use crate::tools::git_hosting_provs::{HostingType, PublicSite};
 use chrono::DateTime;
 use thiserror::Error;
@@ -61,31 +68,6 @@ pub enum Error {
     //     input: String,
     // },
 }
-
-#[derive(Clone, Copy)]
-pub enum Protocol {
-    /// HTTP(S) - Hyper-Text Transfer Protocol (Secure)
-    /// Example:
-    /// "https://gitlab.com/hoijui/kicad-text-injector.git"
-    Https,
-    /// SSH - Secure SHell
-    /// Example:
-    /// "git@gitlab.com/hoijui/kicad-text-injector.git"
-    Ssh,
-    // /// ssh://gitlab.com/hoijui/kicad-text-injector.git
-    // SshUrl,
-}
-
-macro_rules! let_named_cap {
-    ($caps:ident,$name:ident) => {
-        let $name = if let Some(rmatch) = $caps.name(stringify!($name)) {
-            rmatch.as_str()
-        } else {
-            ""
-        };
-    };
-}
-//pub(crate) use let_named_cap;
 
 /// Extracts the project name from the project slug,
 /// which might be "user/project" or "user/group/sub-group/project".
@@ -404,146 +386,257 @@ pub fn web_url_to_commit_prefix_url(environment: &Environment, web_url: &str) ->
 ///
 /// ```
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # use projvar::value_conversions::{clone_url_conversion, Protocol};
+/// # use projvar::tools::git::TransferProtocol;
+/// # use projvar::value_conversions::clone_url_conversion;
 /// # use projvar::environment::Environment;
 /// # let environment = Environment::stub();
 /// assert_eq!(
-///     clone_url_conversion("git@github.com:hoijui/kicad-text-injector.git", Protocol::Https)?,
+///     clone_url_conversion("git@github.com:hoijui/kicad-text-injector.git", &environment, TransferProtocol::Https)?,
 ///     Some("https://github.com/hoijui/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
-///     clone_url_conversion("git@github.com:hoijui/kicad-text-injector", Protocol::Https)?,
+///     clone_url_conversion("git@github.com:hoijui/kicad-text-injector", &environment, TransferProtocol::Https)?,
 ///     Some("https://github.com/hoijui/kicad-text-injector".to_owned())
 /// );
 /// assert_eq!(
-///     clone_url_conversion("https://github.com/hoijui/kicad-text-injector.git", Protocol::Https)?,
+///     clone_url_conversion("https://github.com/hoijui/kicad-text-injector.git", &environment, TransferProtocol::Https)?,
 ///     Some("https://github.com/hoijui/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
-///     clone_url_conversion("https://github.com/hoijui/kicad-text-injector", Protocol::Https)?,
+///     clone_url_conversion("https://github.com/hoijui/kicad-text-injector", &environment, TransferProtocol::Https)?,
 ///     Some("https://github.com/hoijui/kicad-text-injector".to_owned())
 /// );
 /// assert_eq!(
-///     clone_url_conversion("git@gitlab.com:hoijui/kicad-text-injector.git", Protocol::Https)?,
+///     clone_url_conversion("git@gitlab.com:hoijui/kicad-text-injector.git", &environment, TransferProtocol::Https)?,
 ///     Some("https://gitlab.com/hoijui/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
-///     clone_url_conversion("https://gitlab.com/hoijui/kicad-text-injector.git", Protocol::Https)?,
+///     clone_url_conversion("https://gitlab.com/hoijui/kicad-text-injector.git", &environment, TransferProtocol::Https)?,
 ///     Some("https://gitlab.com/hoijui/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
-///     clone_url_conversion("git@bitbucket.org:Aouatef/master_arbeit.git", Protocol::Https)?,
+///     clone_url_conversion("git@bitbucket.org:Aouatef/master_arbeit.git", &environment, TransferProtocol::Https)?,
 ///     Some("https://bitbucket.org/Aouatef/master_arbeit.git".to_owned())
 /// );
 /// assert_eq!(
-///     clone_url_conversion("https://hoijui@bitbucket.org/Aouatef/master_arbeit.git", Protocol::Https)?,
+///     clone_url_conversion("https://hoijui@bitbucket.org/Aouatef/master_arbeit.git", &environment, TransferProtocol::Https)?,
 ///     Some("https://bitbucket.org/Aouatef/master_arbeit.git".to_owned())
 /// );
 /// assert_eq!(
-///     clone_url_conversion("git@github.com:hoijui/kicad-text-injector.git", Protocol::Ssh)?,
+///     clone_url_conversion("https://git.sr.ht/~sircmpwn/sr.ht-docs", &environment, TransferProtocol::Https)?,
+///     Some("https://git.sr.ht/~sircmpwn/sr.ht-docs".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("git@git.sr.ht:~sircmpwn/sr.ht-docs", &environment, TransferProtocol::Https)?,
+///     Some("https://git.sr.ht/~sircmpwn/sr.ht-docs".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("ssh://git@git.sr.ht:~sircmpwn/sr.ht-docs", &environment, TransferProtocol::Https)?,
+///     Some("https://git.sr.ht/~sircmpwn/sr.ht-docs".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("https://rocketgit.com/user/hoijui/rs-test", &environment, TransferProtocol::Https)?,
+///     Some("https://rocketgit.com/user/hoijui/rs-test".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("ssh://rocketgit@ssh.rocketgit.com/user/hoijui/rs-test", &environment, TransferProtocol::Https)?,
+///     Some("https://rocketgit.com/user/hoijui/rs-test".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("git://git.rocketgit.com/user/hoijui/rs-test", &environment, TransferProtocol::Https)?,
+///     Some("https://rocketgit.com/user/hoijui/rs-test".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("https://repo.or.cz/girocco.git", &environment, TransferProtocol::Https)?,
+///     Some("https://repo.or.cz/girocco.git".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("ssh://repo.or.cz/girocco.git", &environment, TransferProtocol::Https)?,
+///     Some("https://repo.or.cz/girocco.git".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("git://repo.or.cz/girocco.git", &environment, TransferProtocol::Https)?,
+///     Some("https://repo.or.cz/girocco.git".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("git@github.com:hoijui/kicad-text-injector.git", &environment, TransferProtocol::Ssh)?,
 ///     Some("ssh://git@github.com/hoijui/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
-///     clone_url_conversion("git@github.com:hoijui/kicad-text-injector", Protocol::Ssh)?,
+///     clone_url_conversion("git@github.com:hoijui/kicad-text-injector", &environment, TransferProtocol::Ssh)?,
 ///     Some("ssh://git@github.com/hoijui/kicad-text-injector".to_owned())
 /// );
 /// assert_eq!(
-///     clone_url_conversion("https://github.com/hoijui/kicad-text-injector.git", Protocol::Ssh)?,
+///     clone_url_conversion("https://github.com/hoijui/kicad-text-injector.git", &environment, TransferProtocol::Ssh)?,
 ///     Some("ssh://git@github.com/hoijui/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
-///     clone_url_conversion("https://github.com/hoijui/kicad-text-injector", Protocol::Ssh)?,
+///     clone_url_conversion("https://github.com/hoijui/kicad-text-injector", &environment, TransferProtocol::Ssh)?,
 ///     Some("ssh://git@github.com/hoijui/kicad-text-injector".to_owned())
 /// );
 /// assert_eq!(
-///     clone_url_conversion("git@gitlab.com:hoijui/kicad-text-injector.git", Protocol::Ssh)?,
+///     clone_url_conversion("git@gitlab.com:hoijui/kicad-text-injector.git", &environment, TransferProtocol::Ssh)?,
 ///     Some("ssh://git@gitlab.com/hoijui/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
-///     clone_url_conversion("https://gitlab.com/hoijui/kicad-text-injector.git", Protocol::Ssh)?,
+///     clone_url_conversion("https://gitlab.com/hoijui/kicad-text-injector.git", &environment, TransferProtocol::Ssh)?,
 ///     Some("ssh://git@gitlab.com/hoijui/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
-///     clone_url_conversion("git@bitbucket.org:Aouatef/master_arbeit.git", Protocol::Ssh)?,
+///     clone_url_conversion("git@bitbucket.org:Aouatef/master_arbeit.git", &environment, TransferProtocol::Ssh)?,
 ///     Some("ssh://git@bitbucket.org/Aouatef/master_arbeit.git".to_owned())
 /// );
 /// assert_eq!(
-///     clone_url_conversion("https://hoijui@bitbucket.org/Aouatef/master_arbeit.git", Protocol::Ssh)?,
+///     clone_url_conversion("https://hoijui@bitbucket.org/Aouatef/master_arbeit.git", &environment, TransferProtocol::Ssh)?,
 ///     Some("ssh://git@bitbucket.org/Aouatef/master_arbeit.git".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("https://git.sr.ht/~sircmpwn/sr.ht-docs", &environment, TransferProtocol::Ssh)?,
+///     Some("ssh://git@git.sr.ht:~sircmpwn/sr.ht-docs".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("git@git.sr.ht:~sircmpwn/sr.ht-docs", &environment, TransferProtocol::Ssh)?,
+///     Some("ssh://git@git.sr.ht:~sircmpwn/sr.ht-docs".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("ssh://git@git.sr.ht:~sircmpwn/sr.ht-docs", &environment, TransferProtocol::Ssh)?,
+///     Some("ssh://git@git.sr.ht:~sircmpwn/sr.ht-docs".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("https://rocketgit.com/user/hoijui/rs-test", &environment, TransferProtocol::Ssh)?,
+///     Some("ssh://rocketgit@ssh.rocketgit.com/user/hoijui/rs-test".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("ssh://rocketgit@ssh.rocketgit.com/user/hoijui/rs-test", &environment, TransferProtocol::Ssh)?,
+///     Some("ssh://rocketgit@ssh.rocketgit.com/user/hoijui/rs-test".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("git://git.rocketgit.com/user/hoijui/rs-test", &environment, TransferProtocol::Ssh)?,
+///     Some("ssh://rocketgit@ssh.rocketgit.com/user/hoijui/rs-test".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("https://repo.or.cz/girocco.git", &environment, TransferProtocol::Ssh)?,
+///     Some("ssh://repo.or.cz/girocco.git".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("ssh://repo.or.cz/girocco.git", &environment, TransferProtocol::Ssh)?,
+///     Some("ssh://repo.or.cz/girocco.git".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("git://repo.or.cz/girocco.git", &environment, TransferProtocol::Ssh)?,
+///     Some("ssh://repo.or.cz/girocco.git".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("https://rocketgit.com/user/hoijui/rs-test", &environment, TransferProtocol::Git)?,
+///     Some("git://git.rocketgit.com/user/hoijui/rs-test".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("ssh://rocketgit@ssh.rocketgit.com/user/hoijui/rs-test", &environment, TransferProtocol::Git)?,
+///     Some("git://git.rocketgit.com/user/hoijui/rs-test".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("git://git.rocketgit.com/user/hoijui/rs-test", &environment, TransferProtocol::Git)?,
+///     Some("git://git.rocketgit.com/user/hoijui/rs-test".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("https://repo.or.cz/girocco.git", &environment, TransferProtocol::Git)?,
+///     Some("git://repo.or.cz/girocco.git".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("ssh://repo.or.cz/girocco.git", &environment, TransferProtocol::Git)?,
+///     Some("git://repo.or.cz/girocco.git".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_conversion("git://repo.or.cz/girocco.git", &environment, TransferProtocol::Git)?,
+///     Some("git://repo.or.cz/girocco.git".to_owned())
 /// );
 /// # Ok(())
 /// # }
 /// ```
-pub fn clone_url_conversion(any_clone_url: &str, protocol: Protocol) -> Res {
+pub fn clone_url_conversion(
+    any_clone_url: &str,
+    environment: &Environment,
+    protocol: TransferProtocol,
+) -> Res {
     lazy_static! {
-        // This matches all these 3 types of clone URLs:
-        // * git@github.com:hoijui/rust-project-scripts.git
-        // * ssh://github.com/hoijui/rust-project-scripts.git
-        // * https://github.com/hoijui/rust-project-scripts.git
-        static ref R_CLONE_URL: Regex = Regex::new(r"^((?P<protocol>[0-9a-zA-Z._-]+)://)?((?P<user>[0-9a-zA-Z._-]+)@)?(?P<host>[0-9a-zA-Z._-]+)([/:](?P<path_and_rest>.+)?)?$").unwrap();
+        static ref R_HOST_PREFIX: Regex = Regex::new(r"^(git|ssh)\.").unwrap(); // TODO This is RocketGit specific -> ranme and move to constants?
     }
-    let to_protocol_str = match protocol {
-        Protocol::Https => "https",
-        Protocol::Ssh => "ssh",
-    };
-    let clone_url_res = R_CLONE_URL.replace(any_clone_url, |caps: &regex::Captures| {
-        // let_named_cap!(caps, protocol);
-        // let_named_cap!(caps, host);
-        // let_named_cap!(caps, user);
-        // let_named_cap!(caps, path_and_rest);
-        let host = caps.name("host").map(|m| m.as_str());
-        // let user_at = if user.is_empty() || user == "git" {
-        //     // use the default anonymous git user (NOTE This might get us in trouble in some scenarios)
-        //     // user.to_owned() + "@"
-        //     "git@"
-        // } else {
-        //     // anonymize the URL
-        //     // String::new()
-        //     ""
-        // };
-        let user_at = "git@";
 
-        if let Some(host) = host {
-            let path_and_rest = caps
-                .name("path_and_rest")
-                .map(|m| /*"/".to_owned() +*/ m.as_str());
-            match protocol {
-                Protocol::Https => format!(
-                    "{protocol}://{host}/{path_and_rest}",
-                    protocol = to_protocol_str,
-                    // user = user.to_lowercase(),
-                    host = host,
-                    path_and_rest = path_and_rest.unwrap_or_default(),
-                ),
-                Protocol::Ssh => format!(
-                    //"{user}{host}:{path_and_rest}", // TODO or this? ...
-                    "{protocol}://{user}{host}/{path_and_rest}", // TODO This is the (URL spec compatible) alternative
-                    // "{protocol}://{host}/{path_and_rest}", // TODO This is the (URL spec compatible) alternative, anonymised (without user)
-                    protocol = to_protocol_str,
-                    user = user_at.to_lowercase(),
-                    host = host,
-                    path_and_rest = path_and_rest.unwrap_or_default(),
-                ),
-            }
-        } else {
-            any_clone_url.to_owned()
-        }
-    });
-    if clone_url_res.is_empty() {
-        Err(Error::BadInputValue {
-            key: match protocol {
-                Protocol::Https => Key::RepoCloneUrl,
-                Protocol::Ssh => Key::RepoCloneUrlSsh,
-            },
+    let clone_url_parts = git_clone_url::PartsRef::parse(any_clone_url).map_err(|err_str| {
+        Error::BadInputValue {
+            key: protocol.to_clone_url_key(),
             msg: format!(
-                "Evaluated resulting clone URL is empty -> something went very wrong; Unable to convert clone URL to {to_protocol_str} using regex '{}'",
-                R_CLONE_URL.as_str()
+                "Evaluated resulting clone URL is empty -> something went very wrong; Unable to convert clone URL to {} using regex '{err_str}'",
+                protocol.scheme_str(),
             ),
             input: any_clone_url.to_owned(),
-        })
+        }
+    })?;
+    let hosting_type = environment
+        .settings
+        .hosting_type_from_host(&clone_url_parts.host);
+
+    let host = if matches!(hosting_type, HostingType::RocketGit) {
+        let prefix = match protocol {
+            TransferProtocol::Git => "git.",
+            TransferProtocol::Https => "",
+            TransferProtocol::Ssh => "ssh.",
+        };
+        Cow::Owned(format!(
+            "{prefix}{}",
+            R_HOST_PREFIX.replace(clone_url_parts.host, "")
+        ))
     } else {
-        Ok(Some(clone_url_res.as_ref().to_owned()))
-    }
+        Cow::Borrowed(clone_url_parts.host)
+    };
+    let user_opt = clone_url_parts.user;
+    let user_at = if matches!(protocol, TransferProtocol::Ssh) {
+        // use the default user for the given hosting-type
+        Cow::Borrowed(hosting_type.def_ssh_user())
+    } else {
+        if let Some(user) = user_opt {
+            if user == "git" {
+                Cow::Borrowed("git@")
+            } else if user.is_empty() {
+                // no user
+                Cow::Borrowed("")
+            } else {
+                // same user
+                Cow::Owned(format!("{user}@"))
+            }
+        } else {
+            // no user
+            Cow::Borrowed("")
+        }
+    };
+
+    let path_and_rest = clone_url_parts.path_and_rest;
+    let protocol_str = protocol.scheme_str();
+    Ok(Some(match protocol {
+        TransferProtocol::Https | TransferProtocol::Git => format!(
+            "{protocol}://{host}/{path_and_rest}",
+            protocol = protocol_str,
+            // user = user.to_lowercase(),
+            path_and_rest = path_and_rest,
+        ),
+        TransferProtocol::Ssh => {
+            let host_path_sep = if host == constants::D_GIT_SOURCE_HUT {
+                // This is **not** URL spec compatible,
+                // but some/most hosters support this.
+                ':'
+            } else {
+                // This is the (URL spec) compatible way
+                '/'
+            };
+            format!(
+                "{protocol}://{user}{host}{host_path_sep}{path_and_rest}",
+                // "{protocol}://{host}/{path_and_rest}", // anonymized (without user)
+                protocol = protocol_str,
+                user = user_at.to_lowercase(),
+                path_and_rest = path_and_rest,
+            )
+        }
+    }))
 }
 
 /// Converts any kind of clone URL (wrapped in an `Option`) to an HTTP(S) or SSH one.
@@ -554,10 +647,14 @@ pub fn clone_url_conversion(any_clone_url: &str, protocol: Protocol) -> Res {
 /// If conversion failed, usually due to an invalid input URL.
 ///
 /// If the user in the URL suggests a non-public access URL.
-pub fn clone_url_conversion_option(any_clone_url: Option<&String>, protocol: Protocol) -> Res {
+pub fn clone_url_conversion_option(
+    any_clone_url: Option<&String>,
+    environment: &Environment,
+    protocol: TransferProtocol,
+) -> Res {
     // TODO Can probably be removed by clever usage of map, ok, and*, or*, Into, From, ... something!
     Ok(match any_clone_url {
-        Some(clone_url) => clone_url_conversion(clone_url, protocol)?,
+        Some(clone_url) => clone_url_conversion(clone_url, environment, protocol)?,
         None => None,
     })
 }
@@ -712,6 +809,14 @@ macro_rules! build_hostify_url {
 ///     web_url_to_build_hosting_url(&environment, "https://gitlab.com/hoijui/sub-group/kicad-text-injector")?,
 ///     Some("https://hoijui.gitlab.io/sub-group/kicad-text-injector".to_owned())
 /// );
+/// assert_eq!(
+///     web_url_to_build_hosting_url(&environment, "https://codeberg.org/hoijui/kicad-text-injector/")?,
+///     Some("https://hoijui.codeberg.page/kicad-text-injector".to_owned())
+/// );
+/// assert_eq!(
+///     web_url_to_build_hosting_url(&environment, "https://sourceforge.net/projects/xampp/")?,
+///     Some("https://xampp.sourceforge.io".to_owned())
+/// );
 /// # Ok(())
 /// # }
 /// ```
@@ -738,8 +843,19 @@ pub fn web_url_to_build_hosting_url(environment: &Environment, web_url: &str) ->
                 PublicSite::GitLabCom => {
                     build_hostify_url!(url, web_url, public_site, DS_GIT_LAB_IO_SUFIX)
                 }
-                PublicSite::BitBucketOrg // BB does not have pages hosting
-                | _ => None, // TODO Implement the others!
+                PublicSite::CodeBergOrg => {
+                    build_hostify_url!(url, web_url, public_site, DS_CODE_BERG_PAGE)
+                }
+                PublicSite::SourceForgeNet => {
+                    let url_path = PathBuf::from_str(url.path()).expect("Impossible");
+                    let proj_name_opt = url_path.file_name().map(OsStr::to_string_lossy);
+                    proj_name_opt.map(|proj_name| format!("https://{proj_name}.{}", constants::DS_SOURCE_FORGE_IO))
+                }
+                PublicSite::BitBucketOrg // has no pages hosting
+                | PublicSite::SourceHut // has pages support (<https://srht.site/>), but only per-user, not per repo. One could try to emulate per repo pages there, but it would be cumbersome and is not standardized.
+                | PublicSite::RepoOrCz // has no pages hosting
+                | PublicSite::RocketGitCom // has no pages hosting
+                | PublicSite::Unknown => None,
             })
         },
     )
@@ -752,40 +868,73 @@ pub fn web_url_to_build_hosting_url(environment: &Environment, web_url: &str) ->
 ///
 /// ```
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # use projvar::value_conversions::{web_url_to_clone_url, Protocol};
+/// # use projvar::tools::git::TransferProtocol;
+/// # use projvar::value_conversions::web_url_to_clone_url;
 /// # use projvar::environment::Environment;
 /// # let environment = Environment::stub();
 /// assert_eq!(
-///     web_url_to_clone_url(&environment, "https://github.com/hoijui/kicad-text-injector/", Protocol::Ssh)?,
+///     web_url_to_clone_url(&environment, "https://github.com/hoijui/kicad-text-injector/", TransferProtocol::Ssh)?,
 ///     Some("ssh://git@github.com/hoijui/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
-///     web_url_to_clone_url(&environment, "https://github.com/hoijui/kicad-text-injector", Protocol::Https)?,
+///     web_url_to_clone_url(&environment, "https://github.com/hoijui/kicad-text-injector", TransferProtocol::Https)?,
 ///     Some("https://github.com/hoijui/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
-///     web_url_to_clone_url(&environment, "https://gitlab.com/hoijui/kicad-text-injector", Protocol::Ssh)?,
+///     web_url_to_clone_url(&environment, "https://gitlab.com/hoijui/kicad-text-injector", TransferProtocol::Ssh)?,
 ///     Some("ssh://git@gitlab.com/hoijui/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
-///     web_url_to_clone_url(&environment, "https://gitlab.com/hoijui/kicad-text-injector/", Protocol::Https)?,
+///     web_url_to_clone_url(&environment, "https://gitlab.com/hoijui/kicad-text-injector/", TransferProtocol::Https)?,
 ///     Some("https://gitlab.com/hoijui/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
-///     web_url_to_clone_url(&environment, "https://gitlab.com/hoijui/sub-group/kicad-text-injector", Protocol::Ssh)?,
+///     web_url_to_clone_url(&environment, "https://gitlab.com/hoijui/sub-group/kicad-text-injector", TransferProtocol::Ssh)?,
 ///     Some("ssh://git@gitlab.com/hoijui/sub-group/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
-///     web_url_to_clone_url(&environment, "https://gitlab.com/hoijui/sub-group/kicad-text-injector/", Protocol::Https)?,
+///     web_url_to_clone_url(&environment, "https://gitlab.com/hoijui/sub-group/kicad-text-injector/", TransferProtocol::Https)?,
 ///     Some("https://gitlab.com/hoijui/sub-group/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
-///     web_url_to_clone_url(&environment, "https://bitbucket.org/hoijui/kicad-text-injector", Protocol::Ssh)?,
+///     web_url_to_clone_url(&environment, "https://bitbucket.org/hoijui/kicad-text-injector", TransferProtocol::Ssh)?,
 ///     Some("ssh://git@bitbucket.org/hoijui/kicad-text-injector.git".to_owned())
 /// );
 /// assert_eq!(
-///     web_url_to_clone_url(&environment, "https://bitbucket.org/hoijui/kicad-text-injector/", Protocol::Https)?,
+///     web_url_to_clone_url(&environment, "https://bitbucket.org/hoijui/kicad-text-injector/", TransferProtocol::Https)?,
 ///     Some("https://bitbucket.org/hoijui/kicad-text-injector.git".to_owned())
+/// );
+/// assert_eq!(
+///     web_url_to_clone_url(&environment, "https://git.sr.ht/~sircmpwn/sr.ht-docs", TransferProtocol::Ssh)?,
+///     Some("ssh://git@git.sr.ht:~sircmpwn/sr.ht-docs".to_owned())
+/// );
+/// assert_eq!(
+///     web_url_to_clone_url(&environment, "https://git.sr.ht/~sircmpwn/sr.ht-docs", TransferProtocol::Https)?,
+///     Some("https://git.sr.ht/~sircmpwn/sr.ht-docs".to_owned())
+/// );
+/// assert_eq!(
+///     web_url_to_clone_url(&environment, "https://rocketgit.com/user/hoijui/rs-test", TransferProtocol::Ssh)?,
+///     Some("ssh://rocketgit@ssh.rocketgit.com/user/hoijui/rs-test".to_owned())
+/// );
+/// assert_eq!(
+///     web_url_to_clone_url(&environment, "https://rocketgit.com/user/hoijui/rs-test", TransferProtocol::Https)?,
+///     Some("https://rocketgit.com/user/hoijui/rs-test".to_owned())
+/// );
+/// assert_eq!(
+///     web_url_to_clone_url(&environment, "https://rocketgit.com/user/hoijui/rs-test", TransferProtocol::Git)?,
+///     Some("git://git.rocketgit.com/user/hoijui/rs-test".to_owned())
+/// );
+/// assert_eq!(
+///     web_url_to_clone_url(&environment, "https://repo.or.cz/girocco.git", TransferProtocol::Ssh)?,
+///     Some("ssh://repo.or.cz/girocco.git".to_owned())
+/// );
+/// assert_eq!(
+///     web_url_to_clone_url(&environment, "https://repo.or.cz/girocco.git", TransferProtocol::Https)?,
+///     Some("https://repo.or.cz/girocco.git".to_owned())
+/// );
+/// assert_eq!(
+///     web_url_to_clone_url(&environment, "https://repo.or.cz/girocco.git", TransferProtocol::Git)?,
+///     Some("git://repo.or.cz/girocco.git".to_owned())
 /// );
 /// # Ok(())
 /// # }
@@ -795,14 +944,15 @@ pub fn web_url_to_build_hosting_url(environment: &Environment, web_url: &str) ->
 ///
 /// If the conversion failed,
 /// which usually happens if the `web_url` is not a github.com or gitlab.com.
-pub fn web_url_to_clone_url(environment: &Environment, web_url: &str, protocol: Protocol) -> Res {
+pub fn web_url_to_clone_url(
+    environment: &Environment,
+    web_url: &str,
+    protocol: TransferProtocol,
+) -> Res {
     lazy_static! {
         static ref R_SLASH_AT_END: Regex = Regex::new(r"^(.+?)/?$").unwrap();
     }
-    let key = match protocol {
-        Protocol::Https => Key::RepoCloneUrl,
-        Protocol::Ssh => Key::RepoCloneUrlSsh,
-    };
+    let key = protocol.to_clone_url_key();
     let http_clone_url = web_url_match(environment, web_url, key, &|mut url| {
         Ok(match environment.settings.hosting_type(&url) {
             HostingType::GitHub | HostingType::GitLab | HostingType::BitBucket => {
@@ -810,13 +960,13 @@ pub fn web_url_to_clone_url(environment: &Environment, web_url: &str, protocol: 
                 url.set_path(&path);
                 Some(url.to_string())
             }
+            HostingType::SourceHut | HostingType::RocketGit | HostingType::Girocco => {
+                Some(url.to_string())
+            }
             _ => None, // TODO Implement the others!
         })
     })?;
-    Ok(match protocol {
-        Protocol::Https => http_clone_url,
-        Protocol::Ssh => clone_url_conversion_option(http_clone_url.as_ref(), protocol)?,
-    })
+    clone_url_conversion_option(http_clone_url.as_ref(), environment, protocol)
 }
 
 /// Converts a common git remote URL (HTTP(S) or SSH)
@@ -857,6 +1007,38 @@ pub fn web_url_to_clone_url(environment: &Environment, web_url: &str, protocol: 
 ///     clone_url_to_web_url(&environment, "https://hoijui@bitbucket.org/Aouatef/master_arbeit.git")?,
 ///     Some("https://bitbucket.org/Aouatef/master_arbeit".to_owned())
 /// );
+/// assert_eq!(
+///     clone_url_to_web_url(&environment, "https://git.sr.ht/~sircmpwn/sr.ht-docs")?,
+///     Some("https://git.sr.ht/~sircmpwn/sr.ht-docs".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_to_web_url(&environment, "git@git.sr.ht:~sircmpwn/sr.ht-docs")?,
+///     Some("https://git.sr.ht/~sircmpwn/sr.ht-docs".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_to_web_url(&environment, "https://rocketgit.com/user/hoijui/rs-test")?,
+///     Some("https://rocketgit.com/user/hoijui/rs-test".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_to_web_url(&environment, "git://rocketgit@git.rocketgit.com/user/hoijui/rs-test")?,
+///     Some("https://rocketgit.com/user/hoijui/rs-test".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_to_web_url(&environment, "ssh://rocketgit@ssh.rocketgit.com/user/hoijui/rs-test")?,
+///     Some("https://rocketgit.com/user/hoijui/rs-test".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_to_web_url(&environment, "https://repo.or.cz/girocco.git")?,
+///     Some("https://repo.or.cz/girocco.git".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_to_web_url(&environment, "git://repo.or.cz/girocco.git")?,
+///     Some("https://repo.or.cz/girocco.git".to_owned())
+/// );
+/// assert_eq!(
+///     clone_url_to_web_url(&environment, "ssh://repo.or.cz/girocco.git")?,
+///     Some("https://repo.or.cz/girocco.git".to_owned())
+/// );
 /// # Ok(())
 /// # }
 /// ```
@@ -865,7 +1047,8 @@ pub fn clone_url_to_web_url(environment: &Environment, any_clone_url: &str) -> R
         static ref R_DOT_GIT_SUFFIX: Regex = Regex::new(r"\.git$").unwrap();
     }
 
-    let https_clone_url = clone_url_conversion(any_clone_url, Protocol::Https)?;
+    let https_clone_url =
+        clone_url_conversion(any_clone_url, environment, TransferProtocol::Https)?;
     match https_clone_url {
         Some(https_clone_url) => {
             match Url::parse(&https_clone_url) {
@@ -890,6 +1073,9 @@ pub fn clone_url_to_web_url(environment: &Environment, any_clone_url: &str) -> R
                             })?;
                             Some(url.to_string())
                         }
+                        HostingType::Girocco | HostingType::SourceHut | HostingType::RocketGit => {
+                            Some(https_clone_url)
+                        } // Web-hosting and HTTP clone URL are exactly identical
                         _ => None, // TODO Implement the others!
                     })
                 }

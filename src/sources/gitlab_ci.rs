@@ -47,6 +47,7 @@ impl super::VarSource for VarSource {
                 | Key::License
                 | Key::Licenses
                 | Key::NameMachineReadable
+                | Key::RepoCloneUrlGit
                 | Key::RepoCloneUrlHttp
                 | Key::RepoCloneUrlSsh
                 | Key::RepoCommitPrefixUrl

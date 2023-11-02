@@ -3,4 +3,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 pub mod git;
+pub mod git_clone_url;
 pub mod git_hosting_provs;

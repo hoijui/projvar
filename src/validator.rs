@@ -4,6 +4,7 @@
 
 use crate::license;
 use crate::tools::git;
+use crate::tools::git::TransferProtocol;
 use crate::tools::git_hosting_provs::HostingType;
 use crate::var::{Confidence, Key};
 use crate::{constants, environment::Environment};
@@ -305,6 +306,7 @@ fn check_public_url(
     _environment: &mut Environment,
     value: &str,
     allow_ssh: bool,
+    allow_git: bool,
 ) -> std::result::Result<Url, Error> {
     match Url::parse(value) {
         Err(_err) => Err(Error::BadValue {
@@ -312,12 +314,18 @@ fn check_public_url(
             value: value.to_owned(),
         }),
         Ok(url) => {
-            if !(["http", "https"].contains(&url.scheme()) || (allow_ssh && url.scheme() == "ssh"))
-            {
+            let mut valid_schemes = vec!["http", "https"];
+            if allow_ssh {
+                valid_schemes.push("ssh");
+            }
+            if allow_git {
+                valid_schemes.push("git");
+            }
+            if !valid_schemes.contains(&url.scheme()) {
                 Err(Error::AlmostUsableValue {
                     msg: format!(
-                        "Should use one of these as protocol(scheme): [http, https{}]",
-                        if allow_ssh { ", ssh" } else { "" }
+                        "Should use one of these as protocol(scheme): [{}]",
+                        valid_schemes.join(", ")
                     ),
                     value: value.to_owned(),
                 })
@@ -442,7 +450,7 @@ fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
         static ref R_BIT_BUCKET_PATH: Regex = (*R_GIT_HUB_PATH).clone();
     }
 
-    let url = check_public_url(environment, value, false)?;
+    let url = check_public_url(environment, value, false, false)?;
     let hosting_type = eval_hosting_type(environment, &url);
     let host_reg: Option<&Regex> = match hosting_type {
         HostingType::GitHub => Some(&R_GIT_HUB_PATH),
@@ -479,9 +487,27 @@ fn validate_repo_clone_url(_environment: &mut Environment, value: &str) -> Resul
         })
 }
 
-// * https://git@bitbucket.org/Aouatef/master_arbeit.git
-fn validate_repo_clone_url_http(environment: &mut Environment, value: &str) -> Result {
-    let url = check_public_url(environment, value, false)?;
+fn validate_repo_clone_url_generic(
+    environment: &mut Environment,
+    value: &str,
+    protocol: TransferProtocol,
+) -> Result {
+    let url = check_public_url(
+        environment,
+        value,
+        matches!(protocol, TransferProtocol::Ssh),
+        matches!(protocol, TransferProtocol::Git),
+    )?;
+    if url.scheme() != protocol.scheme_str() {
+        return Err(Error::BadValue {
+            msg: format!(
+                "Wrong URL Scheme; should be '{}', but is '{}'",
+                protocol.scheme_str(),
+                url.scheme()
+            ),
+            value: value.to_owned(),
+        });
+    }
     let hosting_type = eval_hosting_type(environment, &url);
     let host_reg: Option<&Regex> = match hosting_type {
         HostingType::GitHub => Some(&R_GIT_HUB_CLONE_PATH),
@@ -492,6 +518,16 @@ fn validate_repo_clone_url_http(environment: &mut Environment, value: &str) -> R
     check_url_path(value, "repo clone", &url, host_reg)
 }
 
+// * git://repo.or.cz/girocco.git
+fn validate_repo_clone_url_git(environment: &mut Environment, value: &str) -> Result {
+    validate_repo_clone_url_generic(environment, value, TransferProtocol::Git)
+}
+
+// * https://git@bitbucket.org/Aouatef/master_arbeit.git
+fn validate_repo_clone_url_http(environment: &mut Environment, value: &str) -> Result {
+    validate_repo_clone_url_generic(environment, value, TransferProtocol::Https)
+}
+
 // * git@bitbucket.org:Aouatef/master_arbeit.git
 // * ssh://bitbucket.org/Aouatef/master_arbeit.git
 fn validate_repo_clone_url_ssh(environment: &mut Environment, value: &str) -> Result {
@@ -500,11 +536,15 @@ fn validate_repo_clone_url_ssh(environment: &mut Environment, value: &str) -> Re
         static ref R_SSH_CLONE_URL: Regex = Regex::new(r"^(?P<user>git@)?(?P<host>[^/:]+)((:|/)(?P<path>.+))?$").unwrap();
     }
 
-    let url = match check_public_url(environment, value, true) {
+    let url = match check_public_url(environment, value, true, false) {
         Ok(url) => {
-            if url.scheme() != "ssh" {
+            if url.scheme() != TransferProtocol::Ssh.scheme_str() {
                 return Err(Error::AlmostUsableValue {
-                    msg: "Only protocol ssh is allowed".to_owned(),
+                    msg: format!(
+                        "Wrong URL Scheme; should be '{}', but is '{}'",
+                        TransferProtocol::Ssh.scheme_str(),
+                        url.scheme()
+                    ),
                     value: value.to_owned(),
                 });
             }
@@ -512,7 +552,7 @@ fn validate_repo_clone_url_ssh(environment: &mut Environment, value: &str) -> Re
         }
         Err(err_orig) => {
             let ssh_value = R_SSH_CLONE_URL.replace(value, "ssh://$host/$path");
-            match check_public_url(environment, &ssh_value, true) {
+            match check_public_url(environment, &ssh_value, true, false) {
                 Ok(url) => url,
                 // If also the ssh_value failed to parse,
                 // return the error concerning the failed parsing of the original value.
@@ -547,7 +587,7 @@ fn validate_repo_raw_versioned_prefix_url(environment: &mut Environment, value: 
             Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/raw$").unwrap();
     }
 
-    let url = check_public_url(environment, value, false)?;
+    let url = check_public_url(environment, value, false, false)?;
     let hosting_type = eval_hosting_type(environment, &url);
     let host_reg: Option<&Regex> = match hosting_type {
         HostingType::GitHub => Some(&R_GIT_HUB_PATH),
@@ -570,7 +610,7 @@ fn validate_repo_versioned_file_prefix_url(environment: &mut Environment, value:
             Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/src$").unwrap();
     }
 
-    let url = check_public_url(environment, value, false)?;
+    let url = check_public_url(environment, value, false, false)?;
     let hosting_type = eval_hosting_type(environment, &url);
     let host_reg: Option<&Regex> = match hosting_type {
         HostingType::GitHub => Some(&R_GIT_HUB_PATH),
@@ -593,7 +633,7 @@ fn validate_repo_versioned_dir_prefix_url(environment: &mut Environment, value: 
             Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/src$").unwrap();
     }
 
-    let url = check_public_url(environment, value, false)?;
+    let url = check_public_url(environment, value, false, false)?;
     let hosting_type = eval_hosting_type(environment, &url);
     let host_reg: Option<&Regex> = match hosting_type {
         HostingType::GitHub => Some(&R_GIT_HUB_PATH),
@@ -616,7 +656,7 @@ fn validate_repo_commit_prefix_url(environment: &mut Environment, value: &str) -
             Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/commits$").unwrap();
     }
 
-    let url = check_public_url(environment, value, false)?;
+    let url = check_public_url(environment, value, false, false)?;
     let hosting_type = eval_hosting_type(environment, &url);
     let host_reg: Option<&Regex> = match hosting_type {
         HostingType::GitHub => Some(&R_GIT_HUB_PATH),
@@ -638,7 +678,7 @@ fn validate_repo_issues_url(environment: &mut Environment, value: &str) -> Resul
             Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/issues$").unwrap();
     }
 
-    let url = check_public_url(environment, value, false)?;
+    let url = check_public_url(environment, value, false, false)?;
     let hosting_type = eval_hosting_type(environment, &url);
     let host_reg: Option<&Regex> = match hosting_type {
         HostingType::GitHub => Some(&R_GIT_HUB_PATH),
@@ -656,7 +696,7 @@ fn validate_build_hosting_url(environment: &mut Environment, value: &str) -> Res
         // NOTE BitBucket does not have this feature, it only supports one "page" repo per user, not per repo
     }
 
-    let url = check_public_url(environment, value, false)?;
+    let url = check_public_url(environment, value, false, false)?;
     let hosting_type = eval_hosting_type_from_hosting_suffix(environment, &url);
     let host_reg: Option<&Regex> = match hosting_type {
         HostingType::GitHub => Some(&R_GIT_HUB_HOST),
@@ -825,6 +865,7 @@ pub fn get(key: Key) -> Validator {
         Key::Name => validate_name,
         Key::NameMachineReadable => validate_name_machine_readable,
         Key::RepoCloneUrl => validate_repo_clone_url,
+        Key::RepoCloneUrlGit => validate_repo_clone_url_git,
         Key::RepoCloneUrlHttp => validate_repo_clone_url_http,
         Key::RepoCloneUrlSsh => validate_repo_clone_url_ssh,
         Key::RepoCommitPrefixUrl => validate_repo_commit_prefix_url,

@@ -12,6 +12,8 @@ use url::Host;
 
 use crate::constants;
 
+use super::git::TransferProtocol;
+
 #[derive(Debug, EnumString, EnumVariantNames, IntoStaticStr, PartialEq, Eq, Clone, Copy)]
 pub enum PublicSite {
     /// <https://github.com> - commercial, free OS hosting, software is proprietary
@@ -65,14 +67,21 @@ impl Default for PublicSite {
 impl From<Host<&str>> for PublicSite {
     fn from(host: Host<&str>) -> Self {
         match host {
-            Host::Domain(constants::D_GIT_HUB_COM) => Self::GitHubCom,
-            Host::Domain(constants::D_GIT_LAB_COM) => Self::GitLabCom,
+            Host::Domain(constants::D_GIT_HUB_COM)
+            | Host::Domain(constants::DS_GIT_HUB_IO_SUFIX)
+            | Host::Domain(constants::D_GIT_HUB_COM_RAW) => Self::GitHubCom,
+            Host::Domain(constants::D_GIT_LAB_COM)
+            | Host::Domain(constants::DS_GIT_LAB_IO_SUFIX) => Self::GitLabCom,
             Host::Domain(constants::D_BIT_BUCKET_ORG) => Self::BitBucketOrg,
             Host::Domain(constants::D_GIT_SOURCE_HUT) => Self::SourceHut,
             Host::Domain(constants::D_REPO_OR_CZ) => Self::RepoOrCz,
-            Host::Domain(constants::D_ROCKET_GIT_COM) => Self::RocketGitCom,
-            Host::Domain(constants::D_CODE_BERG_ORG) => Self::CodeBergOrg,
-            Host::Domain(constants::D_SOURCE_FORGE_NET) => Self::SourceForgeNet,
+            Host::Domain(constants::D_ROCKET_GIT_COM)
+            | Host::Domain(constants::D_SSH_ROCKET_GIT_COM)
+            | Host::Domain(constants::D_GIT_ROCKET_GIT_COM) => Self::RocketGitCom,
+            Host::Domain(constants::D_CODE_BERG_ORG)
+            | Host::Domain(constants::DS_CODE_BERG_PAGE) => Self::CodeBergOrg,
+            Host::Domain(constants::D_SOURCE_FORGE_NET)
+            | Host::Domain(constants::DS_SOURCE_FORGE_IO) => Self::SourceForgeNet,
             Host::Domain(_) | Host::Ipv4(_) | Host::Ipv6(_) => Self::Unknown,
         }
     }
@@ -122,6 +131,38 @@ impl HostingType {
             | HostingType::Girocco
             | HostingType::RocketGit
             | HostingType::Allura => true,
+        }
+    }
+
+    #[must_use]
+    pub const fn supports_clone_url(self, protocol: TransferProtocol) -> bool {
+        match protocol {
+            TransferProtocol::Https | TransferProtocol::Ssh => true,
+            TransferProtocol::Git => match self {
+                HostingType::Girocco | HostingType::RocketGit => true,
+                HostingType::GitHub
+                | HostingType::BitBucket
+                | HostingType::Unknown
+                | HostingType::GitLab
+                | HostingType::SourceHut
+                | HostingType::Gitea
+                | HostingType::Allura => false,
+            },
+        }
+    }
+
+    #[must_use]
+    pub fn def_ssh_user(self) -> &'static str {
+        match self {
+            HostingType::GitHub
+            | HostingType::GitLab
+            | HostingType::BitBucket
+            | HostingType::SourceHut => "git@",
+            HostingType::Gitea
+            | HostingType::Girocco
+            | HostingType::Allura
+            | HostingType::Unknown => "",
+            HostingType::RocketGit => "rocketgit@",
         }
     }
 }

@@ -18,10 +18,14 @@ pub const D_GIT_SOURCE_HUT: &str = "git.sr.ht";
 pub const D_REPO_OR_CZ: &str = "repo.or.cz";
 
 pub const D_ROCKET_GIT_COM: &str = "rocketgit.com";
+pub const D_SSH_ROCKET_GIT_COM: &str = "ssh.rocketgit.com";
+pub const D_GIT_ROCKET_GIT_COM: &str = "git.rocketgit.com";
 
 pub const D_CODE_BERG_ORG: &str = "codeberg.org";
+pub const DS_CODE_BERG_PAGE: &str = "codeberg.page";
 
 pub const D_SOURCE_FORGE_NET: &str = "sourceforge.net";
+pub const DS_SOURCE_FORGE_IO: &str = "sourceforge.io";
 
 pub const VALID_OS_FAMILIES: &[&str] = &["linux", "unix", "bsd", "osx", "windows"]; // TODO
 pub const VALID_ARCHS: &[&str] = &["x86", "x86_64", "arm", "arm64"]; // TODO

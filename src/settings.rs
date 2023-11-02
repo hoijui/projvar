@@ -183,6 +183,16 @@ impl Settings {
     }
 
     #[must_use]
+    pub fn hosting_type_from_host(&self, host: &str) -> HostingType {
+        if let HostingType::Unknown = self.hosting_type {
+            let host_assumed_domain = url::Host::Domain(host);
+            HostingType::from(PublicSite::from(host_assumed_domain))
+        } else {
+            self.hosting_type
+        }
+    }
+
+    #[must_use]
     pub fn hosting_type_from_hosting_suffix(&self, url: &Url) -> HostingType {
         if let HostingType::Unknown = self.hosting_type {
             HostingType::from(PublicSite::from_hosting_domain_option(url.host().as_ref()))

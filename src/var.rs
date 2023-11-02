@@ -109,6 +109,7 @@ pub enum Key {
     Name,
     NameMachineReadable,
     RepoCloneUrl,
+    RepoCloneUrlGit,
     RepoCloneUrlHttp,
     RepoCloneUrlSsh,
     RepoCommitPrefixUrl,
@@ -365,6 +366,7 @@ pub const KEY_NAME_MACHINE_READABLE: &str = "NAME_MACHINE_READABLE";
 pub const KEY_REPO_CLONE_URL: &str = "REPO_CLONE_URL";
 pub const KEY_REPO_CLONE_URL_HTTP: &str = "REPO_CLONE_URL_HTTP";
 pub const KEY_REPO_CLONE_URL_SSH: &str = "REPO_CLONE_URL_SSH";
+pub const KEY_REPO_CLONE_URL_GIT: &str = "REPO_CLONE_URL_GIT";
 pub const KEY_REPO_COMMIT_PREFIX_URL: &str = "REPO_COMMIT_PREFIX_URL";
 pub const KEY_REPO_ISSUES_URL: &str = "REPO_ISSUES_URL";
 pub const KEY_REPO_RAW_VERSIONED_PREFIX_URL: &str = "REPO_RAW_VERSIONED_PREFIX_URL";
@@ -478,6 +480,14 @@ const VAR_REPO_CLONE_URL_SSH: Variable = Variable {
         It is commonly used for authenticated, fetch and push access.",
     default_required: false,
 };
+const VAR_REPO_CLONE_URL_GIT: Variable = Variable {
+    key: KEY_REPO_CLONE_URL_GIT,
+    description: "The repo clone URL, Git protocol version. \
+        It always conforms to the URL specification. \
+        It is used for non-authenticated fetch access. \
+        Most repo hosters do not support it.",
+    default_required: false,
+};
 const VAR_REPO_COMMIT_PREFIX_URL: Variable = Variable {
     key: KEY_REPO_COMMIT_PREFIX_URL,
     description: // TODO Elaborate the "Add commit SHA" part
@@ -560,6 +570,7 @@ pub fn get(key: Key) -> &'static Variable {
         Key::Name => &VAR_NAME,
         Key::NameMachineReadable => &VAR_NAME_MACHINE_READABLE,
         Key::RepoCloneUrl => &VAR_REPO_CLONE_URL,
+        Key::RepoCloneUrlGit => &VAR_REPO_CLONE_URL_GIT,
         Key::RepoCloneUrlHttp => &VAR_REPO_CLONE_URL_HTTP,
         Key::RepoCloneUrlSsh => &VAR_REPO_CLONE_URL_SSH,
         Key::RepoCommitPrefixUrl => &VAR_REPO_COMMIT_PREFIX_URL,
