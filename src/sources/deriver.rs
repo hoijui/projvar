@@ -83,19 +83,6 @@ fn name_machine_readable(environment: &Environment) -> RetrieveRes {
 }
 
 fn repo_clone_url_specific(environment: &Environment, protocol: TransferProtocol) -> RetrieveRes {
-    let either_url = environment
-        .output
-        .get(Key::RepoWebUrl)
-        .or_else(|| environment.output.get(Key::RepoCloneUrl));
-    if let Some((_confidence, url_str)) = either_url {
-        let url = Url::parse(url_str)?;
-        let hosting_type = environment.settings.hosting_type(&url);
-        if !hosting_type.supports_clone_url(protocol) {
-            return Ok(None);
-        }
-    } else {
-        return Ok(None);
-    }
     let key = protocol.to_clone_url_key();
     let from_web_url =
         conv_val_with_env!(environment, RepoWebUrl, key, web_url_to_clone_url, protocol);
@@ -111,7 +98,22 @@ fn repo_clone_url_specific(environment: &Environment, protocol: TransferProtocol
                 protocol
             )
         }
-    })
+    }
+    .and_then(|conf_and_val| {
+        // NOTE We successfully derived the requested clone URL now,
+        //      but many hosts do not suppport all protocols,
+        //      so this might be a phony one.
+        //      In such a case, we will not return it.
+        let url_str = &conf_and_val.1;
+        let url = Url::parse(url_str)
+            .expect("If we get here, it should always be a valid URL, ensured by previous code.");
+        let hosting_type = environment.settings.hosting_type(&url);
+        if hosting_type.supports_clone_url(protocol) {
+            Some(conf_and_val)
+        } else {
+            None
+        }
+    }))
 }
 
 impl super::VarSource for VarSource {
