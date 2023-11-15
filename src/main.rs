@@ -262,7 +262,7 @@ fn arg_verbose() -> Arg {
         .help("More verbose log output")
         .long_help(formatcp!(
             "More verbose log output; useful for debugging. \
-            See -{A_S_LOG_LEVEL},--{A_L_LOG_LEVEL} for more fine-graine control.",
+            See -{A_S_LOG_LEVEL},--{A_L_LOG_LEVEL} for more fine-grained control.",
         ))
         .short(A_S_VERBOSE)
         .long(A_L_VERBOSE)
@@ -811,4 +811,5 @@ fn main() -> BoxResult<()> {
     }
 
     process::run(&mut environment, sources, sinks)
+    // Ok(())
 }
