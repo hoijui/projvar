@@ -39,6 +39,20 @@ fn log_retrieved(environment: &Environment, sources: &[Box<dyn VarSource>]) -> B
     Ok(())
 }
 
+fn key_missing(environment: &mut Environment, key: Key) -> BoxResult<()> {
+    let required = environment.settings.required_keys.contains(&key);
+    if required {
+        log::warn!("Missing value for required key '{:?}'", key);
+        if matches!(environment.settings.fail_on, FailOn::AnyMissingValue) {
+            return Err(validator::Error::Missing.into());
+        }
+    } else {
+        log::debug!("Missing value for optional key '{:?}'", key);
+    }
+
+    Ok(())
+}
+
 /// The main function of this crate,
 /// gathering data as good as it can,
 /// and making sure it is stored in the appropriate environment variables.
@@ -89,7 +103,6 @@ pub fn run(
     log::trace!("Validate each variables presence and value ...");
     let output = environment.output.clone();
     for key in Key::iter() {
-        let required = environment.settings.required_keys.contains(&key);
         match output.get(key) {
             Some((_confidence, value)) => {
                 log::trace!("Validating value for key '{:?}': '{}'", key, value);
@@ -104,16 +117,7 @@ pub fn run(
                     }
                 }
             }
-            None => {
-                if required {
-                    log::warn!("Missing value for required key '{:?}'", key);
-                    if matches!(environment.settings.fail_on, FailOn::AnyMissingValue) {
-                        return Err(validator::Error::Missing.into()); // TODO Should/could this be handled in the validator already?
-                    }
-                } else {
-                    log::debug!("Missing value for optional key '{:?}'", key);
-                }
-            }
+            None => key_missing(environment, key)?,
         }
     }
 
