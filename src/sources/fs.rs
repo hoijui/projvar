@@ -94,6 +94,7 @@ fn licenses(
     for lff in fetcher_functions {
         let licenses = lff(repo_path)?;
         if licenses.is_some() {
+            log::trace!("Found licenses: {licenses:#?}");
             return Ok(licenses);
         }
     }
