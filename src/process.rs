@@ -12,8 +12,9 @@ use std::cmp::Ordering;
 use std::fs;
 use strum::IntoEnumIterator;
 
-/// Reports the raw values retrieved from the sources, if requested
-fn report_retrieved(environment: &Environment, sources: &[Box<dyn VarSource>]) -> BoxResult<()> {
+/// Reports the raw values retrieved from the sources -
+/// if requested - to the logging system.
+fn log_retrieved(environment: &Environment, sources: &[Box<dyn VarSource>]) -> BoxResult<()> {
     let retrieved = match &environment.settings.show_retrieved {
         crate::settings::ShowRetrieved::No => (None, None),
         crate::settings::ShowRetrieved::Primary(target) => (
@@ -83,7 +84,7 @@ pub fn run(
         }
     }
 
-    report_retrieved(environment, &sources)?;
+    log_retrieved(environment, &sources)?;
 
     log::trace!("Validate each variables precense and value ...");
     let output = environment.output.clone();
