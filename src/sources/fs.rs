@@ -57,12 +57,15 @@ fn licenses_from_dir(repo_path: &Path) -> Result<Option<Vec<String>>, std_error:
     }
     let licenses_dir = repo_path.join("LICENSES");
     if licenses_dir.is_dir() {
+        log::trace!("Fetching (REUSE) licenses from {licenses_dir:#?} ...");
         let mut licenses = Vec::<String>::new();
         for file in licenses_dir.read_dir()? {
             let file_name = file?.file_name();
             let file_name = file_name.to_str().ok_or(std_error::Error::NotValidUtf8)?;
             if R_TXT_SUFFIX.is_match(file_name) {
-                licenses.push(R_TXT_SUFFIX.replace(file_name, "").into_owned());
+                let license_id = R_TXT_SUFFIX.replace(file_name, "").into_owned();
+                log::trace!("Found (REUSE) license: {license_id}");
+                licenses.push(license_id);
             }
         }
         Ok(Some(licenses))
