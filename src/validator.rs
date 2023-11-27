@@ -888,38 +888,8 @@ pub fn get(key: Key) -> Validator {
 
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom:
-    // importing names from outer (for mod tests) scope.
     use super::*;
 
-    lazy_static! {
-        static ref VE_ALMOST_USABLE_VALUE: Error = Error::AlmostUsableValue {
-            msg: String::default(),
-            value: String::default(),
-        };
-        static ref VE_MISSING: Error = Error::Missing {};
-        static ref VE_BAD_VALUE: Error = Error::BadValue {
-            msg: String::default(),
-            value: String::default(),
-        };
-        static ref V_HIGH: Validity = Validity::High {
-            msg: None,
-        };
-        static ref V_MIDDLE: Validity = Validity::Middle {
-            msg: String::default(), // TODO Createa macro for this
-        };
-        static ref V_LOW: Validity = Validity::Low {
-            msg: String::default(),
-        };
-        static ref V_SUBOPTIMAL: Validity = Validity::Suboptimal {
-            msg: String::default(),
-            source: None,
-        };
-    }
-
-    fn variant_eq<T>(a: &T, b: &T) -> bool {
-        std::mem::discriminant(a) == std::mem::discriminant(b)
-    }
     // %Y-%m-%d %H:%M:%S\"", value: "2021-09-21 06:27:37
     // #[test]
     // fn date_time() -> Result<(), chrono::ParseError> {
@@ -942,7 +912,7 @@ mod tests {
 
     fn is_high(res: Result) -> bool {
         if let Ok(val) = res {
-            variant_eq(&val, &V_HIGH)
+            matches!(&val, &Validity::High { .. })
         } else {
             false
         }
@@ -950,7 +920,7 @@ mod tests {
 
     fn is_middle(res: Result) -> bool {
         if let Ok(val) = res {
-            variant_eq(&val, &V_MIDDLE)
+            matches!(&val, &Validity::Middle { .. })
         } else {
             false
         }
@@ -958,7 +928,7 @@ mod tests {
 
     fn is_low(res: Result) -> bool {
         if let Ok(val) = res {
-            variant_eq(&val, &V_LOW)
+            matches!(&val, &Validity::Low { .. })
         } else {
             false
         }
@@ -966,19 +936,15 @@ mod tests {
 
     fn is_suboptimal(res: Result) -> bool {
         if let Ok(val) = res {
-            variant_eq(&val, &V_SUBOPTIMAL)
+            matches!(&val, &Validity::Suboptimal { .. })
         } else {
             false
         }
     }
 
-    // fn is_almost_usable(res: Result) -> bool {
-    //     variant_eq(&res.unwrap_err(), &VE_ALMOST_USABLE_VALUE)
-    // }
-
     fn is_missing_err(res: Result) -> bool {
         if let Err(err) = res {
-            variant_eq(&err, &VE_MISSING)
+            matches!(&err, &Error::Missing { .. })
         } else {
             false
         }
@@ -986,7 +952,7 @@ mod tests {
 
     fn is_bad_value(res: Result) -> bool {
         if let Err(err) = res {
-            variant_eq(&err, &VE_BAD_VALUE)
+            matches!(&err, &Error::BadValue { .. })
         } else {
             false
         }
