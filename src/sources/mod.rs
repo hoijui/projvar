@@ -21,7 +21,7 @@ use lazy_static::lazy_static;
 
 use crate::environment::Environment;
 use crate::var::{Confidence, Key, C_HIGH};
-use crate::{std_error, tools, value_conversions, BoxResult};
+use crate::{cleanup, std_error, tools, validator, value_conversions, BoxResult};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub enum Hierarchy {
@@ -105,6 +105,26 @@ pub trait VarSource {
     /// or innumerable other kinds of problems,
     /// depending on the kind of the source.
     fn retrieve(&self, environment: &mut Environment, key: Key) -> RetrieveRes;
+
+    /// Uses an already found build-tag as the version field,
+    /// if available.
+    ///
+    /// # Errors
+    ///
+    /// See [`::retrieve`].
+    fn version_from_build_tag(&self, environment: &mut Environment, key: Key) -> RetrieveRes {
+        assert!(matches!(key, Key::Version));
+        Ok(self
+            .retrieve(environment, Key::BuildTag)?
+            .map(|conf_val| cleanup::conf_version(environment, conf_val))
+            .filter(|conf_val| {
+                if let Ok(validity) = validator::get(key)(environment, &conf_val.1) {
+                    validity.is_good()
+                } else {
+                    false
+                }
+            }))
+    }
 }
 
 #[must_use]
