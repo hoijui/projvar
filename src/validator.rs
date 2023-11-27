@@ -56,7 +56,7 @@ pub enum Validity {
     /// no source returned a (valid) value for it.
     Missing,
 
-    /// The evaluated value is usable, but not optimal.
+    /// The evaluated value is usable, but with a grain of salt - be suspcious!
     Suboptimal {
         msg: String,
         source: Option<Box<dyn std::error::Error + Sync>>,
