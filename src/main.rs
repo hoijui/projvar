@@ -709,6 +709,12 @@ fn print_version_and_exit(quiet: bool) {
 
 fn main() -> BoxResult<()> {
     let log_filter_reload_handle = logger::setup_logging()?;
+    let initial_verbosity = if cfg!(debug_assertions) {
+        Verbosity::Debug
+    } else {
+        Verbosity::Info
+    };
+    logger::set_log_level(&log_filter_reload_handle, initial_verbosity)?;
 
     let args = arg_matcher().get_matches();
 

@@ -33,11 +33,11 @@ const fn verbosity_to_level(verbosity: Verbosity) -> LevelFilter {
 ///
 /// If initializing the registry (logger) failed.
 pub fn setup_logging() -> BoxResult<Handle<LevelFilter, Registry>> {
-    let level_filter = if cfg!(debug_assertions) {
-        LevelFilter::DEBUG
-    } else {
-        LevelFilter::INFO
-    };
+    // NOTE It is crucial to first set the lowest log level,
+    //      as apparently, any level that is lower then this one
+    //      will be ignored when trying to set it later on.
+    //      Later though, the level can be changed up and down as desired.
+    let level_filter = LevelFilter::TRACE;
     let (filter, reload_handle_filter) = reload::Layer::new(level_filter);
 
     let l_stderr = fmt::layer().map_writer(move |_| io::stderr);
