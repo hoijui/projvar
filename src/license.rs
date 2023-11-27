@@ -120,8 +120,8 @@ impl Detector {
                 .iter()
                 .any(|&lf_prefix| file_name.as_ref().starts_with(lf_prefix))
         }
-        log::trace!("Fetching licenses from (REUSE-dir) '{}' ...", dir);
 
+        log::trace!("Looking for license files in '{}' ...", dir);
         let mut output = fs::read_dir(dir)?
             .filter_map(std::result::Result::ok)
             .map(|entry| entry.path())
