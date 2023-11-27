@@ -21,15 +21,7 @@ pub type Validator = fn(&mut Environment, &str) -> Result;
 pub const fn res_to_confidences(res: &Result) -> [Confidence; 2] {
     match &res {
         Ok(validity) => [validity.confidence(), 0],
-        Err(error) => [
-            0,
-            match error {
-                Error::Missing { .. } => 40,
-                Error::AlmostUsableValue { .. } => 100,
-                Error::BadValue { .. } => 50,
-                Error::IO(..) => 30,
-            },
-        ],
+        Err(error) => [0, error.confidence()],
     }
 }
 
@@ -123,6 +115,18 @@ pub enum Error {
     /// Represents all other cases of `std::io::Error`.
     #[error(transparent)]
     IO(#[from] std::io::Error),
+}
+
+impl Error {
+    #[must_use]
+    pub const fn confidence(&self) -> Confidence {
+        match self {
+            Self::Missing { .. } => 40,
+            Self::AlmostUsableValue { .. } => 100,
+            Self::BadValue { .. } => 50,
+            Self::IO(_) => 30,
+        }
+    }
 }
 
 /// Creates a result that indicates that the given `key` is missing
