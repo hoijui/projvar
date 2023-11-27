@@ -25,9 +25,9 @@ pub const fn res_to_confidences(res: &Result) -> [Confidence; 2] {
             0,
             match error {
                 Error::Missing => 40,
-                Error::AlmostUsableValue { msg: _, value: _ } => 100,
-                Error::BadValue { msg: _, value: _ } => 50,
-                Error::IO(_) => 30,
+                Error::AlmostUsableValue { .. } => 100,
+                Error::BadValue { .. } => 50,
+                Error::IO(..) => 30,
             },
         ],
     }
