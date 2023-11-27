@@ -66,9 +66,9 @@ impl Validity {
             Self::High { msg: _ } => 250,
             Self::Middle { msg: _ } => 230,
             Self::Low { msg: _ } => 210,
-            Self::Missing => 150,
+            Self::Missing => 0,
             Self::Suboptimal { msg: _, source: _ } => 200,
-            Self::Unknown => 140,
+            Self::Unknown => 100,
         }
     }
 
