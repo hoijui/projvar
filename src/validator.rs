@@ -80,6 +80,8 @@ impl Validity {
         }
     }
 
+    /// Whether the validity indicates a value we want to use and will use for sure,
+    /// if nothing better is available.
     #[must_use]
     pub const fn is_good(&self) -> bool {
         match self {
