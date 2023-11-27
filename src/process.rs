@@ -86,7 +86,7 @@ pub fn run(
 
     log_retrieved(environment, &sources)?;
 
-    log::trace!("Validate each variables precense and value ...");
+    log::trace!("Validate each variables presence and value ...");
     let output = environment.output.clone();
     for key in Key::iter() {
         let required = environment.settings.required_keys.contains(&key);
