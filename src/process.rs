@@ -44,7 +44,7 @@ fn key_missing(environment: &mut Environment, key: Key) -> BoxResult<()> {
     if required {
         log::warn!("Missing value for required key '{:?}'", key);
         if matches!(environment.settings.fail_on, FailOn::AnyMissingValue) {
-            return Err(validator::Error::Missing.into());
+            return Err(validator::Error::Missing(key).into());
         }
     } else {
         log::debug!("Missing value for optional key '{:?}'", key);

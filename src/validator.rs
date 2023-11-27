@@ -24,7 +24,7 @@ pub const fn res_to_confidences(res: &Result) -> [Confidence; 2] {
         Err(error) => [
             0,
             match error {
-                Error::Missing => 40,
+                Error::Missing { .. } => 40,
                 Error::AlmostUsableValue { .. } => 100,
                 Error::BadValue { .. } => 50,
                 Error::IO(..) => 30,
@@ -104,8 +104,8 @@ pub enum Error {
     // ReadError { source: std::io::Error },
 
     /// A required properties value could not be evaluated
-    #[error("No value found for a required property")]
-    Missing,
+    #[error("No value found for the required property {0:?}")]
+    Missing(Key),
 
     /// The evaluated value is not usable.
     /// It make sno sense for this property as it is,
@@ -128,7 +128,7 @@ pub enum Error {
 /// Creates a result that indicates that the given `key` is missing
 fn missing(environment: &mut Environment, key: Key) -> Result {
     if environment.settings.required_keys.contains(&key) {
-        Err(Error::Missing)
+        Err(Error::Missing(key))
     } else {
         Ok(Validity::Missing)
     }
