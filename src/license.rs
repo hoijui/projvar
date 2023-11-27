@@ -134,8 +134,15 @@ impl Detector {
                         .unwrap_or_default()
             })
             .filter_map(|entry| {
-                let contents = fs::read_to_string(entry).unwrap_or_default(); // TODO Not too clean; we should possibly fail the function instead of silently skipping the file on error
-                self.analyze(&contents)
+                let contents = fs::read_to_string(entry.as_path()).unwrap_or_default(); // TODO Not too clean; we should possibly fail the function instead of silently skipping the file on error
+                let evaluated_license_opt = self.analyze(&contents);
+                if let Some(evaluated_license) = &evaluated_license_opt {
+                    log::trace!(
+                        "Found (non-REUSE) license {evaluated_license} in file {}.",
+                        entry.display()
+                    );
+                }
+                evaluated_license_opt
             })
             .collect::<Vec<_>>();
 
