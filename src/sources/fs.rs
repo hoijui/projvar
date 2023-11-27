@@ -78,7 +78,12 @@ fn licenses_from_dir(repo_path: &Path) -> Result<Option<Vec<String>>, std_error:
 /// It searches for "(LICEN[CS]E|COPYING).*"" files in the project root dir,
 /// and figures out which license it contains.
 fn licenses_from_files(repo_path: &Path) -> Result<Option<Vec<String>>, std_error::Error> {
-    Ok(license::get_licenses(&repo_path.display().to_string()).map(Some)?)
+    let licenses = license::get_licenses(&repo_path.display().to_string())?;
+    Ok(if licenses.is_empty() {
+        None
+    } else {
+        Some(licenses)
+    })
 }
 
 fn licenses(
