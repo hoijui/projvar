@@ -112,7 +112,7 @@ impl Detector {
         }
     }
 
-    /// Returns a list of SPDX licnese identifiers;
+    /// Returns a list of SPDX license identifiers;
     /// one for each LICENSE file found in the given directory.
     pub fn get_licenses(&self, dir: &str) -> Result<Vec<String>, std::io::Error> {
         fn is_license_file<S: AsRef<str>>(file_name: S) -> bool {
