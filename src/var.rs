@@ -48,7 +48,7 @@ impl Variable {
     /// The raw key, without prefix.
     /// NOTE You should probably use [`Self::key`] instead.
     #[must_use]
-    pub fn key_raw(&self) -> &'static str {
+    pub const fn key_raw(&self) -> &'static str {
         self.key
     }
 }
