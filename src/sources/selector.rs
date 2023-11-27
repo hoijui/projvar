@@ -69,12 +69,10 @@ impl super::VarSource for VarSource {
                     enriched_values.push((src_index, (confidence, value), validity));
                 }
                 enriched_values.sort_by_cached_key(|entry| {
-                    let valor = valor(&entry.2, entry.1 .0, entry.0);
-                    log::trace!("Valor evaluated for {:?} from source {}, value '{}' is {:?}.",
-                        key,
+                    let valor = valor(&entry.2, entry.1.0, entry.0);
+                    log::trace!("Valor evaluated for {key:?} from source {}, value '{}' is {valor:?}.",
                         entry.0,
                         entry.1.1,
-                        valor
                     );
                     log::trace!("    ... evaluated from (validity, confidence, source_index): ({:?}, {}, {})",
                         &entry.2,
