@@ -21,6 +21,10 @@ use std::str::FromStr;
 
 use crate::{environment::Environment, BoxResult};
 
+/// Confidence in a concrete value returned by a call to [`VarSource::retreive`].
+/// Higher is better.
+/// This is eventually used as one criteria to decide which value to preffer,
+/// if multiple ones are present for a single key.
 pub type Confidence = u8;
 pub const C_HIGH: Confidence = 75;
 pub const C_MIDDLE: Confidence = 50;
