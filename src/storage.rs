@@ -189,6 +189,14 @@ impl Storage {
         // here, the last to add, wins (should be the source with the highest hierarchy)
         self.key_primary.insert(key, (confidence, value));
     }
+
+    /// Removes all stored values from all sources for the given key.
+    pub fn remove(&mut self, key: Key) -> Option<(Confidence, String)> {
+        if self.key_values.remove(&key).is_some() {
+            log::info!("Removing key from storage: {key:?}");
+        }
+        self.key_primary.remove(&key)
+    }
 }
 
 impl Default for Storage {
