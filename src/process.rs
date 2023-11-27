@@ -6,6 +6,7 @@ use crate::environment::Environment;
 use crate::settings::FailOn;
 use crate::sinks::VarSink;
 use crate::sources::VarSource;
+use crate::validator::Validity;
 use crate::var::Key;
 use crate::{validator, BoxResult};
 use std::cmp::Ordering;
@@ -48,6 +49,13 @@ fn key_missing(environment: &mut Environment, key: Key) -> BoxResult<()> {
         }
     } else {
         log::debug!("Missing value for optional key '{:?}'", key);
+        if let Some((_confidence, value)) = environment.output.remove(key) {
+            log::warn!(
+                "\tDiscarded {:?}='{}', because it was evaluated as a 'missing' value",
+                key,
+                value
+            );
+        }
     }
 
     Ok(())
@@ -110,6 +118,9 @@ pub fn run(
                 match validation_res {
                     Ok(validity) => {
                         log::debug!("Validation result for key '{:?}': {:?}", key, validity);
+                        if matches!(validity, Validity::Missing) {
+                            key_missing(environment, key)?;
+                        }
                     }
                     Err(err) => {
                         log::error!("Validation result for key '{:?}': {:?}", key, err);
