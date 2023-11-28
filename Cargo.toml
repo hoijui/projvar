@@ -5,7 +5,8 @@
 [package]
 name = "projvar"
 version = "0.18.0"
-edition = "2021"
+license = "GPL-3.0-or-later"
+authors = ["Robin Vobruba <hoijui.quaero@gmail.com>"]
 description = """
     A tiny CLI tool that tries to gather project specific meta-data in different ways,
     to store them into environment variables in a file
@@ -13,11 +14,11 @@ description = """
     See --list for the keys set by this tool.
     """
 repository = "https://github.com/hoijui/projvar"
-keywords = ["cli", "ci"]
-categories = ["command-line-utilities", "text-processing"]
-license = "GPL-3.0-or-later"
-authors = ["Robin Vobruba <hoijui.quaero@gmail.com>"]
-publish = false
+homepage = "https://github.com/hoijui/projvar"
+keywords = ["cli", "ci", "utility", "parsing", "git"]
+categories = ["command-line-utilities", "filesystem", "text-processing"]
+readme = "README.md"
+edition = "2021"
 
 [lints.rust]
 rust_2021_compatibility = "warn"
