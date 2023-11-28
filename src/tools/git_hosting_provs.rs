@@ -96,10 +96,7 @@ impl From<Host<&str>> for PublicSite {
 
 impl From<Option<Host<&str>>> for PublicSite {
     fn from(host: Option<Host<&str>>) -> Self {
-        match host {
-            Some(host) => Self::from(host),
-            None => Self::Unknown,
-        }
+        host.map_or_else(|| Self::Unknown, Self::from)
     }
 }
 

@@ -72,19 +72,16 @@ pub enum Error {
 ///
 /// When splitting the slug at '/' fails.
 pub fn slug_to_proj_name(slug: Option<&String>) -> Res {
-    Ok(if let Some(slug) = slug {
-        Some(slug
-            .split('/')
+    slug.map(|slug|
+        slug.split('/')
             .last()
-            .ok_or(Error::BadInputValue {
+            .map(ToOwned::to_owned)
+            .ok_or_else(|| Error::BadInputValue {
                 key: Key::NameMachineReadable,
                 msg: r#"Failed splitting off the project name from the project slug, which is assumed to be "user/project" or "user/group/sub-group/project""#.to_owned(),
                 input: slug.clone(),
-            })?
-            .to_owned())
-    } else {
-        None
-    })
+            }))
+            .transpose()
 }
 
 /// Tries to construct the machine-readable project name

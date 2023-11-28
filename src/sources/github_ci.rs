@@ -18,21 +18,13 @@ use super::RetrieveRes;
 pub struct VarSource;
 
 fn build_branch(environment: &mut Environment) -> RetrieveRes {
-    let refr = var(environment, "GITHUB_REF", C_HIGH);
-    Ok(if let Some(refr) = refr {
-        super::ref_extract_branch(&refr.1)?
-    } else {
-        None
-    })
+    var(environment, "GITHUB_REF", C_HIGH)
+        .map_or_else(|| Ok(None), |refr| super::ref_extract_branch(&refr.1))
 }
 
 fn build_tag(environment: &mut Environment) -> RetrieveRes {
-    let refr = var(environment, "GITHUB_REF", C_HIGH);
-    Ok(if let Some(refr) = refr {
-        super::ref_extract_tag(&refr.1)?
-    } else {
-        None
-    })
+    var(environment, "GITHUB_REF", C_HIGH)
+        .map_or_else(|| Ok(None), |refr| super::ref_extract_tag(&refr.1))
 }
 
 fn repo_web_url(environment: &mut Environment) -> Option<(Confidence, String)> {
