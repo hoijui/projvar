@@ -156,20 +156,16 @@ pub struct Repo {
 impl TryFrom<Option<&str>> for Repo {
     type Error = git2::Error;
     fn try_from(repo_root: Option<&str>) -> Result<Self, Self::Error> {
-        let repo_root = repo_root.unwrap_or(".");
-        Ok(Self {
-            repo: Repository::open(repo_root)?,
-        })
+        let repo = Repository::open(repo_root.unwrap_or("."))?;
+        Ok(Self { repo })
     }
 }
 
 impl TryFrom<Option<&Path>> for Repo {
     type Error = git2::Error;
     fn try_from(repo_root: Option<&Path>) -> Result<Self, Self::Error> {
-        let repo_root = repo_root.unwrap_or_else(|| Path::new("."));
-        Ok(Self {
-            repo: Repository::open(repo_root)?,
-        })
+        let repo = Repository::open(repo_root.unwrap_or_else(|| Path::new(".")))?;
+        Ok(Self { repo })
     }
 }
 
