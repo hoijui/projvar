@@ -19,6 +19,28 @@ license = "GPL-3.0-or-later"
 authors = ["Robin Vobruba <hoijui.quaero@gmail.com>"]
 publish = false
 
+[lints.rust]
+rust_2021_compatibility = "warn"
+
+[lints.clippy]
+all = "deny"
+pedantic = "warn"
+nursery = "warn"
+cargo = "warn"
+wildcard_enum_match_arm = "warn"
+string_slice = "warn"
+indexing_slicing = "warn"
+clone_on_ref_ptr = "warn"
+try_err = "warn"
+shadow_reuse = "allow"
+empty_structs_with_brackets = "warn"
+else_if_without_else = "warn"
+use_debug = "warn"
+print_stdout = "warn"
+print_stderr = "warn"
+#default_trait_access = "allow"
+option_if_let_else = "allow"
+
 [dependencies]
 askalono = "0.4"
 chrono = "0.4"
