@@ -92,8 +92,7 @@ impl Storage {
 
         // table content (`Key::iter()` is sorted)
         for key in Key::iter() {
-            let values = self.key_values.get(&key);
-            if let Some(values) = values {
+            if let Some(values) = self.key_values.get(&key) {
                 let variable = var::get(key);
                 table.push_str("| ");
                 table.push_str(key.into());

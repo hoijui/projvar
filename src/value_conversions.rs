@@ -754,12 +754,13 @@ pub fn split_after_first_path_element<'t>(
     path: &'t str,
     public_site: PublicSite,
 ) -> Result<(&'t str, &'t str), Error> {
-    let path = trim_char(path, '/');
-    path.split_once('/').ok_or_else(|| Error::BadInputValue {
-        key: Key::BuildHostingUrl,
-        msg: format!("Invalid web hosting URL for {public_site:?}"),
-        input: web_url.to_owned(),
-    })
+    trim_char(path, '/')
+        .split_once('/')
+        .ok_or_else(|| Error::BadInputValue {
+            key: Key::BuildHostingUrl,
+            msg: format!("Invalid web hosting URL for {public_site:?}"),
+            input: web_url.to_owned(),
+        })
 }
 
 macro_rules! build_hostify_url {
@@ -1037,9 +1038,7 @@ pub fn clone_url_to_web_url(environment: &Environment, any_clone_url: &str) -> R
         static ref R_DOT_GIT_SUFFIX: Regex = Regex::new(r"\.git$").unwrap();
     }
 
-    let https_clone_url =
-        clone_url_conversion(any_clone_url, environment, TransferProtocol::Https)?;
-    match https_clone_url {
+    match clone_url_conversion(any_clone_url, environment, TransferProtocol::Https)? {
         Some(https_clone_url) => {
             match Url::parse(&https_clone_url) {
                 Err(err) => Err(Error::BadInputValueErr {

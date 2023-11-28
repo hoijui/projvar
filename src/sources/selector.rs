@@ -70,8 +70,7 @@ impl super::VarSource for VarSource {
     }
 
     fn retrieve(&self, environment: &mut Environment, key: Key) -> RetrieveRes {
-        let values = &environment.output.get_all(key);
-        Ok(match values {
+        Ok(match &environment.output.get_all(key) {
             Some(values) => {
                 let mut enriched_values = vec![];
                 for (src_index, (confidence, value)) in (*values).clone() {
