@@ -685,13 +685,13 @@ pub fn clone_url_conversion_option(
 /// # }
 /// ```
 #[must_use]
-pub fn trim_char(input: &'_ str, char: char) -> &'_ str {
-    let output = if input.starts_with(char) {
+pub fn trim_char(input: &'_ str, chr: char) -> &'_ str {
+    let output = if input.starts_with(chr) {
         &input[1..]
     } else {
         input
     };
-    if output.ends_with(char) {
+    if output.ends_with(chr) {
         &output[..output.len() - 1]
     } else {
         output
