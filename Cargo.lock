@@ -301,11 +301,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2da6da31387c7e4ef160ffab6d5e7f00c42626fe39aea70a7b0f1773f7dd6c1b"
 
 [[package]]
-name = "cli-utils"
-version = "0.5.0"
-source = "git+https://github.com/hoijui/cli-utils-rs.git#daaaaa32968c1f1060972f3afd02d948171828c7"
+name = "cli_utils_hoijui"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "62690b275a696adef1ea56791a4bf812b606c4c2f14d876303c33729e1c73bbf"
 dependencies = [
- "git-version",
  "once_cell",
 ]
 
@@ -1443,7 +1443,7 @@ dependencies = [
  "assert_fs",
  "chrono",
  "clap",
- "cli-utils",
+ "cli_utils_hoijui",
  "cmd_lib",
  "const-fnv1a-hash",
  "const_format",
@@ -1606,11 +1606,12 @@ dependencies = [
 
 [[package]]
 name = "repvar"
-version = "0.12.0"
-source = "git+https://github.com/hoijui/repvar.git#c25f6ff271977dc0ee06cbe377f88079b2c3ca31"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8ed3bf3f3d48134d5dfc475483b72838d558cacafac986cc7349e066770b912c"
 dependencies = [
  "clap",
- "cli-utils",
+ "cli_utils_hoijui",
  "const_format",
  "dotenvy",
  "env_logger",
