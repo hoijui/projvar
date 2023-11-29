@@ -1,0 +1,101 @@
+#!/usr/bin/env sh
+# SPDX-FileCopyrightText: 2021 - 2023 Robin Vobruba <hoijui.quaero@gmail.com>
+# SPDX-License-Identifier: Unlicense
+#
+# See the output of "$0 -h" for details.
+
+# Exit immediately on each error and unset variable;
+# see: https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
+#set -Eeuo pipefail
+set -eu
+
+script_path="$(readlink -f "$0")"
+script_dir="$(dirname "$script_path")"
+script_name="$(basename "$script_path")"
+proj_root="$(cd "$script_dir/.."; pwd)"
+build_dir="$proj_root/target"
+
+print_help() {
+
+	echo "$script_name - This exports the projects Inkscape SVGs"
+	echo "to general SVGs (and PNGs), which should display correctly everywehre"
+	echo "(e.g. web-browsers and file-explorers)."
+	echo
+	echo "Usage:"
+	echo "  $script_name"
+	echo "Options:"
+	echo "  -h, --help"
+	echo "    Shows this help message and exit"
+}
+
+# read command-line args
+i=1
+while [ "$i" -lt "$#" ]
+do
+	arg="$(eval "echo \$$i")"
+
+	case "$arg" in
+		-h|--help)
+			shift "$i"
+			print_help
+			exit 0
+			;;
+		*) # non-/unknown option
+			i=$((i + 1))
+			;;
+	esac
+done
+
+# Optimize SVG
+
+if which svgo > /dev/null
+then
+	svg_optimize=true
+else
+	svg_optimize=false
+	>&2 echo "WARN: Will not optimize exported SVGs, because tool 'svgo' was not found."
+fi
+
+
+export_single() {
+	svg_in="$1"
+	svg_out="${2:-${svg_in%.svg}-exported.svg}"
+	png_out="${32:-${svg_out%.svg}.png}"
+
+	# Export SVG
+	printf 'INFO: Exporting (%s)\n\t"%s"\n\t->\n\t"%s"\n\t...\n' \
+		"SVG" "$svg_in" "$svg_out"
+	inkscape \
+		"$svg_in" \
+		--export-plain-svg \
+		--export-type=svg \
+		--export-filename="$svg_out"
+
+	# Optimize SVG
+	if $svg_optimize
+	then
+		printf 'INFO: Optimizing (%s)\n\t"%s"\n\t...\n' \
+			"SVG" "$svg_out"
+		svgo "$svg_out"
+	fi
+
+	# Export PNG
+	printf 'INFO: Exporting (%s)\n\t"%s"\n\t->\n\t"%s"\n\t...\n' \
+		"PNG" "$svg_in" "$png_out"
+	inkscape \
+		--export-background-opacity=0 \
+		--export-type=png \
+		--export-filename="$png_out" \
+		"$svg_in"
+}
+
+mkdir -p "$build_dir"
+
+for svg_in in res/media/img/*.svg
+do
+	svg_out="$build_dir/${svg_in%.svg}-exported.svg"
+	png_out="${svg_out%.svg}.png"
+	mkdir -p "$(dirname "$svg_out")"
+	export_single "$svg_in" "$svg_out" "$png_out"
+done
+echo "INFO: done."
