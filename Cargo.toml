@@ -5,7 +5,7 @@
 [package]
 name = "projvar"
 version = "0.18.0"
-license = "GPL-3.0-or-later"
+license = "AGPL-3.0-or-later"
 authors = ["Robin Vobruba <hoijui.quaero@gmail.com>"]
 description = """
     A tiny CLI tool that tries to gather project specific meta-data in different ways,
