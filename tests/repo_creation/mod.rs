@@ -57,5 +57,5 @@ macro_rules! create_repo_common {
 }
 
 pub(crate) use create_repo;
-pub(crate) use create_repo_common;
+
 pub(crate) use hash_file;
