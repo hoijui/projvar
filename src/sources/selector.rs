@@ -42,6 +42,7 @@ fn source_index_to_confidence(source_index: usize) -> u8 {
 /// we first only compare the two numbers at index 0,
 /// and only if they are equal, we continue the comparison,
 /// looking at the numbers in the second position of the two vectors.
+// TODO Maybe make this use a custom struct as return instead?
 fn valor(validity: &validator::Result, confidence: Confidence, source_index: usize) -> [u8; 4] {
     let res_confs = validator::res_to_confidences(validity);
     [

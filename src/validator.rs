@@ -17,6 +17,8 @@ use url::Url;
 pub type Result = std::result::Result<Validity, Error>;
 pub type Validator = fn(&mut Environment, &str) -> Result;
 
+// TODO Document this function! (hae... what does it do? why two confidences?)
+// TODO Maybe make this use a custom struct as return instead?
 #[must_use]
 pub const fn res_to_confidences(res: &Result) -> [Confidence; 2] {
     match &res {
