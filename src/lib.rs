@@ -2,12 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-extern crate clap;
-extern crate enum_map;
-extern crate log;
-extern crate remain;
-extern crate url;
-
 mod cleanup;
 mod constants;
 pub mod environment;
