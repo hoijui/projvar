@@ -22,7 +22,7 @@ use std::str::FromStr;
 
 use crate::environment::Environment;
 
-/// Confidence in a concrete value returned by a call to [`VarSource::retreive`].
+/// Confidence in a concrete value returned by a call to [`crate::sources::VarSource::retrieve`].
 /// Higher is better.
 /// This is eventually used as one criteria to decide which value to preffer,
 /// if multiple ones are present for a single key.

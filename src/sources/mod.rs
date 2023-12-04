@@ -112,7 +112,7 @@ pub trait VarSource {
     ///
     /// # Errors
     ///
-    /// See [`::retrieve`].
+    /// See [`Self::retrieve`].
     fn version_from_build_tag(&self, environment: &mut Environment, key: Key) -> RetrieveRes {
         assert!(matches!(key, Key::Version));
         Ok(self

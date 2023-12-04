@@ -32,7 +32,7 @@ pub enum PublicSite {
     RocketGitCom,
     /// <https://rocketgit.com> - hosts only OS, software is OSS: RocketGit
     SourceForgeNet,
-    /// NOTE: The rust masters said, this is better then Option<None>!
+    /// NOTE: The rust masters said, this is better then `Option<None>`!
     Unknown,
 }
 
@@ -120,7 +120,7 @@ pub enum HostingType {
     RocketGit,
     /// <https://allura.apache.org> - OSS
     Allura,
-    /// NOTE: The rust masters said, this is better then Option<None>!
+    /// NOTE: The rust masters said, this is better then `Option<None>`!
     Unknown,
 }
 

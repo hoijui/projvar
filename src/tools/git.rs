@@ -49,19 +49,19 @@ pub enum TransferProtocol {
     /// Documentation:
     /// <https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols#_the_git_protocol>
     /// Example:
-    /// "git://repo.or.cz/girocco.git"
+    /// `"git://repo.or.cz/girocco.git"`
     Git,
     /// HTTP(S) - Hyper-Text Transfer Protocol (Secure)
     /// Documentation:
     /// <https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols#_the_http_protocols>
     /// Example:
-    /// "https://gitlab.com/hoijui/kicad-text-injector.git"
+    /// `"https://gitlab.com/hoijui/kicad-text-injector.git"`
     Https,
     /// SSH - Secure SHell
     /// Documentation:
     /// <https://git-scm.com/book/en/v2/Git-on-the-Server-The-Protocols#_the_ssh_protocol>
     /// Example:
-    /// "git@gitlab.com/hoijui/kicad-text-injector.git"
+    /// `"git@gitlab.com/hoijui/kicad-text-injector.git"`
     // /// ssh://gitlab.com/hoijui/kicad-text-injector.git
     Ssh,
 }
