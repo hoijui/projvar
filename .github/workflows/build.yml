@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2021-2022 Robin Vobruba <hoijui.quaero@gmail.com>
+# SPDX-FileCopyrightText: 2021 - 2023 Robin Vobruba <hoijui.quaero@gmail.com>
 #
 # SPDX-License-Identifier: Unlicense
 
@@ -61,6 +61,9 @@ jobs:
 
       - name: "Smart caching for rust/cargo"
         uses: Swatinem/rust-cache@v2
+
+      - name: "Install STOML (BASH TOML parser) *again*, because the cache recreation above might have removed it"
+        run: scripts/install_stoml
 
       - name: "Build"
         run: scripts/build
