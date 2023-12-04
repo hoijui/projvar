@@ -12,11 +12,9 @@ SPDX-License-Identifier: CC0-1.0
 [![REUSE status](
     https://api.reuse.software/badge/github.com/hoijui/projvar)](
     https://api.reuse.software/info/github.com/hoijui/projvar)
-<!--
 [![crates.io](
     https://img.shields.io/crates/v/projvar.svg)](
     https://crates.io/crates/projvar)
--->
 [![Docs](
     https://docs.rs/projvar/badge.svg)](
     https://docs.rs/projvar)
