@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2021-2023 Robin Vobruba <hoijui.quaero@gmail.com>
+SPDX-FileCopyrightText: 2021 - 2023 Robin Vobruba <hoijui.quaero@gmail.com>
 
 SPDX-License-Identifier: CC0-1.0
 -->
@@ -8,7 +8,7 @@ SPDX-License-Identifier: CC0-1.0
 
 [![License: AGPL-3.0-or-later](
     https://img.shields.io/badge/License-AGPL%203.0+-blue.svg)](
-    https://www.gnu.org/licenses/agpl-3.0.html)
+    LICENSE.txt)
 [![REUSE status](
     https://api.reuse.software/badge/github.com/hoijui/projvar)](
     https://api.reuse.software/info/github.com/hoijui/projvar)
