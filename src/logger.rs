@@ -5,7 +5,7 @@
 use std::io;
 
 use crate::settings::Verbosity;
-use projvar::BoxResult;
+use cli_utils::BoxResult;
 use tracing::metadata::LevelFilter;
 use tracing_subscriber::{
     fmt,

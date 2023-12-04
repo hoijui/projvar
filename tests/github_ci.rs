@@ -4,8 +4,8 @@
 
 mod common;
 
+use cli_utils::BoxResult;
 use common::StrMatcher;
-use projvar::BoxResult;
 use std::collections::HashMap;
 
 const CI: &str = "true";

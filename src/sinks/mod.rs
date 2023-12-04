@@ -6,13 +6,15 @@ pub mod env;
 pub mod file;
 pub mod json;
 
+use cli_utils::BoxResult;
+
 use std::ffi::OsStr;
 use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 
 use crate::environment::Environment;
-use crate::{storage, BoxResult};
+use crate::storage;
 
 pub const DEFAULT_FILE_OUT: &str = ".projvars.env.txt";
 

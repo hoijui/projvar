@@ -2,9 +2,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use cli_utils::BoxResult;
+
 use crate::environment::Environment;
+use crate::storage;
 use crate::var::{self, Confidence};
-use crate::{storage, BoxResult};
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fmt;

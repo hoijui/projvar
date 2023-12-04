@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use cli_utils::BoxResult;
 use enum_map::Enum;
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -19,7 +20,7 @@ use thiserror::Error;
 
 use std::str::FromStr;
 
-use crate::{environment::Environment, BoxResult};
+use crate::environment::Environment;
 
 /// Confidence in a concrete value returned by a call to [`VarSource::retreive`].
 /// Higher is better.

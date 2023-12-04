@@ -6,8 +6,8 @@ use std::collections::HashMap;
 
 mod common;
 
+use cli_utils::BoxResult;
 use common::StrMatcher;
-use projvar::BoxResult;
 
 const CI: &str = "true";
 const BITBUCKET_COMMIT: &str = "ffac537e6cbbf934b08745a378932722df287a53";

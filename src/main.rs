@@ -11,9 +11,9 @@ extern crate url;
 
 use clap::builder::ValueParser;
 use clap::{command, value_parser, Arg, ArgAction, ArgMatches, Command, ValueHint};
+use cli_utils::BoxResult;
 use const_format::formatcp;
 use lazy_static::lazy_static;
-use projvar::BoxResult;
 use regex::Regex;
 use std::collections::HashSet;
 use std::path::PathBuf;

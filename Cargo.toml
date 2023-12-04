@@ -46,7 +46,7 @@ option_if_let_else = "allow"
 askalono = "0.4"
 chrono = "0.4"
 clap = { version = "4.0", features = ["cargo", "derive"] }
-cli_utils = { version = "0.6", package = "cli_utils_hoijui" }
+cli_utils = { version = "0.7", package = "cli_utils_hoijui" }
 const_format = "0.2"
 enum-map = "2.7"
 git-url = "0.13"

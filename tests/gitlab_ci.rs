@@ -6,8 +6,8 @@ use std::collections::HashMap;
 
 mod common;
 
+use cli_utils::BoxResult;
 use common::StrMatcher;
-use projvar::BoxResult;
 
 const CI: &str = "true";
 const CI_COMMIT_AUTHOR: &str = "Commit Author <commit.author@email.com>";

@@ -15,13 +15,14 @@ pub mod travis_ci;
 
 use std::path::Path;
 
+use cli_utils::BoxResult;
 use thiserror::Error;
 
 use lazy_static::lazy_static;
 
 use crate::environment::Environment;
 use crate::var::{Confidence, Key, C_HIGH};
-use crate::{cleanup, std_error, tools, validator, value_conversions, BoxResult};
+use crate::{cleanup, std_error, tools, validator, value_conversions};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub enum Hierarchy {

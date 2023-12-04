@@ -299,9 +299,9 @@ checksum = "702fc72eb24e5a1e48ce58027a675bc24edd52096d5397d4aea7c6dd9eca0bd1"
 
 [[package]]
 name = "cli_utils_hoijui"
-version = "0.6.2"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62690b275a696adef1ea56791a4bf812b606c4c2f14d876303c33729e1c73bbf"
+checksum = "0c0255a7251ef773482aeab24eba649105a4bd7836ca3f172b31d65014d6ea9e"
 dependencies = [
  "once_cell",
 ]
@@ -1575,9 +1575,9 @@ dependencies = [
 
 [[package]]
 name = "repvar"
-version = "0.13.0"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ed3bf3f3d48134d5dfc475483b72838d558cacafac986cc7349e066770b912c"
+checksum = "f791190a0a65b6e8671faa9f0ec32f3cc5c04424fd481b743e0aaaf8c6162fbc"
 dependencies = [
  "clap",
  "cli_utils_hoijui",

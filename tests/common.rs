@@ -3,10 +3,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use assert_fs::fixture::FileTouch;
+use cli_utils::BoxResult;
 use fake::uuid::UUIDv5;
 use fake::Fake;
 use projvar::var;
-use projvar::BoxResult;
 use regex::Regex;
 use uuid::Uuid;
 

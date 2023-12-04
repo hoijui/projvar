@@ -4,8 +4,8 @@
 
 mod common;
 
+use cli_utils::BoxResult;
 use common::StrMatcher;
-use projvar::BoxResult;
 use std::collections::HashMap;
 
 fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>> {

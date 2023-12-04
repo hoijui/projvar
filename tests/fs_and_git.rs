@@ -5,12 +5,12 @@
 mod common;
 mod repo_creation;
 
+use cli_utils::BoxResult;
 use common::StrMatcher;
 use common::R_BOOL;
 use common::R_DATE_TIME;
 use common::R_NON_EMPTY;
 use lazy_static::lazy_static;
-use projvar::BoxResult;
 use regex::Regex;
 use std::collections::HashMap;
 use std::path::PathBuf;
