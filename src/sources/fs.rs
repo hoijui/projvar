@@ -3,8 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use chrono::Local;
-use lazy_static::lazy_static;
-use regex::Regex;
+use cli_utils::BoxError;
 
 use crate::cleanup;
 use crate::environment::Environment;
@@ -52,9 +51,6 @@ fn file_content(path: &Path) -> RetrieveRes {
 /// It looks for the REUSE "LICENSES" dir in the project root,
 /// and returns the file names of the containing "*.txt" files.
 fn licenses_from_dir(repo_path: &Path) -> Result<Option<Vec<String>>, std_error::Error> {
-    lazy_static! {
-        static ref R_TXT_SUFFIX: Regex = Regex::new(r"\.txt$").unwrap();
-    }
     let licenses_dir = repo_path.join("LICENSES");
     if licenses_dir.is_dir() {
         log::trace!("Fetching (REUSE) licenses from {licenses_dir:#?} ...");
@@ -62,8 +58,10 @@ fn licenses_from_dir(repo_path: &Path) -> Result<Option<Vec<String>>, std_error:
         for file in licenses_dir.read_dir()? {
             let file_name = file?.file_name();
             let file_name = file_name.to_str().ok_or(std_error::Error::NotValidUtf8)?;
-            if R_TXT_SUFFIX.is_match(file_name) {
-                let license_id = R_TXT_SUFFIX.replace(file_name, "").into_owned();
+            if file_name.to_lowercase().ends_with(".txt") {
+                let license_id = file_name.get(0 .. file_name.len() - 4)
+                    .ok_or("This should be impossible, as we already checked that the extension is there.")
+                    .map_err(BoxError::from)?.to_owned();
                 log::trace!("Found (REUSE) license: {license_id}");
                 licenses.push(license_id);
             }
