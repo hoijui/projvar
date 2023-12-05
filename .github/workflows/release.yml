@@ -161,6 +161,34 @@ jobs:
     #       arm-linux-gnueabihf-strip \
     #       /target/arm-unknown-linux-gnueabihf/release/${{ env.BINARY }}
 
+    - name: Test Release Version (if binary)
+      shell: bash
+      run: |
+        export ENV_FILE="proj_build_envs.txt"
+        # This writes "BINARY=bla" to ENV_FILE
+        scripts/env
+        source "$ENV_FILE"
+        BIN="target/release/$BINARY"
+        if [ -f "$BIN" ]
+        then
+          VER_TOOL="$("$BIN" --version --quiet)"
+          VER_TAG="${GITHUB_REF#refs/*/}"
+          (
+            echo "VER_TOOL: $VER_TOOL"
+            echo "VER_TAG: $VER_TAG"
+          ) | tee /dev/stderr
+          if ! [ "$VER_TOOL" == "$VER_TAG" ]
+          then
+            >&2 echo "ERROR: Version reported by tool ('$VER_TOOL') should equal the release tag ('$VER_TAG')!"
+            exit 1
+          fi
+          if ! [[ $VER_TOOL =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          then
+            >&2 echo "ERROR: Version reported by tool ('$VER_TOOL') should be a semver compatible string, i.e. of the form: "'^[0-9]+\.[0-9]+\.[0-9]+$'
+            exit 2
+          fi
+        fi
+
     - name: Build archive
       shell: bash
       run: |
