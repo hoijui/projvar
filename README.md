@@ -34,7 +34,7 @@ SPDX-License-Identifier: CC0-1.0
 
 A CLI ([Command-line Interface](
 https://en.wikipedia.org/wiki/Command-line_interface)) tool
-taht extracts a base set of meta data properties from a given project,
+tath extracts a base set of meta data properties from a given, digital project,
 using various sources.
 
 ## Example scenarios

@@ -9,7 +9,7 @@ license = "AGPL-3.0-or-later"
 authors = ["Robin Vobruba <hoijui.quaero@gmail.com>"]
 description = """
     A tiny CLI tool that tries to gather project specific meta-data in different ways,
-    to store them into environment variables in a file
+    to store them into key=value pairs in a file
     for later use by other tools.
     See --list for the keys set by this tool.
     """
