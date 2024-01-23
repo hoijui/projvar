@@ -37,7 +37,7 @@ SPDX-License-Identifier: CC0-1.0
 
 A CLI ([Command-line Interface](
 https://en.wikipedia.org/wiki/Command-line_interface)) tool
-tath extracts a base set of meta data properties from a given, digital project,
+that extracts a base set of meta data properties from a given, digital project,
 using various sources.
 
 ## Example scenarios
@@ -85,7 +85,7 @@ PROJECT_VERSION="0.8.0-dirty"
 PROJECT_VERSION_DATE="2021-12-13 09:18:25"
 ```
 
-## In CI (buildbot)
+## In CI (build-bot)
 
 1. Check out your repo
 2. Run this tool (`projvar`)
@@ -104,7 +104,7 @@ PROJECT_VERSION_DATE="2021-12-13 09:18:25"
 
 You need to install Rust(lang) and Cargo.
 
-Then get the whole repo plus git submodules with:
+Then get the whole repo plus git sub-modules with:
 
 ```bash
 git clone --recurse-submodules https://github.com/hoijui/projvar.git
@@ -117,14 +117,14 @@ Then you can run:
 scripts/build
 ```
 
-If all goeas well, the executable can be found at `target/release/projvar`.
+If all goes well, the executable can be found at `target/release/projvar`.
 
 ## Get the tool
 
 As for now, you have two choices:
 
 1. [Compile it](#how-to-compile) yourself
-1. Download a Linux x86\_64 staticially linked binary from
+1. Download a Linux x86\_64 statically linked binary from
    [the releases page](https://github.com/hoijui/projvar/releases)
 
 ## Usage
@@ -187,7 +187,7 @@ Options:
           - unknown:    NOTE: The rust masters said, this is better then Option<None>!
 
   -v, --verbose...
-          More verbose log output; useful for debugging. See -F,--log-level for more fine-graine control.
+          More verbose log output; useful for debugging. See -F,--log-level for more fine-grained control.
 
   -F, --log-level <log-level>
           Set the log-level
@@ -265,8 +265,8 @@ The list of all supported keys/properties (as shown by `--list`):
 | [ ] | `PROJECT_BUILD_OS_FAMILY` | The operating system family we are building on. (should be either 'unix' or 'windows') |
 | [ ] | `PROJECT_BUILD_TAG` | The tag of a commit that kicked off the build. This value is only available on tags. Not available for builds against branches. |
 | [ ] | `PROJECT_CI` | 'true' if running on a CI/build-bot; unset otherwise. |
-| [x] | `PROJECT_LICENSE` | The main License identifier of the sources, prefferably from the SPDX specs, for example: "AGPL-3.0-or-later", "CC-BY-SA-4.0" |
-| [x] | `PROJECT_LICENSES` | The identifiers of all the licenses of this project, prefferably from the SPDX specs, comma separated, for example: "AGPL-3.0-or-later, CC0-1.0, Unlicense" |
+| [x] | `PROJECT_LICENSE` | The main License identifier of the sources, preferably from the SPDX specs, for example: "AGPL-3.0-or-later", "CC-BY-SA-4.0" |
+| [x] | `PROJECT_LICENSES` | The identifiers of all the licenses of this project, preferably from the SPDX specs, comma separated, for example: "AGPL-3.0-or-later, CC0-1.0, Unlicense" |
 | [x] | `PROJECT_NAME` | The human focused name of the project. |
 | [x] | `PROJECT_NAME_MACHINE_READABLE` | The machine readable name of the project. |
 | [x] | `PROJECT_REPO_CLONE_URL` | The original repo clone URL; may use any valid git URL scheme. May not conform to the URL specification. It is commonly used for anonymous fetch-only access. |
