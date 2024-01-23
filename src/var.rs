@@ -439,7 +439,7 @@ const VAR_CI: Variable = Variable {
 const VAR_LICENSE: Variable = Variable {
     key: KEY_LICENSE,
     description: "The main License identifier of the sources, \
-        prefferably from the SPDX specs, for example: \
+        preferably from the SPDX specs, for example: \
         \"AGPL-3.0-or-later\", \
         \"CC-BY-SA-4.0\"",
     default_required: true,
@@ -447,7 +447,7 @@ const VAR_LICENSE: Variable = Variable {
 const VAR_LICENSES: Variable = Variable {
     key: KEY_LICENSES,
     description: "The identifiers of all the licenses of this project, \
-        prefferably from the SPDX specs, comma separated, for example: \
+        preferably from the SPDX specs, comma separated, for example: \
         \"AGPL-3.0-or-later, \
         CC0-1.0, \
         Unlicense\"",
