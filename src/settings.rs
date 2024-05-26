@@ -6,7 +6,7 @@ use clap::ValueEnum;
 use lazy_static::lazy_static;
 use std::{collections::HashSet, path::PathBuf};
 use strum::IntoEnumIterator;
-use strum_macros::{EnumIter, EnumString, EnumVariantNames, IntoStaticStr};
+use strum_macros::{EnumIter, EnumString, IntoStaticStr, VariantNames};
 use url::Url;
 
 use crate::{
@@ -19,7 +19,7 @@ use crate::{
     Debug,
     ValueEnum,
     EnumString,
-    EnumVariantNames,
+    VariantNames,
     EnumIter,
     IntoStaticStr,
     PartialEq,
@@ -79,7 +79,7 @@ impl From<bool> for Verbosity {
     }
 }
 
-#[derive(Debug, ValueEnum, EnumString, EnumVariantNames, IntoStaticStr, Clone, Copy)]
+#[derive(Debug, ValueEnum, EnumString, VariantNames, IntoStaticStr, Clone, Copy)]
 pub enum Overwrite {
     All,
     None,

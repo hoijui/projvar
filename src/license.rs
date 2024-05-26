@@ -139,8 +139,7 @@ impl Detector {
                     && entry
                         .file_name()
                         .map(OsStr::to_string_lossy)
-                        .map(is_license_file)
-                        .unwrap_or_default()
+                        .is_some_and(is_license_file)
             })
             .filter_map(|entry| {
                 let contents = fs::read_to_string(entry.as_path()).unwrap_or_default(); // TODO Not too clean; we should possibly fail the function instead of silently skipping the file on error

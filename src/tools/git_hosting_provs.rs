@@ -7,14 +7,14 @@ use clap::ValueEnum;
 /// both the actual hosters (github.com, gitlab.com, bitbucket.org, ...),
 /// as well as the software (gitlab, gitea, ...).
 use std::str;
-use strum_macros::{EnumString, EnumVariantNames, IntoStaticStr};
+use strum_macros::{EnumString, IntoStaticStr, VariantNames};
 use url::Host;
 
 use crate::constants;
 
 use super::git::TransferProtocol;
 
-#[derive(Debug, EnumString, EnumVariantNames, IntoStaticStr, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, EnumString, VariantNames, IntoStaticStr, PartialEq, Eq, Clone, Copy)]
 pub enum PublicSite {
     /// <https://github.com> - commercial, free OS hosting, software is proprietary
     GitHubCom,
@@ -22,15 +22,15 @@ pub enum PublicSite {
     GitLabCom,
     /// <https://bitbucket.org> - commercial, free OS hosting, software is proprietary
     BitBucketOrg,
-    /// <https://git.sr.ht> - free OS hosting, software is OSS: SourceHut
+    /// <https://git.sr.ht> - free OS hosting, software is OSS: `SourceHut`
     SourceHut,
-    /// <https://codeberg.org> - hosts only OS, software is OSS: Gitea
+    /// <https://codeberg.org> - hosts only OS, software is OSS: `Gitea`
     CodeBergOrg,
-    /// <https://repo.or.cz> - hosts only OS, software is OSS: Girocco
+    /// <https://repo.or.cz> - hosts only OS, software is OSS: `Girocco`
     RepoOrCz,
-    /// <https://sourceforge.net> - hosts only OS, software is OSS: Allura
+    /// <https://sourceforge.net> - hosts only OS, software is OSS: `Allura`
     RocketGitCom,
-    /// <https://rocketgit.com> - hosts only OS, software is OSS: RocketGit
+    /// <https://rocketgit.com> - hosts only OS, software is OSS: `RocketGit`
     SourceForgeNet,
     /// NOTE: The rust masters said, this is better then `Option<None>`!
     Unknown,
@@ -100,9 +100,7 @@ impl From<Option<Host<&str>>> for PublicSite {
     }
 }
 
-#[derive(
-    Debug, ValueEnum, EnumString, EnumVariantNames, IntoStaticStr, PartialEq, Eq, Clone, Copy,
-)]
+#[derive(Debug, ValueEnum, EnumString, VariantNames, IntoStaticStr, PartialEq, Eq, Clone, Copy)]
 pub enum HostingType {
     /// <https://github.com> - proprietary
     GitHub,
@@ -110,7 +108,7 @@ pub enum HostingType {
     GitLab,
     /// <https://bitbucket.org> - proprietary
     BitBucket,
-    /// <https://sr.ht/~sircmpwn/sourcehut> - OSS - LowTech (no JS) hacker tool, (almost) suckless style
+    /// <https://sr.ht/~sircmpwn/sourcehut> - OSS - Low-tech (no JS) hacker tool, (almost) suckless style
     SourceHut,
     /// <https://gitea.io> - OSS
     Gitea,
