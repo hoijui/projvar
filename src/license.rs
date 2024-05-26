@@ -10,6 +10,7 @@ use std::{ffi::OsStr, fs};
 
 const LICENSE_FILE_PREFIXES: [&str; 3] = ["LICENSE", "LICENCE", "COPYING"];
 
+#[cfg(not(docsrs))]
 static CACHE_DATA: &[u8] = include_bytes!(concat!(
     env!("OUT_DIR"),
     "/resources/licenses-cache.bin.zstd"
@@ -102,6 +103,7 @@ struct Detector {
 }
 
 impl Detector {
+    #[cfg(not(docsrs))]
     pub fn new() -> Self {
         match Store::from_cache(CACHE_DATA) {
             Ok(store) => Self { store },
@@ -110,6 +112,13 @@ impl Detector {
                 panic!("Failed to load licenses info cache: {err}");
             }
         }
+    }
+    #[cfg(docsrs)]
+    pub fn new() -> Self {
+        // This will never be called; if it will anyway,
+        // the dev of this code did something wrong
+        log::error!("No licenses cache available if `cfg(docsrs)` is set");
+        panic!("No licenses cache available if `cfg(docsrs)` is set");
     }
 
     /// Returns a list of SPDX license identifiers;

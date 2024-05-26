@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+// SPDX-FileCopyrightText: 2021 - 2024 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -23,5 +23,11 @@ fn download_licenses_cache() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    download_licenses_cache()
+    if cfg!(docsrs) {
+        Ok(())
+    } else {
+        // NOTE As <https://docs.rs> does not allow the build process to use the network,
+        //      we have to disable this call.
+        download_licenses_cache()
+    }
 }
