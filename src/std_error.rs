@@ -1,7 +1,8 @@
-// SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+// SPDX-FileCopyrightText: 2021 - 2024 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use cli_utils::BoxError;
 use thiserror::Error;
 
 /// This serves to wrap/represent `std::**()` `Option` return values as `Result`s,
@@ -29,5 +30,5 @@ pub enum Error {
 
     /// Represents all other cases of `std::error::Error`.
     #[error(transparent)]
-    Boxed(#[from] Box<dyn std::error::Error + Send + Sync>),
+    Boxed(#[from] BoxError),
 }

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+// SPDX-FileCopyrightText: 2021 - 2024 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -15,7 +15,7 @@ pub mod travis_ci;
 
 use std::path::Path;
 
-use cli_utils::BoxResult;
+use cli_utils::{BoxError, BoxResult};
 use thiserror::Error;
 
 use lazy_static::lazy_static;
@@ -65,7 +65,7 @@ pub enum Error {
 
     /// Represents all other cases of `std::error::Error`.
     #[error(transparent)]
-    Other(#[from] Box<dyn std::error::Error + Send + Sync>),
+    Other(#[from] BoxError),
 }
 
 pub type ConfVal = (Confidence, String);
