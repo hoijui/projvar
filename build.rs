@@ -23,11 +23,11 @@ fn download_licenses_cache() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    if cfg!(docsrs) {
+    // NOTE As <https://docs.rs> does not allow the build process to use the network,
+    //      we have to disable downloading the licenses.
+    if std::env::var("DOCS_RS").is_ok() {
         Ok(())
     } else {
-        // NOTE As <https://docs.rs> does not allow the build process to use the network,
-        //      we have to disable this call.
         download_licenses_cache()
     }
 }
