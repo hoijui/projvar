@@ -483,7 +483,7 @@ lazy_static! {
 /// * <https://github.com/Byron/gitoxide/blob/main/git-url>
 /// * <>
 fn validate_repo_clone_url(_environment: &mut Environment, value: &str) -> Result {
-    git_url::parse(value.into())
+    gix_url::parse(value.into())
         .map(|_url| Validity::Middle {
             msg:
                 "Nothing wrong with that; but we can/do not check more than that it is a valid URL"

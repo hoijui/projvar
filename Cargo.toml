@@ -49,9 +49,9 @@ clap = { version = "4.4", features = ["cargo", "derive"] }
 cli_utils = { version = "0.7", package = "cli_utils_hoijui" }
 const_format = "0.2"
 enum-map = "2.7"
-git-url = "0.13"
 git-version = "0.3"
 git2 = { version = "0.18", default-features = false } # "default-features = false" is required for MUSL compatibility, to get rid of OpenSSL
+gix-url = "0.27"
 # git-url-parse = "0.4"
 human-panic = "2.0"
 lazy_static = "1.4"
