@@ -47,13 +47,23 @@ jobs:
           fetch-depth: 0
           submodules: true
 
+      - name: "Check out the build scripts"
+        uses: actions/checkout@v4
+        with:
+          repository: 'hoijui/rust-project-scripts'
+          path: 'run/rp'
+          submodules: true
+
+      - name: "Mark the build scripts as Git-ignored, locally"
+        run: if ! grep -q -r "^/run/rp/\$" .git/info/exclude; then echo '/run/rp/' >> .git/info/exclude; fi
+
       - name: "Install STOML (BASH TOML parser)"
-        run: scripts/install_stoml
+        run: run/rp/install_stoml
 
       - name: Set the environment variables (including OUR_VERSION)
         shell: bash
         if: env.OUR_VERSION == ''
-        run: scripts/env
+        run: run/rp/env
 
       - name: Create GitHub release
         id: release
@@ -109,19 +119,29 @@ jobs:
         fetch-depth: 0
         submodules: true
 
+    - name: "Check out the build scripts"
+      uses: actions/checkout@v4
+      with:
+        repository: 'hoijui/rust-project-scripts'
+        path: 'run/rp'
+        submodules: true
+
+    - name: "Mark the build scripts as Git-ignored, locally"
+      run: if ! grep -q -r "^/run/rp/\$" .git/info/exclude; then echo '/run/rp/' >> .git/info/exclude; fi
+
     - name: "Install STOML (BASH TOML parser)"
       run: |
-        scripts/install_stoml
+        run/rp/install_stoml
 
     - name: Set the environment variables (including OUR_VERSION)
       shell: bash
       if: env.OUR_VERSION == ''
-      run: scripts/env
+      run: run/rp/env
 
     - name: Install packages (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        scripts/install_deps_ubuntu
+        run/rp/install_deps_ubuntu
 
     # - name: Install packages (macOS)
     #   if: matrix.os == 'macos-latest'
@@ -149,7 +169,7 @@ jobs:
         echo "target dir is: ${{ env.TARGET_DIR }}"
 
     - name: Build and strip release binary
-      run: scripts/build --skip-strip
+      run: run/rp/build --skip-strip
 
     # - name: Strip release binary (linux and macos)
     #   if: matrix.build == 'linux' || matrix.build == 'macos'
@@ -169,7 +189,7 @@ jobs:
       run: |
         export ENV_FILE="proj_build_envs.txt"
         # This writes "BINARY=bla" to ENV_FILE
-        scripts/env
+        run/rp/env
         source "$ENV_FILE"
         BIN="target/release/$BINARY"
         if [ -f "$BIN" ]
@@ -195,7 +215,7 @@ jobs:
     - name: Build archive
       shell: bash
       run: |
-        scripts/package
+        run/rp/package
 
     - name: Upload release archive
       uses: actions/upload-release-asset@v1.0.1

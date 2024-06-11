@@ -16,7 +16,7 @@ on:
       - '**/Cargo.toml'
       - 'Cargo.lock'
       - '**/Cargo.lock'
-      - 'scripts/build'
+      - 'run/rp/build'
       - '.github/workflows/build.yml'
   release:
     types: [ published ]
@@ -38,8 +38,18 @@ jobs:
           fetch-depth: 0
           submodules: true
 
+      - name: "Check out the build scripts"
+        uses: actions/checkout@v4
+        with:
+          repository: 'hoijui/rust-project-scripts'
+          path: 'run/rp'
+          submodules: true
+
+      - name: "Mark the build scripts as Git-ignored, locally"
+        run: if ! grep -q -r "^/run/rp/\$" .git/info/exclude; then echo '/run/rp/' >> .git/info/exclude; fi
+
       - name: "Install STOML (BASH TOML parser)"
-        run: scripts/install_stoml
+        run: run/rp/install_stoml
 
       - name: "Setup Python 3"
         uses: actions/setup-python@v4
@@ -67,11 +77,10 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: "Install STOML (BASH TOML parser) *again*, because the cache recreation above might have removed it"
-        run: scripts/install_stoml
+        run: run/rp/install_stoml
 
       - name: "Build"
-        run: scripts/build
+        run: run/rp/build
 
       - name: "Test & Check"
-        run: scripts/test
-
+        run: run/rp/test

@@ -114,7 +114,7 @@ cd projvar
 Then you can run:
 
 ```bash
-scripts/build
+cargo build --release
 ```
 
 If all goes well, the executable can be found at `target/release/projvar`.
