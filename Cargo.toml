@@ -21,7 +21,7 @@ readme = "README.md"
 edition = "2021"
 
 [lints.rust]
-rust_2021_compatibility = "warn"
+rust_2021_compatibility = { level = "warn", priority = -1 }
 
 [lints.clippy]
 all = { level = "deny", priority = -1 }
