@@ -1,9 +1,7 @@
-# SPDX-FileCopyrightText: 2021 - 2023 Robin Vobruba <hoijui.quaero@gmail.com>
+# SPDX-FileCopyrightText: 2021 - 2024 Robin Vobruba <hoijui.quaero@gmail.com>
 #
 # SPDX-License-Identifier: Unlicense
 
-# The way this works is the following:
-#
 # The create-release job runs purely to initialize the GitHub release itself
 # and to output upload_url for the following job.
 #
@@ -40,7 +38,7 @@ jobs:
       our_version: ${{ env.OUR_VERSION }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         if: env.OUR_VERSION == ''
         with:
           # This makes sure we also get tags,
@@ -106,7 +104,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true

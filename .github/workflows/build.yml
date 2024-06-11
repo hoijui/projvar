@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2021 - 2023 Robin Vobruba <hoijui.quaero@gmail.com>
+# SPDX-FileCopyrightText: 2021 - 2024 Robin Vobruba <hoijui.quaero@gmail.com>
 #
 # SPDX-License-Identifier: Unlicense
 
@@ -9,9 +9,13 @@ on:
     branches: [ master, develop ]
     paths:
       - 'src/**'
+      - '**/src/**'
       - 'tests/**'
+      - '**/tests/**'
       - 'Cargo.toml'
+      - '**/Cargo.toml'
       - 'Cargo.lock'
+      - '**/Cargo.lock'
       - 'scripts/build'
       - '.github/workflows/build.yml'
   release:
@@ -26,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Check out the repo"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # This makes sure we also get tags,
           # so we get the correct version; see bug:
@@ -56,8 +60,8 @@ jobs:
       - name: "Get the Rust toolchain"
         uses: dtolnay/rust-toolchain@stable
         with:
-            targets: x86_64-unknown-linux-musl
-            components: rustfmt, clippy
+          targets: x86_64-unknown-linux-musl
+          components: rustfmt, clippy
 
       - name: "Smart caching for rust/cargo"
         uses: Swatinem/rust-cache@v2
