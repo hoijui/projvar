@@ -31,14 +31,14 @@ fn source_index_to_confidence(source_index: usize) -> u8 {
     })
 }
 
-/// Given all the details of a `VarSource::retreive` result,
-/// creates a vector ())technically an array) of simple numbers,
+/// Given all the details of a `VarSource::retrieve` result,
+/// creates a vector (technically an array) of simple numbers,
 /// which serves as a hierarchical priority indication,
-/// meaning it is well suited for sort a number of such results
+/// meaning it is well suited to sort a number of such results
 /// (in practice: all of them for a single key),
-/// and thus comming up with the most valid/valuable/meaningful of the results.
+/// and thus coming up with the most valid/valuable/meaningful of the results.
 /// The first number is the most important.
-/// When copmparing two vectors created by this function,
+/// When comparing two vectors created by this function,
 /// we first only compare the two numbers at index 0,
 /// and only if they are equal, we continue the comparison,
 /// looking at the numbers in the second position of the two vectors.

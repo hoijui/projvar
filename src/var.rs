@@ -24,7 +24,7 @@ use crate::environment::Environment;
 
 /// Confidence in a concrete value returned by a call to [`crate::sources::VarSource::retrieve`].
 /// Higher is better.
-/// This is eventually used as one criteria to decide which value to preffer,
+/// This is eventually used as one criteria to decide which value to prefer,
 /// if multiple ones are present for a single key.
 pub type Confidence = u8;
 pub const C_HIGH: Confidence = 75;
@@ -252,9 +252,9 @@ fn unquote(pot_quoted: &str) -> &str {
     pot_quoted
 }
 
-/// Parses a file containing lines string with of the fomr "KEY=VALUE".
-/// Empty lines and those starting wiht either "#" or "//" are ignored.
+/// Parses a file containing lines with strings of the from "KEY=VALUE".
 ///
+/// Empty lines and those starting with either "#" or "//" are ignored.
 /// # Errors
 ///
 /// If there is a problem with reading the file.
@@ -262,7 +262,7 @@ fn unquote(pot_quoted: &str) -> &str {
 /// If any line has a bad form, missing key and/or value.
 pub fn parse_vars_file_reader(mut reader: impl BufRead) -> BoxResult<HashMap<String, String>> {
     lazy_static! {
-        // Ignore empty lines and those starting wiht '#' or "//"
+        // Ignore empty lines and those starting with '#' or "//"
         static ref R_IGNORE_LINE: Regex = Regex::new(r"^($|#|//)").unwrap();
     }
     let mut vars = HashMap::<String, String>::new();

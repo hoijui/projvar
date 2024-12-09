@@ -28,7 +28,7 @@ pub const fn res_to_confidences(res: &Result) -> [Confidence; 2] {
 }
 
 // See these resources for implement our own, custom errors
-// accoridng to rust best practises for errors (and error handling):
+// according to rust best practice for errors (and error handling):
 // * good, simple intro:
 //   <https://nick.groenen.me/posts/rust-error-handling/>
 // * very nice, extensive, detailed example:
