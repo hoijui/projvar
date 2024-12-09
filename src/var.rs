@@ -24,6 +24,7 @@ use crate::environment::Environment;
 
 /// Confidence in a concrete value returned by a call to [`crate::sources::VarSource::retrieve`].
 /// Higher is better.
+///
 /// This is eventually used as one criteria to decide which value to prefer,
 /// if multiple ones are present for a single key.
 pub type Confidence = u8;
@@ -255,6 +256,7 @@ fn unquote(pot_quoted: &str) -> &str {
 /// Parses a file containing lines with strings of the from "KEY=VALUE".
 ///
 /// Empty lines and those starting with either "#" or "//" are ignored.
+///
 /// # Errors
 ///
 /// If there is a problem with reading the file.

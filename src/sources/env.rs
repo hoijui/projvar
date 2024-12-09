@@ -13,6 +13,7 @@ use super::RetrieveRes;
 
 /// Sources from environment variables
 /// with the same names as the those used for output.
+///
 /// We treat this as a way to (almost) preset certain output values,
 /// which is both useful for testing
 /// and streamlining the process during production use.

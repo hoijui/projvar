@@ -88,15 +88,14 @@ impl Validity {
 /// This enumerates all possible errors returned by this module.
 #[derive(Error, Debug)]
 pub enum Error {
-    /// Represents an empty source. For example, an empty text file being given
-    /// as input to `count_words()`.
+    // /// Represents an empty source. For example, an empty text file being given
+    // /// as input to `count_words()`.
     // #[error("Source contains no data")]
     // EmptySource,
 
     // /// Represents a failure to read from input.
     // #[error("Read error")]
     // ReadError { source: std::io::Error },
-
     /// A required properties value could not be evaluated
     #[error("No value found for the required property {0:?}")]
     Missing(Key),

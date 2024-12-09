@@ -66,7 +66,7 @@ pub fn cli_list(
         if out_file
             .extension()
             .and_then(OsStr::to_str)
-            .map_or(false, |ext| ext.to_lowercase().ends_with("json"))
+            .is_some_and(|ext| ext.to_lowercase().ends_with("json"))
         {
             log::trace!("Going to sink to JSON file: {}", out_file.display());
             sinks.push(Box::new(json::VarSink { file: out_file }));

@@ -40,7 +40,7 @@ impl<'a> PartsRef<'a> {
     ///
     /// If our internal regex to parse a git clone URL
     /// does not match the supplied string.
-    pub fn parse<'b>(any_clone_url: &'b str) -> Result<PartsRef<'a>, String>
+    pub fn parse<'b>(any_clone_url: &'b str) -> Result<Self, String>
     where
         'b: 'a,
     {
