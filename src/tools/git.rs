@@ -223,7 +223,10 @@ impl Repo {
     /// Should never happen
     #[must_use]
     pub fn local_path_str(&self) -> String {
-        self.local_path().to_str().unwrap().to_owned() // Can never hapen, as we already know fro mwithin local_path(), that it is valid UTF-8
+        // The `.unwrap()` is safe here,
+        // because we already know from within `local_path()`,
+        // that it is valid UTF-8
+        self.local_path().to_str().unwrap().to_owned()
     }
 
     fn _branch(&self) -> Result<Option<git2::Branch>, Error> {

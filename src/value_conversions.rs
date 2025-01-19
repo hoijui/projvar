@@ -1060,8 +1060,9 @@ pub fn clone_url_to_web_url(environment: &Environment, any_clone_url: &str) -> R
                             Some(url.to_string())
                         }
                         HostingType::Girocco | HostingType::SourceHut | HostingType::RocketGit => {
+                            // Web-hosting and HTTP clone URL are exactly identical
                             Some(https_clone_url)
-                        } // Web-hosting and HTTP clone URL are exactly identical
+                        }
                         _ => None, // TODO Implement the others!
                     })
                 }
