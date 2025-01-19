@@ -826,10 +826,10 @@ pub fn web_url_to_build_hosting_url(environment: &Environment, web_url: &str) ->
             let public_site = PublicSite::from(url.host());
             Ok(match public_site {
                 PublicSite::GitHubCom => {
-                    build_hostify_url!(url, web_url, public_site, DS_GIT_HUB_IO_SUFIX)
+                    build_hostify_url!(url, web_url, public_site, DS_GIT_HUB_IO_SUFFIX)
                 }
                 PublicSite::GitLabCom => {
-                    build_hostify_url!(url, web_url, public_site, DS_GIT_LAB_IO_SUFIX)
+                    build_hostify_url!(url, web_url, public_site, DS_GIT_LAB_IO_SUFFIX)
                 }
                 PublicSite::CodeBergOrg => {
                     build_hostify_url!(url, web_url, public_site, DS_CODE_BERG_PAGE)
@@ -1072,7 +1072,7 @@ pub fn clone_url_to_web_url(environment: &Environment, any_clone_url: &str) -> R
 }
 
 /// Converts an ISO 8601 formatted date string
-/// into the date frmat in our settings.
+/// into the date format in our settings.
 ///
 /// # Errors
 ///

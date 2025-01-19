@@ -43,8 +43,8 @@ impl PublicSite {
             let domain_parts = domain.split('.').collect::<Vec<&str>>();
             let main_domain = domain_parts[domain_parts.len() - 2..].join(".");
             match main_domain.as_str() {
-                constants::DS_GIT_HUB_IO_SUFIX => Self::GitHubCom,
-                constants::DS_GIT_LAB_IO_SUFIX => Self::GitLabCom,
+                constants::DS_GIT_HUB_IO_SUFFIX => Self::GitHubCom,
+                constants::DS_GIT_LAB_IO_SUFFIX => Self::GitLabCom,
                 _ => Self::Unknown, // TODO implement the rest, where applicable (BitBucket does not have a hosting site, for example)
             }
         } else {
@@ -69,10 +69,10 @@ impl From<Host<&str>> for PublicSite {
         match host {
             Host::Domain(
                 constants::D_GIT_HUB_COM
-                | constants::DS_GIT_HUB_IO_SUFIX
+                | constants::DS_GIT_HUB_IO_SUFFIX
                 | constants::D_GIT_HUB_COM_RAW,
             ) => Self::GitHubCom,
-            Host::Domain(constants::D_GIT_LAB_COM | constants::DS_GIT_LAB_IO_SUFIX) => {
+            Host::Domain(constants::D_GIT_LAB_COM | constants::DS_GIT_LAB_IO_SUFFIX) => {
                 Self::GitLabCom
             }
             Host::Domain(constants::D_BIT_BUCKET_ORG) => Self::BitBucketOrg,

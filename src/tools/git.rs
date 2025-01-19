@@ -319,8 +319,8 @@ This may indicate either:
         let mut inner_err: Option<Result<Option<String>, Error>> = None;
         self.repo
             .tag_foreach(|_id, name| {
-                let name_str =
-                    String::from_utf8(name.to_vec()).expect("Failed stringifying tag name");
+                let name_str = String::from_utf8(name.to_vec())
+                    .expect("Failed to convert tag name to UTF-8 string");
                 let cur_tag_res = self.repo.find_reference(&name_str).and_then(|git_ref| {
                     git_ref.target().ok_or_else(|| {
                         git2::Error::from_str("Failed to get tag reference target commit")
@@ -434,7 +434,7 @@ This may indicate either:
                         .map_err(|from| Error {
                             from,
                             message: String::from(
-                                "Failed to resolve referenece from remotetracking branch short name",
+                                "Failed to resolve reference from remote-tracking branch short name",
                             ),
                         })?
                         .name()

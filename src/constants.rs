@@ -6,10 +6,10 @@ pub const DEFAULT_KEY_PREFIX: &str = "PROJECT_";
 
 pub const D_GIT_HUB_COM: &str = "github.com";
 pub const D_GIT_HUB_COM_RAW: &str = "raw.githubusercontent.com";
-pub const DS_GIT_HUB_IO_SUFIX: &str = "github.io";
+pub const DS_GIT_HUB_IO_SUFFIX: &str = "github.io";
 
 pub const D_GIT_LAB_COM: &str = "gitlab.com";
-pub const DS_GIT_LAB_IO_SUFIX: &str = "gitlab.io";
+pub const DS_GIT_LAB_IO_SUFFIX: &str = "gitlab.io";
 
 pub const D_BIT_BUCKET_ORG: &str = "bitbucket.org";
 

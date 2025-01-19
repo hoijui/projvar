@@ -63,7 +63,7 @@ macro_rules! conv_val_with_env {
 
 /// Does not source any new values,
 /// but derives them from other values, already sourced before.
-/// For example, it might derieve the [`Key::RepoWebUrl`]
+/// For example, it might derive the [`Key::RepoWebUrl`]
 /// from the [`Key::RepoCloneUrl`].
 pub struct VarSource;
 
@@ -101,7 +101,7 @@ fn repo_clone_url_specific(environment: &Environment, protocol: TransferProtocol
     }
     .and_then(|conf_and_val| {
         // NOTE We successfully derived the requested clone URL now,
-        //      but many hosts do not suppport all protocols,
+        //      but many hosts do not support all protocols,
         //      so this might be a phony one.
         //      In such a case, we will not return it.
         let url_str = &conf_and_val.1;
