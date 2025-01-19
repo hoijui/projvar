@@ -16,7 +16,6 @@ on:
       - '**/Cargo.toml'
       - 'Cargo.lock'
       - '**/Cargo.lock'
-      - 'run/rp/build'
       - '.github/workflows/build.yml'
   release:
     types: [ published ]
