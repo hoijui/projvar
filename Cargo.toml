@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2021 - 2023 Robin Vobruba <hoijui.quaero@gmail.com>
+# SPDX-FileCopyrightText: 2021 - 2025 Robin Vobruba <hoijui.quaero@gmail.com>
 #
 # SPDX-License-Identifier: Unlicense
 
@@ -51,7 +51,7 @@ const_format = "0.2"
 enum-map = "2.7"
 git-version = "0.3"
 git2 = { version = "0.19", default-features = false } # "default-features = false" is required for MUSL compatibility, to get rid of OpenSSL
-gix-url = "0.28"
+gix-url = "0.29"
 # git-url-parse = "0.4"
 human-panic = "2.0"
 lazy_static = "1.4"
@@ -80,7 +80,7 @@ assert_cmd = "2.0"
 assert_fs = "1.0"
 cmd_lib = "1.9"
 const-fnv1a-hash = "1.1"
-directories = "5.0"
+directories = "6.0"
 fake = { version = "3.0", features = ['chrono', 'uuid'] }
 predicates = "3.0"
 uuid = "1.6"
