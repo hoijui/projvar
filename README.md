@@ -290,3 +290,9 @@ until March 2023.
 
 ![Logo of the EU ERDF program](
     https://cloud.fabcity.hamburg/s/TopenKEHkWJ8j5P/download/logo-eu-erdf.png)
+
+## Similar Projects
+
+- [git-status-vars](https://github.com/danielparks/git-status-vars) (Rust) \
+  It uses only git to assemble info about a directory,
+  but on the upside it has git related pieces of info.
