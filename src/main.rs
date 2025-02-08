@@ -119,7 +119,7 @@ fn arg_project_root() -> Arg {
 
 fn arg_raw_panic() -> Arg {
     Arg::new(A_L_RAW_PANIC)
-        .help("Use rusts native panic handling, if one occures.")
+        .help("Use rusts native panic handling, if one occurs.")
         .long_help(
             "Do not wrap rusts native panic handling functionality \
             in a more end-user-friendly way. \
@@ -135,7 +135,7 @@ fn arg_variable() -> Arg {
         .long_help(formatcp!(
             "A key-value pair (aka a variable) to be used as input, \
             as it it was specified as an environment variable. \
-            Values provided with this take precedense over environment variables - \
+            Values provided with this take precedence over environment variables - \
             they overwrite them. \
             See -{A_S_VARIABLES_FILE},--{A_L_VARIABLES_FILE} for supplying a lot of such pairs at once.",
         ))
@@ -180,7 +180,7 @@ fn arg_no_env_in() -> Arg {
 
 fn arg_env_out() -> Arg {
     Arg::new(A_L_ENV_OUT)
-        .help("Write resulting values directy into the environment") // TODO Check: is that even possible? As in, the values remaining in the environment after the ned of the process?
+        .help("Write resulting values directly into the environment") // TODO Check: is that even possible? As in, the values remaining in the environment after the end of the process?
         .action(ArgAction::SetTrue)
         .short(A_S_ENV_OUT)
         .long(A_L_ENV_OUT)
@@ -216,7 +216,7 @@ fn arg_hosting_type() -> Arg {
         .long_help(
             "As usually most kinds of repo URL property values are derived from the clone URL, \
             it is essential to know how to construct them. \
-            Different hosting softwares construct them differently. \
+            Different hosting software construct them differently. \
             By default, we try to derive it from the clone URL domain, \
             but if this is not possible, \
             this switch allows to set the hosting software manually.",
@@ -317,9 +317,9 @@ fn arg_require_none() -> Arg {
 fn arg_require() -> Arg {
     #![allow(clippy::needless_raw_string_hashes)]
     Arg::new(A_L_REQUIRE)
-        .help("Mark a propery as required")
+        .help("Mark a property as required")
         .long_help(formatcp!(
-            r#"Mark a propery as required. \
+            r#"Mark a property as required. \
             You may use the property name (e.g. "Name") \
             or the variable key (e.g. "PROJECT_NAME"); \
             See --{A_L_LIST} for all possible keys. \
@@ -346,7 +346,7 @@ fn arg_require_not() -> Arg {
         .long_help(formatcp!(
             "A key of a variable whose value is *not* required. \
             For example PROJECT_NAME (see --{A_L_LIST} for all possible keys). \
-            Can be used either on the base of the default requried list \
+            Can be used either on the base of the default required list \
             or all. \
             See --{A_L_FAIL_ON_MISSING_VALUE}, --{A_L_REQUIRE_ALL}, --{A_L_REQUIRE_NONE}, --{A_L_REQUIRE}.",
         ))
@@ -574,9 +574,9 @@ fn overwrite(args: &ArgMatches) -> settings::Overwrite {
     overwrite
 }
 
-/// Returns the logging verbositiy to be used.
+/// Returns the logging verbosity to be used.
 /// We only log to stderr;
-/// if the user wnats to log anywere else,
+/// if the user wants to log anywhere else,
 /// they have to redirect from there.
 /// We are simple enough to not having to worry about
 /// complex logging schemes.
@@ -658,7 +658,7 @@ fn required_keys(key_prefix: Option<String>, args: &ArgMatches) -> BoxResult<Has
             required_keys.remove(&key);
         }
     }
-    // make imutable
+    // make immutable
     let required_keys = required_keys;
     if log::log_enabled!(log::Level::Trace) {
         for required_key in &required_keys {
