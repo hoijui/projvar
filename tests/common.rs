@@ -11,20 +11,19 @@ use regex::Regex;
 use uuid::Uuid;
 
 use assert_cmd::prelude::*;
-use lazy_static::lazy_static;
 use std::ffi::OsStr;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
+use std::sync::LazyLock;
 use std::{collections::HashMap, fmt::Display, process::Command};
 
-lazy_static! {
-    pub static ref R_DATE_TIME: Regex =
-        Regex::new(r"^[12][0-9]{3}-[01]?[0-9]-[0-3]?[0-9] [012]?[0-9]:[0-5]?[0-9]:[0-5]?[0-9]$")
-            .unwrap();
-    pub static ref R_NON_EMPTY: Regex = Regex::new(r"^.+$").unwrap();
-    pub static ref R_BOOL: Regex = Regex::new(r"^(true|false)$").unwrap();
-}
+pub static R_DATE_TIME: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^[12][0-9]{3}-[01]?[0-9]-[0-3]?[0-9] [012]?[0-9]:[0-5]?[0-9]:[0-5]?[0-9]$")
+        .unwrap()
+});
+pub static R_NON_EMPTY: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^.+$").unwrap());
+pub static R_BOOL: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(true|false)$").unwrap());
 
 pub fn random_uuid() -> String {
     UUIDv5.fake::<Uuid>().to_string()

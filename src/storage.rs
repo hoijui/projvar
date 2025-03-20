@@ -2,9 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::LazyLock};
 
-use lazy_static::lazy_static;
 use regex::Regex;
 use strum::IntoEnumIterator;
 
@@ -51,11 +50,12 @@ impl Storage {
     /// It will be created in markdown format.
     // TODO further specify the markdown flavor in the sentence above.
     pub fn to_table(&self, environment: &Environment, sources: &[Box<dyn VarSource>]) -> String {
-        lazy_static! {
-            static ref R_COMMON_SOURCE_PREFIX: Regex = Regex::new(r"^projvar::sources::").unwrap();
-            static ref R_COMMON_SOURCE_NAME: Regex = Regex::new(r"::VarSource").unwrap();
-            static ref R_EMPTY_PROPERTIES: Regex = Regex::new(r"\[\]$").unwrap();
-        }
+        static R_COMMON_SOURCE_PREFIX: LazyLock<Regex> =
+            LazyLock::new(|| Regex::new(r"^projvar::sources::").unwrap());
+        static R_COMMON_SOURCE_NAME: LazyLock<Regex> =
+            LazyLock::new(|| Regex::new(r"::VarSource").unwrap());
+        static R_EMPTY_PROPERTIES: LazyLock<Regex> =
+            LazyLock::new(|| Regex::new(r"\[\]$").unwrap());
         static HEADER_PREFIX: &str = "| Property | Env-Key |";
         static HEADER_SUFFIX: &str = " Final Value |";
         static SOURCE_NAME_ESTIMATE: usize = 32;

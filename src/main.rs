@@ -13,10 +13,10 @@ use clap::builder::ValueParser;
 use clap::{command, value_parser, Arg, ArgAction, ArgMatches, Command, ValueHint};
 use cli_utils::BoxResult;
 use const_format::formatcp;
-use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashSet;
 use std::path::PathBuf;
+use std::sync::LazyLock;
 use strum::IntoEnumIterator;
 
 mod cleanup;
@@ -484,8 +484,8 @@ fn arg_show_primary_retrieved() -> Arg {
         .conflicts_with(A_L_SHOW_ALL_RETRIEVED)
 }
 
-lazy_static! {
-    static ref ARGS: [Arg; 25] = [
+static ARGS: LazyLock<[Arg; 25]> = LazyLock::new(|| {
+    [
         arg_version(),
         arg_project_root(),
         arg_raw_panic(),
@@ -511,8 +511,8 @@ lazy_static! {
         arg_date_format(),
         arg_show_all_retrieved(),
         arg_show_primary_retrieved(),
-    ];
-}
+    ]
+});
 
 fn find_duplicate_short_options() -> Vec<char> {
     let mut short_options: Vec<char> = ARGS.iter().filter_map(clap::Arg::get_short).collect();

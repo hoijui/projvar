@@ -2,14 +2,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::sync::LazyLock;
+
 use crate::{environment::Environment, sources::ConfVal};
-use lazy_static::lazy_static;
 use regex::Regex;
 
 pub fn version(_environment: &mut Environment, value: &str) -> Option<String> {
-    lazy_static! {
-        static ref R_V_PREFIX: Regex = Regex::new(r"^[vV][.]?[ \t]*").unwrap();
-    }
+    static R_V_PREFIX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[vV][.]?[ \t]*").unwrap());
     let stripped_value = R_V_PREFIX.replace(value, "");
     if stripped_value == value {
         None

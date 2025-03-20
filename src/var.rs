@@ -4,7 +4,6 @@
 
 use cli_utils::BoxResult;
 use enum_map::Enum;
-use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -13,6 +12,7 @@ use std::{
     fmt::Display,
     io::BufRead,
     iter::Iterator,
+    sync::LazyLock,
 };
 use strum::{EnumCount, IntoEnumIterator};
 use strum_macros::{EnumCount, EnumIter, EnumString, IntoStaticStr};
@@ -69,9 +69,7 @@ impl Display for Variable {
     }
 }
 
-lazy_static! {
-    static ref D_VARIABLE: Variable = Variable::default();
-}
+static D_VARIABLE: LazyLock<Variable> = LazyLock::new(Variable::default);
 
 impl<'a> Default for &'a Variable {
     fn default() -> &'a Variable {
@@ -157,9 +155,8 @@ pub enum Key {
 /// ```
 #[must_use]
 pub fn camel_to_upper_snake_case(id: &str) -> String {
-    lazy_static! {
-        static ref R_UPPER_SEL: Regex = Regex::new(r"(?P<after>[A-Z])").unwrap();
-    }
+    static R_UPPER_SEL: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"(?P<after>[A-Z])").unwrap());
     let res = R_UPPER_SEL.replace_all(id, "_$after").to_uppercase();
     res.strip_prefix('_').unwrap_or(&res).to_string()
 }
@@ -191,12 +188,10 @@ pub struct InvalidKey {
 /// ```
 #[must_use]
 pub fn upper_snake_to_camel_case(id: &str) -> String {
-    lazy_static! {
-        // static ref R_PREF: Regex = Regex::new(r"^_").unwrap();
-        // static ref R_SUFF: Regex = Regex::new(r"_$").unwrap();
-        static ref R_FIRST: Regex = Regex::new(r"^(.)").unwrap();
-        static ref R_UPPER_SEL: Regex = Regex::new(r"(.)_(.)").unwrap();
-    }
+    // static ref R_PREF: Regex = Regex::new(r"^_").unwrap();
+    // static ref R_SUFF: Regex = Regex::new(r"_$").unwrap();
+    static R_FIRST: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(.)").unwrap());
+    static R_UPPER_SEL: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(.)_(.)").unwrap());
     let id = id.to_lowercase();
     // let id= R_PREF.replace(&id, "");
     // let id= R_SUFF.replace(&id, "");
@@ -263,10 +258,8 @@ fn unquote(pot_quoted: &str) -> &str {
 ///
 /// If any line has a bad form, missing key and/or value.
 pub fn parse_vars_file_reader(mut reader: impl BufRead) -> BoxResult<HashMap<String, String>> {
-    lazy_static! {
-        // Ignore empty lines and those starting with '#' or "//"
-        static ref R_IGNORE_LINE: Regex = Regex::new(r"^($|#|//)").unwrap();
-    }
+    // Ignore empty lines and those starting with '#' or "//"
+    static R_IGNORE_LINE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^($|#|//)").unwrap());
     let mut vars = HashMap::<String, String>::new();
 
     for line in cli_utils::lines_iterator(&mut reader, true) {
@@ -602,10 +595,7 @@ fn create_default_keys() -> HashSet<Key> {
     def_keys
 }
 
-lazy_static! {
-    // static ref DEFAULT_KEYS: EnumSet<Key> = create_default_keys();
-    static ref DEFAULT_KEYS: HashSet<Key> = create_default_keys();
-}
+static DEFAULT_KEYS: LazyLock<HashSet<Key>> = LazyLock::new(create_default_keys);
 
 #[must_use]
 // pub fn default_keys() -> EnumSet<Key> {

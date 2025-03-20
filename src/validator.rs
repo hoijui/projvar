@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use std::sync::LazyLock;
+
 use crate::license;
 use crate::tools::git;
 use crate::tools::git::TransferProtocol;
@@ -9,7 +11,6 @@ use crate::tools::git_hosting_provs::HostingType;
 use crate::var::{Confidence, Key};
 use crate::{constants, environment::Environment};
 use chrono::{DateTime, NaiveDateTime};
-use lazy_static::lazy_static;
 use regex::Regex;
 use thiserror::Error;
 use url::Url;
@@ -140,19 +141,28 @@ fn missing(environment: &mut Environment, key: Key) -> Result {
 }
 
 fn validate_version(environment: &mut Environment, value: &str) -> Result {
-    lazy_static! {
-        // The official SemVer regex as of September 2021, taken from
-        // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-        // TODO PRIO Think of what to do if we have a "v" prefix, as in "v1.2.3" -> best: remove it, but where.. a kind of pre-validator function?
-        // TODO PRIO Use this create for semver checking: https://github.com/dtolnay/semver (does not need to be with a Regex!)
-        static ref R_SEM_VERS_RELEASE: Regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)$").unwrap();
-        static ref R_SEM_VERS: Regex = Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$").unwrap();
-        static ref R_SEM_GIT_VERS: Regex = Regex::new(r"^((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*))(-(0|[1-9]\d*)-(g[0-9a-f]{7}))?((-dirty(-broken)?)|-broken(-dirty)?)?$").unwrap();
-        static ref R_GIT_VERS: Regex = Regex::new(r"^((g[0-9a-f]{7})|([^~^:?\[\*]+))(-(0|[1-9]\d*)-(g[0-9a-f]{7}))?((-dirty(-broken)?)|-broken(-dirty)?)?$").unwrap();
-        static ref R_GIT_SHA: Regex = Regex::new(r"^g?[0-9a-f]{7,40}$").unwrap();
-        static ref R_GIT_SHA_PREFIX: Regex = Regex::new(r"^g[0-9a-f]{7}").unwrap();
-        static ref R_UNKNOWN_VERS: Regex = Regex::new(r"^($|#|//)").unwrap();
-    }
+    // The official SemVer regex as of September 2021, taken from
+    // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+    // TODO PRIO Think of what to do if we have a "v" prefix, as in "v1.2.3" -> best: remove it, but where.. a kind of pre-validator function?
+    // TODO PRIO Use this create for semver checking: https://github.com/dtolnay/semver (does not need to be with a Regex!)
+    static R_SEM_VERS_RELEASE: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)$")
+            .unwrap()
+    });
+    static R_SEM_VERS: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$").unwrap()
+    });
+    static R_SEM_GIT_VERS: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^((0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*))(-(0|[1-9]\d*)-(g[0-9a-f]{7}))?((-dirty(-broken)?)|-broken(-dirty)?)?$").unwrap()
+    });
+    static R_GIT_VERS: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^((g[0-9a-f]{7})|([^~^:?\[\*]+))(-(0|[1-9]\d*)-(g[0-9a-f]{7}))?((-dirty(-broken)?)|-broken(-dirty)?)?$").unwrap()
+    });
+    static R_GIT_SHA: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^g?[0-9a-f]{7,40}$").unwrap());
+    static R_GIT_SHA_PREFIX: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^g[0-9a-f]{7}").unwrap());
+    static R_UNKNOWN_VERS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^($|#|//)").unwrap());
     if R_SEM_VERS_RELEASE.is_match(value) {
         Ok(Validity::Low {
             msg: "This is a release version, \
@@ -449,13 +459,12 @@ fn check_url_host(value: &str, url_desc: &str, url: &Url, host_reg: Option<&Rege
 }
 
 fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
-    lazy_static! {
-        static ref R_GIT_HUB_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/?$").unwrap();
-        static ref R_GIT_LAB_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/?$").unwrap();
-        static ref R_BIT_BUCKET_PATH: Regex = (*R_GIT_HUB_PATH).clone();
-    }
+    static R_GIT_HUB_PATH: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/?$").unwrap());
+    static R_GIT_LAB_PATH: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/?$").unwrap()
+    });
+    static R_BIT_BUCKET_PATH: LazyLock<Regex> = LazyLock::new(|| (*R_GIT_HUB_PATH).clone());
 
     let url = check_public_url(environment, value, false, false)?;
     let hosting_type = eval_hosting_type(environment, &url);
@@ -468,13 +477,12 @@ fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
     check_url_path(value, "versioned web", &url, host_reg)
 }
 
-lazy_static! {
-    static ref R_GIT_HUB_CLONE_PATH: Regex =
-        Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)(\.git)?$").unwrap();
-    static ref R_GIT_LAB_CLONE_PATH: Regex =
-        Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)(\.git)?$").unwrap();
-    static ref R_BIT_BUCKET_CLONE_PATH: Regex = (*R_GIT_HUB_CLONE_PATH).clone();
-}
+static R_GIT_HUB_CLONE_PATH: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)(\.git)?$").unwrap());
+static R_GIT_LAB_CLONE_PATH: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)(\.git)?$").unwrap()
+});
+static R_BIT_BUCKET_CLONE_PATH: LazyLock<Regex> = LazyLock::new(|| (*R_GIT_HUB_CLONE_PATH).clone());
 
 /// Many possible formats, see:
 /// * <https://www.git-scm.com/docs/git-clone#_git_urls>
@@ -538,10 +546,10 @@ fn validate_repo_clone_url_http(environment: &mut Environment, value: &str) -> R
 // * git@bitbucket.org:Aouatef/master_arbeit.git
 // * ssh://bitbucket.org/Aouatef/master_arbeit.git
 fn validate_repo_clone_url_ssh(environment: &mut Environment, value: &str) -> Result {
-    lazy_static! {
-        // NOTE We only accept the user "git", as it stands for anonymous access
-        static ref R_SSH_CLONE_URL: Regex = Regex::new(r"^(?P<user>git@)?(?P<host>[^/:]+)((:|/)(?P<path>.+))?$").unwrap();
-    }
+    // NOTE We only accept the user "git", as it stands for anonymous access
+    static R_SSH_CLONE_URL: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^(?P<user>git@)?(?P<host>[^/:]+)((:|/)(?P<path>.+))?$").unwrap()
+    });
 
     let url = match check_public_url(environment, value, true, false) {
         Ok(url) => {
@@ -584,15 +592,13 @@ fn validate_repo_clone_url_ssh(environment: &mut Environment, value: &str) -> Re
 // * https://gitlab.com/OSEGermany/osh-tool/raw/master/data/source_extension_formats.csv
 // * https://bitbucket.org/Aouatef/master_arbeit/raw/ae4a42a850b359a23da2483eb8f867f21c5382d4/procExData/import.sh
 fn validate_repo_raw_versioned_prefix_url(environment: &mut Environment, value: &str) -> Result {
-    lazy_static! {
-        static ref R_GIT_HUB_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)$").unwrap();
-        static ref R_GIT_LAB_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?raw$")
-                .unwrap();
-        static ref R_BIT_BUCKET_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/raw$").unwrap();
-    }
+    static R_GIT_HUB_PATH: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)$").unwrap());
+    static R_GIT_LAB_PATH: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?raw$").unwrap()
+    });
+    static R_BIT_BUCKET_PATH: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/raw$").unwrap());
 
     let url = check_public_url(environment, value, false, false)?;
     let hosting_type = eval_hosting_type(environment, &url);
@@ -607,15 +613,13 @@ fn validate_repo_raw_versioned_prefix_url(environment: &mut Environment, value: 
 
 /// See also `sources::try_construct_file_prefix_url`.
 fn validate_repo_versioned_file_prefix_url(environment: &mut Environment, value: &str) -> Result {
-    lazy_static! {
-        static ref R_GIT_HUB_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/blob$").unwrap();
-        static ref R_GIT_LAB_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?blob$")
-                .unwrap();
-        static ref R_BIT_BUCKET_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/src$").unwrap();
-    }
+    static R_GIT_HUB_PATH: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/blob$").unwrap());
+    static R_GIT_LAB_PATH: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?blob$").unwrap()
+    });
+    static R_BIT_BUCKET_PATH: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/src$").unwrap());
 
     let url = check_public_url(environment, value, false, false)?;
     let hosting_type = eval_hosting_type(environment, &url);
@@ -630,15 +634,13 @@ fn validate_repo_versioned_file_prefix_url(environment: &mut Environment, value:
 
 /// See also `sources::try_construct_file_prefix_url`.
 fn validate_repo_versioned_dir_prefix_url(environment: &mut Environment, value: &str) -> Result {
-    lazy_static! {
-        static ref R_GIT_HUB_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/tree$").unwrap();
-        static ref R_GIT_LAB_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?tree$")
-                .unwrap();
-        static ref R_BIT_BUCKET_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/src$").unwrap();
-    }
+    static R_GIT_HUB_PATH: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/tree$").unwrap());
+    static R_GIT_LAB_PATH: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?tree$").unwrap()
+    });
+    static R_BIT_BUCKET_PATH: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/src$").unwrap());
 
     let url = check_public_url(environment, value, false, false)?;
     let hosting_type = eval_hosting_type(environment, &url);
@@ -653,15 +655,14 @@ fn validate_repo_versioned_dir_prefix_url(environment: &mut Environment, value: 
 
 /// See also `sources::try_construct_commit_prefix_url`.
 fn validate_repo_commit_prefix_url(environment: &mut Environment, value: &str) -> Result {
-    lazy_static! {
-        static ref R_GIT_HUB_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/commit$").unwrap();
-        static ref R_GIT_LAB_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?commit$")
-                .unwrap();
-        static ref R_BIT_BUCKET_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/commits$").unwrap();
-    }
+    static R_GIT_HUB_PATH: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/commit$").unwrap());
+    static R_GIT_LAB_PATH: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?commit$")
+            .unwrap()
+    });
+    static R_BIT_BUCKET_PATH: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/commits$").unwrap());
 
     let url = check_public_url(environment, value, false, false)?;
     let hosting_type = eval_hosting_type(environment, &url);
@@ -675,15 +676,14 @@ fn validate_repo_commit_prefix_url(environment: &mut Environment, value: &str) -
 }
 
 fn validate_repo_issues_url(environment: &mut Environment, value: &str) -> Result {
-    lazy_static! {
-        static ref R_GIT_HUB_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/issues$").unwrap();
-        static ref R_GIT_LAB_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?issues$")
-                .unwrap();
-        static ref R_BIT_BUCKET_PATH: Regex =
-            Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/issues$").unwrap();
-    }
+    static R_GIT_HUB_PATH: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/issues$").unwrap());
+    static R_GIT_LAB_PATH: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"^/(?P<user>[^/]+)/((?P<structure>[^/]+)/)*(?P<repo>[^/]+)/(-/)?issues$")
+            .unwrap()
+    });
+    static R_BIT_BUCKET_PATH: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/issues$").unwrap());
 
     let url = check_public_url(environment, value, false, false)?;
     let hosting_type = eval_hosting_type(environment, &url);
@@ -697,11 +697,11 @@ fn validate_repo_issues_url(environment: &mut Environment, value: &str) -> Resul
 }
 
 fn validate_build_hosting_url(environment: &mut Environment, value: &str) -> Result {
-    lazy_static! {
-        static ref R_GIT_HUB_HOST: Regex = Regex::new(r"^(?P<user>[^/.]+)\.github\.io$").unwrap();
-        static ref R_GIT_LAB_HOST: Regex = Regex::new(r"^(?P<user>[^/.]+)\.gitlab\.io$").unwrap();
-        // NOTE BitBucket does not have this feature, it only supports one "page" repo per user, not per repo
-    }
+    static R_GIT_HUB_HOST: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^(?P<user>[^/.]+)\.github\.io$").unwrap());
+    static R_GIT_LAB_HOST: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^(?P<user>[^/.]+)\.gitlab\.io$").unwrap());
+    // NOTE BitBucket does not have this feature, it only supports one "page" repo per user, not per repo
 
     let url = check_public_url(environment, value, false, false)?;
     let hosting_type = eval_hosting_type_from_hosting_suffix(environment, &url);
@@ -718,9 +718,8 @@ fn validate_name(environment: &mut Environment, value: &str) -> Result {
 }
 
 fn validate_name_machine_readable(environment: &mut Environment, value: &str) -> Result {
-    lazy_static! {
-        static ref R_MACHINE_READABLE: Regex = Regex::new(r"^[0-9a-zA-Z_-]+$").unwrap();
-    }
+    static R_MACHINE_READABLE: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^[0-9a-zA-Z_-]+$").unwrap());
 
     check_empty(environment, value, "Project name (machine-readable)")?;
     if R_MACHINE_READABLE.is_match(value) {

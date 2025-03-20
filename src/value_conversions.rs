@@ -2,24 +2,21 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+use crate::environment::Environment;
+use crate::tools::git::TransferProtocol;
+use crate::tools::git_clone_url;
+use crate::tools::git_hosting_provs::{HostingType, PublicSite};
+use crate::var::Key;
+use crate::{constants, std_error};
+use chrono::DateTime;
+use regex::Regex;
 use std::borrow::Cow;
 use std::ffi::OsStr;
 use std::path::PathBuf;
 use std::str::FromStr;
-
-use crate::tools::git::TransferProtocol;
-use crate::tools::git_clone_url;
-use crate::tools::git_hosting_provs::{HostingType, PublicSite};
-use chrono::DateTime;
+use std::sync::LazyLock;
 use thiserror::Error;
-
-use lazy_static::lazy_static;
-use regex::Regex;
 use url::Url;
-
-use crate::environment::Environment;
-use crate::var::Key;
-use crate::{constants, std_error};
 
 type Res = Result<Option<String>, Error>;
 
@@ -92,9 +89,7 @@ pub fn slug_to_proj_name(slug: Option<&String>) -> Res {
 ///
 /// If the resulting name is empty.
 pub fn name_to_machine_readable_name(_environment: &Environment, human_name: &str) -> Res {
-    lazy_static! {
-        static ref R_BAD_CHAR: Regex = Regex::new(r"[^0-9a-zA-Z_-]").unwrap();
-    }
+    static R_BAD_CHAR: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"[^0-9a-zA-Z_-]").unwrap());
 
     let machine_name = R_BAD_CHAR.replace_all(human_name, "_");
     if machine_name.is_empty() {
@@ -115,9 +110,7 @@ pub fn name_to_machine_readable_name(_environment: &Environment, human_name: &st
 ///
 /// If an attempt to try fetching any required property returned an error.
 pub fn web_url_to_machine_readable_name(_environment: &Environment, web_url: &str) -> Res {
-    lazy_static! {
-        static ref R_NAME_EXTRACTOR: Regex = Regex::new(r"^.*/").unwrap();
-    }
+    static R_NAME_EXTRACTOR: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^.*/").unwrap());
 
     let machine_name = R_NAME_EXTRACTOR.replace(web_url, "");
     if machine_name.as_ref() == web_url {
@@ -551,9 +544,7 @@ pub fn clone_url_conversion(
     environment: &Environment,
     protocol: TransferProtocol,
 ) -> Res {
-    lazy_static! {
-        static ref R_HOST_PREFIX: Regex = Regex::new(r"^(git|ssh)\.").unwrap(); // TODO This is RocketGit specific -> ranme and move to constants?
-    }
+    static R_HOST_PREFIX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(git|ssh)\.").unwrap()); // TODO This is RocketGit specific -> rename and move to constants?
 
     let clone_url_parts = git_clone_url::PartsRef::parse(any_clone_url).map_err(|err_str| {
         let scheme = protocol.scheme_str();
@@ -937,9 +928,7 @@ pub fn web_url_to_clone_url(
     web_url: &str,
     protocol: TransferProtocol,
 ) -> Res {
-    lazy_static! {
-        static ref R_SLASH_AT_END: Regex = Regex::new(r"^(.+?)/?$").unwrap();
-    }
+    static R_SLASH_AT_END: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(.+?)/?$").unwrap());
     let key = protocol.to_clone_url_key();
     let http_clone_url = web_url_match(environment, web_url, key, &|mut url| {
         Ok(match environment.settings.hosting_type(&url) {
@@ -1031,9 +1020,7 @@ pub fn web_url_to_clone_url(
 /// # }
 /// ```
 pub fn clone_url_to_web_url(environment: &Environment, any_clone_url: &str) -> Res {
-    lazy_static! {
-        static ref R_DOT_GIT_SUFFIX: Regex = Regex::new(r"\.git$").unwrap();
-    }
+    static R_DOT_GIT_SUFFIX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\.git$").unwrap());
 
     match clone_url_conversion(any_clone_url, environment, TransferProtocol::Https)? {
         Some(https_clone_url) => {

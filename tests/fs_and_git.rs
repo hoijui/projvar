@@ -10,18 +10,20 @@ use common::StrMatcher;
 use common::R_BOOL;
 use common::R_DATE_TIME;
 use common::R_NON_EMPTY;
-use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::LazyLock;
 
 use crate::repo_creation::create_repo;
 
-lazy_static! {
-    pub static ref R_CLONE_URL: Regex = Regex::new(r"^(((https|ssh)://github\.com/hoijui/projvar(\.git)?)|((git@)github\.com:hoijui/projvar(\.git)?))$").unwrap();
-    pub static ref R_CLONE_URL_HTTP: Regex = Regex::new(r"^https://github\.com/hoijui/projvar(\.git)?$").unwrap();
-    pub static ref R_CLONE_URL_SSH: Regex = Regex::new(r"^ssh://(git@)github\.com/hoijui/projvar(\.git)?$").unwrap();
-}
+static R_CLONE_URL: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^(((https|ssh)://github\.com/hoijui/projvar(\.git)?)|((git@)github\.com:hoijui/projvar(\.git)?))$").unwrap()
+});
+static R_CLONE_URL_HTTP: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^https://github\.com/hoijui/projvar(\.git)?$").unwrap());
+static R_CLONE_URL_SSH: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^ssh://(git@)github\.com/hoijui/projvar(\.git)?$").unwrap());
 
 fn setup() -> BoxResult<(PathBuf, HashMap<&'static str, &'static str>)> {
     let repo_dir = create_repo!(

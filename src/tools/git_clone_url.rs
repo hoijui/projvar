@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use lazy_static::lazy_static;
 use regex::Regex;
+use std::sync::LazyLock;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct PartsRef<'a> {
@@ -44,13 +44,13 @@ impl<'a> PartsRef<'a> {
     where
         'b: 'a,
     {
-        lazy_static! {
-            // This matches all these 3 types of clone URLs:
-            // * git@github.com:hoijui/rust-project-scripts.git
-            // * ssh://github.com/hoijui/rust-project-scripts.git
-            // * https://github.com/hoijui/rust-project-scripts.git
-            static ref R_CLONE_URL: Regex = Regex::new(r"^((?P<protocol>[0-9a-zA-Z._-]+)://)?((?P<user>[0-9a-zA-Z._-]+)@)?(?P<host>[0-9a-zA-Z._-]+)([/:](?P<path_and_rest>.+)?)?$").unwrap();
-        }
+        // This matches all these 3 types of clone URLs:
+        // * git@github.com:hoijui/rust-project-scripts.git
+        // * ssh://github.com/hoijui/rust-project-scripts.git
+        // * https://github.com/hoijui/rust-project-scripts.git
+        static R_CLONE_URL: LazyLock<Regex> = LazyLock::new(|| {
+            Regex::new(r"^((?P<protocol>[0-9a-zA-Z._-]+)://)?((?P<user>[0-9a-zA-Z._-]+)@)?(?P<host>[0-9a-zA-Z._-]+)([/:](?P<path_and_rest>.+)?)?$").unwrap()
+        });
 
         R_CLONE_URL
             .captures(any_clone_url.as_ref())

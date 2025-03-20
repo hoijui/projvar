@@ -2,11 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use std::fmt;
-
 use askalono::{Store, TextData};
-use lazy_static::lazy_static;
 use std::{ffi::OsStr, fs};
+use std::{fmt, sync::LazyLock};
 
 const LICENSE_FILE_PREFIXES: [&str; 3] = ["LICENSE", "LICENCE", "COPYING"];
 
@@ -86,9 +84,7 @@ pub fn validate_spdx_expr(expr: &str) -> Result<(), Error> {
 }
 
 pub fn get_licenses(dir: &str) -> Result<Vec<String>, std::io::Error> {
-    lazy_static! {
-        static ref DIR_LICENSES_EXTRACTOR: Detector = Detector::new();
-    }
+    static DIR_LICENSES_EXTRACTOR: LazyLock<Detector> = LazyLock::new(Detector::new);
 
     log::trace!("Fetching licenses from (REUSE-dir) '{}' OUTSIDE ...", dir);
     DIR_LICENSES_EXTRACTOR.get_licenses(dir)

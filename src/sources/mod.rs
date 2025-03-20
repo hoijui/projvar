@@ -14,11 +14,10 @@ pub mod selector;
 pub mod travis_ci;
 
 use std::path::Path;
+use std::sync::LazyLock;
 
 use cli_utils::{BoxError, BoxResult};
 use thiserror::Error;
-
-use lazy_static::lazy_static;
 
 use crate::environment::Environment;
 use crate::var::{Confidence, Key, C_HIGH};
@@ -34,9 +33,7 @@ pub enum Hierarchy {
     Top,
 }
 
-lazy_static! {
-    static ref NO_PROPS: Vec::<String> = Vec::<String>::new();
-}
+static NO_PROPS: LazyLock<Vec<String>> = LazyLock::new(Vec::<String>::new);
 
 /// This enumerates all possible errors returned by this module.
 #[derive(Error, Debug)]

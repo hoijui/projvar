@@ -54,7 +54,6 @@ git2 = { version = "0.20", default-features = false } # "default-features = fals
 gix-url = "0.29"
 # git-url-parse = "0.4"
 human-panic = "2.0"
-lazy_static = "1.4"
 log = "0.4"
 proc-macro2 = "1.0"
 regex = "1.10"

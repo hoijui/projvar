@@ -6,12 +6,12 @@ use chrono::DateTime;
 use chrono::NaiveDateTime;
 use chrono::Utc;
 use git2::{self, Repository};
-use lazy_static::lazy_static;
 use regex::Regex;
 use std::convert::TryFrom;
 use std::path::Path;
 use std::path::PathBuf;
 use std::str;
+use std::sync::LazyLock;
 use thiserror::Error;
 
 use crate::var::Key;
@@ -91,9 +91,8 @@ impl TransferProtocol {
 /// and Git cannot determine if there is local modification.
 #[must_use]
 pub fn is_git_broken_version(vers: &str) -> bool {
-    lazy_static! {
-        static ref R_BROKEN_VERSION: Regex = Regex::new(r"^[^-].+(-dirty)?-broken(-.+)?$").unwrap();
-    }
+    static R_BROKEN_VERSION: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^[^-].+(-dirty)?-broken(-.+)?$").unwrap());
     R_BROKEN_VERSION.is_match(vers)
 }
 
@@ -101,10 +100,8 @@ pub fn is_git_broken_version(vers: &str) -> bool {
 /// Dirty means, there are uncommitted changes.
 #[must_use]
 pub fn is_git_dirty_version(vers: &str) -> bool {
-    lazy_static! {
-        // static ref R_DIRTY_VERSION: Regex = Regex::new(r"^.+(-broken)?-dirty(-.+)?$").unwrap();
-        static ref R_DIRTY_VERSION: Regex = Regex::new(r"^[^-].+(-broken)?-dirty(-.+)?$").unwrap();
-    }
+    static R_DIRTY_VERSION: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^[^-].+(-broken)?-dirty(-.+)?$").unwrap());
     R_DIRTY_VERSION.is_match(vers)
 }
 
