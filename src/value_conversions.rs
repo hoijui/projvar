@@ -71,7 +71,7 @@ pub enum Error {
 pub fn slug_to_proj_name(slug: Option<&String>) -> Res {
     slug.map(|slug|
         slug.split('/')
-            .last()
+            .next_back()
             .map(ToOwned::to_owned)
             .ok_or_else(|| Error::BadInputValue {
                 key: Key::NameMachineReadable,
