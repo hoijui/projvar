@@ -6,6 +6,7 @@ use cli_utils::BoxResult;
 use enum_map::Enum;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use std::fmt::Write;
 use std::{
     borrow::Cow,
     collections::{HashMap, HashSet},
@@ -335,12 +336,14 @@ pub fn list_keys(environment: &Environment) -> String {
     for key in Key::iter() {
         let var = get(key);
         let def = if var.default_required { "[x]" } else { "[ ]" };
-        table.push_str(&format!(
-            "| {} | `{}` | {} |\n",
+        writeln!(
+            table,
+            "| {} | `{}` | {} |",
             def,
             var.key(environment),
             var.description
-        ));
+        )
+        .expect("Out of memory(?)");
     }
     table.push('\n');
 
