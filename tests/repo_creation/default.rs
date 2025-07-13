@@ -10,11 +10,12 @@ use super::RepoCreationError;
 
 pub fn create(repo_dir: &Path) -> Result<(), RepoCreationError> {
     let license_text = include_str!("../../LICENSE.txt");
+    let repo_dir_str = repo_dir.display();
     run_cmd! (
         // Re-create the repo from scratch
-        rm -Rf "$repo_dir";
-        mkdir -p "$repo_dir";
-        cd "$repo_dir";
+        rm -Rf "$repo_dir_str";
+        mkdir -p "$repo_dir_str";
+        cd "$repo_dir_str";
         git init;
 
         // Sets the git user details (required for committing)
