@@ -51,7 +51,7 @@ const_format = "0.2"
 enum-map = "2.7"
 git-version = "0.3"
 git2 = { version = "0.20", default-features = false } # "default-features = false" is required for MUSL compatibility, to get rid of OpenSSL
-gix-url = "0.29"
+gix-url = "0.31"
 # git-url-parse = "0.4"
 human-panic = "2.0"
 log = "0.4"
@@ -76,10 +76,10 @@ reqwest = { version = "0.12", default-features = false, features = ["blocking", 
 
 [dev-dependencies]
 assert_cmd = "2.0"
-assert_fs = "1.0"
+assert_fs = "1.1"
 cmd_lib = "1.9"
 const-fnv1a-hash = "1.1"
 directories = "6.0"
-fake = { version = "4.0", features = ['chrono', 'uuid'] }
+fake = { version = "4.3", features = ['chrono', 'uuid'] }
 predicates = "3.0"
-uuid = "1.6"
+uuid = "1.17"

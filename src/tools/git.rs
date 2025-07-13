@@ -3,8 +3,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use chrono::DateTime;
-use chrono::NaiveDateTime;
-use chrono::Utc;
 use git2::{self, Repository};
 use regex::Regex;
 use std::convert::TryFrom;
@@ -525,12 +523,10 @@ and there is no commit checked out either",
                 ),
             })?
             .time();
-        let commit_time_chrono = DateTime::<Utc>::from_utc(
-            NaiveDateTime::from_timestamp_opt(commit_time_git2.seconds(), 0).ok_or_else(|| {
+        let commit_time_chrono = DateTime::from_timestamp(commit_time_git2.seconds(), 0)
+            .ok_or_else(|| {
                 Error::from("Failed to peal HEAD to commit for figuring out the commit date")
-            })?,
-            Utc,
-        );
+            })?;
         Ok(commit_time_chrono.format(date_format).to_string())
         // date.fromtimestamp(repo.head.ref.commit.committed_date).strftime(date_format)
     }
