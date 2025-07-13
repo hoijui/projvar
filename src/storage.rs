@@ -114,7 +114,7 @@ impl Storage {
                 table.push('\n');
             }
         }
-        log::trace!("Table size (in chars), estimated: {}", table_chars_estimate);
+        log::trace!("Table size (in chars), estimated: {table_chars_estimate}");
         log::trace!("Table size (in chars), actual:    {}", table.len());
         table
     }
@@ -161,7 +161,7 @@ impl Storage {
 
     /// Builds a sorted list of all the keys with associated:
     /// variable meta-data, confidence, primary value
-    pub fn get_wrapup(&self) -> Vec<Value> {
+    pub fn get_wrapup(&self) -> Vec<Value<'_>> {
         let mut wrapup: Vec<Value> = self
             .key_primary
             .iter()

@@ -31,7 +31,7 @@ fn log_retrieved(environment: &Environment, sources: &[Box<dyn VarSource>]) -> B
     if let (Some(retr_content), target) = retrieved {
         match target {
             None => {
-                log::info!("Raw, Retrieved values from sources:\n\n{}", retr_content,);
+                log::info!("Raw, Retrieved values from sources:\n\n{retr_content}");
             }
             Some(path) => {
                 fs::write(path, retr_content)?;
@@ -44,17 +44,15 @@ fn log_retrieved(environment: &Environment, sources: &[Box<dyn VarSource>]) -> B
 fn key_missing(environment: &mut Environment, key: Key) -> BoxResult<()> {
     let required = environment.settings.required_keys.contains(&key);
     if required {
-        log::warn!("Missing value for required key '{:?}'", key);
+        log::warn!("Missing value for required key '{key:?}'");
         if matches!(environment.settings.fail_on, FailOn::AnyMissingValue) {
             return Err(validator::Error::Missing(key).into());
         }
     } else {
-        log::debug!("Missing value for optional key '{:?}'", key);
+        log::debug!("Missing value for optional key '{key:?}'");
         if let Some((_confidence, value)) = environment.output.remove(key) {
             log::warn!(
-                "\tDiscarded {:?}='{}', because it was evaluated as a 'missing' value",
-                key,
-                value
+                "\tDiscarded {key:?}='{value}', because it was evaluated as a 'missing' value"
             );
         }
     }
@@ -100,7 +98,7 @@ pub fn run(
             for key in Key::iter() {
                 let rated_value = source.retrieve(environment, key)?;
                 if let Some((confidence, value)) = rated_value {
-                    log::trace!("\tFetched {:?}='{}'", key, value);
+                    log::trace!("\tFetched {key:?}='{value}'");
                     environment.output.add(key, source_index, confidence, value);
                 }
             }
@@ -114,17 +112,17 @@ pub fn run(
     for key in Key::iter() {
         match output.get(key) {
             Some((_confidence, value)) => {
-                log::trace!("Validating value for key '{:?}': '{}'", key, value);
+                log::trace!("Validating value for key '{key:?}': '{value}'");
                 let validation_res = validator::get(key)(environment, value);
                 match validation_res {
                     Ok(validity) => {
-                        log::debug!("Validation result for key '{:?}': {:?}", key, validity);
+                        log::debug!("Validation result for key '{key:?}': {validity:?}");
                         if matches!(validity, Validity::Missing) {
                             key_missing(environment, key)?;
                         }
                     }
                     Err(err) => {
-                        log::error!("Validation result for key '{:?}': {:?}", key, err);
+                        log::error!("Validation result for key '{key:?}': {err:?}");
                         return Err(Box::new(err));
                     }
                 }
@@ -165,9 +163,9 @@ pub fn run(
     };
 
     for ref sink in sinks {
-        log::trace!("Checking if sink {} is usable ...", sink);
+        log::trace!("Checking if sink {sink} is usable ...");
         if sink.is_usable(environment) {
-            log::trace!("Storing to sink {} ...", sink);
+            log::trace!("Storing to sink {sink} ...");
             sink.store(environment, &sink_values)?;
         }
     }

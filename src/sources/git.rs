@@ -15,7 +15,7 @@ fn version(environment: &mut Environment) -> RetrieveRes {
     Ok(match environment.repo() {
         Some(repo) => {
             let sc_version = repo.version().or_else(|err| {
-                log::warn!("Failed to git describe (\"{}\"), using SHA instead", err);
+                log::warn!("Failed to git describe (\"{err}\"), using SHA instead");
                 repo.sha()
                     .and_then(|v| v.ok_or_else(|| "No SHA available to serve as version".into()))
             })?;

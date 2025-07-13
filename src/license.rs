@@ -86,7 +86,7 @@ pub fn validate_spdx_expr(expr: &str) -> Result<(), Error> {
 pub fn get_licenses(dir: &str) -> Result<Vec<String>, std::io::Error> {
     static DIR_LICENSES_EXTRACTOR: LazyLock<Detector> = LazyLock::new(Detector::new);
 
-    log::trace!("Fetching licenses from (REUSE-dir) '{}' OUTSIDE ...", dir);
+    log::trace!("Fetching licenses from (REUSE-dir) '{dir}' OUTSIDE ...");
     DIR_LICENSES_EXTRACTOR.get_licenses(dir)
 }
 
@@ -126,7 +126,7 @@ impl Detector {
                 .any(|&lf_prefix| file_name.as_ref().starts_with(lf_prefix))
         }
 
-        log::trace!("Looking for license files in '{}' ...", dir);
+        log::trace!("Looking for license files in '{dir}' ...");
         let mut output = fs::read_dir(dir)?
             .filter_map(std::result::Result::ok)
             .map(|entry| entry.path())

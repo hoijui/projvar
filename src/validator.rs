@@ -173,8 +173,7 @@ and actually a left-over from the previous release."
         })
     } else if git::is_git_broken_version(value) {
         log::warn!(
-            "Broken project version '{}'; something is seriously wrong with your git repo",
-            value
+            "Broken project version '{value}'; something is seriously wrong with your git repo"
         );
         Ok(Validity::Suboptimal {
             msg: "This version is broken; something is seriously wrong with your git repo."
@@ -182,10 +181,7 @@ and actually a left-over from the previous release."
             source: None,
         })
     } else if git::is_git_dirty_version(value) {
-        log::warn!(
-            "Dirty project version '{}'; you have uncommitted changes in your project",
-            value
-        );
+        log::warn!("Dirty project version '{value}'; you have uncommitted changes in your project");
         if R_GIT_SHA_PREFIX.is_match(value) {
             Ok(Validity::Low {
                 msg: "This version is technically ok - \

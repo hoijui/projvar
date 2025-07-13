@@ -44,7 +44,7 @@ pub struct Variable {
 
 impl Variable {
     #[must_use]
-    pub fn key(&self, environment: &Environment) -> Cow<str> {
+    pub fn key(&self, environment: &Environment) -> Cow<'_, str> {
         match &environment.settings.key_prefix {
             Some(prefix) => Cow::Owned(prefix.clone() + self.key),
             None => Cow::Borrowed(self.key),
@@ -344,7 +344,7 @@ pub fn list_keys(environment: &Environment) -> String {
     }
     table.push('\n');
 
-    log::trace!("Table size (in chars), estimated: {}", table_chars_estimate);
+    log::trace!("Table size (in chars), estimated: {table_chars_estimate}");
     log::trace!("Table size (in chars), actual:    {}", table.len());
     //assert!(table_chars_estimate >= table.len());
     table

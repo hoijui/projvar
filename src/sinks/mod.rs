@@ -57,7 +57,7 @@ pub fn cli_list(
         sinks.push(Box::new(env::VarSink {}));
     }
     if default_out_file {
-        log::info!("Using the default out file: {}", DEFAULT_FILE_OUT);
+        log::info!("Using the default out file: {DEFAULT_FILE_OUT}");
         sinks.push(Box::new(file::VarSink {
             file: PathBuf::from_str(DEFAULT_FILE_OUT).unwrap(),
         }));
@@ -81,7 +81,7 @@ pub fn cli_list(
         log::warn!("No sinks registered! The results of this run will not be stored anywhere.");
     } else {
         for sink in &sinks {
-            log::trace!("Registered sink {}.", sink);
+            log::trace!("Registered sink {sink}.");
         }
     }
     sinks

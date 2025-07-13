@@ -226,7 +226,7 @@ impl Repo {
         self.local_path().to_str().unwrap().to_owned()
     }
 
-    fn _branch(&self) -> Result<Option<git2::Branch>, Error> {
+    fn _branch(&self) -> Result<Option<git2::Branch<'_>>, Error> {
         let head_ref = self.repo.head().map_err(|from| Error {
             from,
             message: String::from("Failed to convert HEAD into a branch"),
@@ -364,7 +364,7 @@ This may indicate either:
         self._tag()
     }
 
-    fn _remote_tracking_branch(&self) -> Result<Option<git2::Branch>, Error> {
+    fn _remote_tracking_branch(&self) -> Result<Option<git2::Branch<'_>>, Error> {
         if let Some(branch) = self._branch()? {
             match branch.upstream() {
                 Ok(remote_branch) => Ok(Some(remote_branch)),

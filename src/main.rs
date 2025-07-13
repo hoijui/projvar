@@ -554,7 +554,7 @@ fn hosting_type(args: &ArgMatches) -> HostingType {
 
     if log::log_enabled!(log::Level::Debug) {
         let hosting_type_str: &str = hosting_type.into();
-        log::debug!("Hosting-type setting: {}", hosting_type_str);
+        log::debug!("Hosting-type setting: {hosting_type_str}");
     }
 
     hosting_type
@@ -568,7 +568,7 @@ fn overwrite(args: &ArgMatches) -> settings::Overwrite {
 
     if log::log_enabled!(log::Level::Debug) {
         let overwrite_str: &str = overwrite.into();
-        log::debug!("Overwriting output variable values? -> {}", overwrite_str);
+        log::debug!("Overwriting output variable values? -> {overwrite_str}");
     }
 
     overwrite
@@ -612,7 +612,7 @@ fn date_format(args: &ArgMatches) -> &str {
         Some(date_format) => date_format,
         None => tools::git::DATE_FORMAT,
     };
-    log::debug!("Using date format '{}'.", date_format);
+    log::debug!("Using date format '{date_format}'.");
     date_format
 }
 
@@ -662,7 +662,7 @@ fn required_keys(key_prefix: Option<String>, args: &ArgMatches) -> BoxResult<Has
     let required_keys = required_keys;
     if log::log_enabled!(log::Level::Trace) {
         for required_key in &required_keys {
-            log::trace!("Registered required key {:?}.", required_key);
+            log::trace!("Registered required key {required_key:?}.");
         }
     }
 
@@ -707,7 +707,7 @@ fn main() -> BoxResult<()> {
     if args.get_flag(A_L_LIST) {
         let environment = Environment::stub();
         let list = var::list_keys(&environment);
-        log::info!("{}", list);
+        log::info!("{list}");
         return Ok(());
     }
 
@@ -783,7 +783,7 @@ fn main() -> BoxResult<()> {
     // insert CLI supplied variables values
     if let Some(variables) = args.get_many::<(String, String)>(A_L_VARIABLE) {
         for (key, value) in variables {
-            log::trace!("Adding variable from CLI: {}='{}' ...", key, value);
+            log::trace!("Adding variable from CLI: {key}='{value}' ...");
             environment.vars.insert(key.clone(), value.clone());
         }
     }
