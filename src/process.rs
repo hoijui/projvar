@@ -82,8 +82,7 @@ pub fn run(
         if Ordering::Equal == o_hierarchy {
             let o_type = s1.type_name().cmp(s2.type_name());
             if Ordering::Equal == o_type {
-                let o_props = s1.properties().cmp(s2.properties());
-                o_props
+                s1.properties().cmp(s2.properties())
             } else {
                 o_type
             }

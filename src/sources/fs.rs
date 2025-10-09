@@ -107,10 +107,10 @@ fn licenses(
 /// Extracts a single license if there is only a single license,
 /// otherwise returns `None`.
 fn license(environment: &mut Environment) -> Result<Option<String>, std_error::Error> {
-    if let Some(licenses) = licenses(environment, true)? {
-        if licenses.len() == 1 {
-            return Ok(licenses.first().map(ToOwned::to_owned));
-        }
+    if let Some(licenses) = licenses(environment, true)?
+        && licenses.len() == 1
+    {
+        return Ok(licenses.first().map(ToOwned::to_owned));
     }
     Ok(None)
 }

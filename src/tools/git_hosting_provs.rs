@@ -14,7 +14,7 @@ use crate::constants;
 
 use super::git::TransferProtocol;
 
-#[derive(Debug, EnumString, VariantNames, IntoStaticStr, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Default, EnumString, VariantNames, IntoStaticStr, PartialEq, Eq, Clone, Copy)]
 pub enum PublicSite {
     /// <https://github.com> - commercial, free OS hosting, software is proprietary
     GitHubCom,
@@ -33,6 +33,7 @@ pub enum PublicSite {
     /// <https://rocketgit.com> - hosts only OS, software is OSS: `RocketGit`
     SourceForgeNet,
     /// NOTE: The rust masters said, this is better then `Option<None>`!
+    #[default]
     Unknown,
 }
 
@@ -55,12 +56,6 @@ impl PublicSite {
     #[must_use]
     pub fn from_hosting_domain_option(host: Option<&Host<&str>>) -> Self {
         host.map_or(Self::Unknown, Self::from_hosting_domain)
-    }
-}
-
-impl Default for PublicSite {
-    fn default() -> Self {
-        Self::Unknown
     }
 }
 
@@ -100,7 +95,9 @@ impl From<Option<Host<&str>>> for PublicSite {
     }
 }
 
-#[derive(Debug, ValueEnum, EnumString, VariantNames, IntoStaticStr, PartialEq, Eq, Clone, Copy)]
+#[derive(
+    Debug, Default, ValueEnum, EnumString, VariantNames, IntoStaticStr, PartialEq, Eq, Clone, Copy,
+)]
 pub enum HostingType {
     /// <https://github.com> - proprietary
     GitHub,
@@ -119,6 +116,7 @@ pub enum HostingType {
     /// <https://allura.apache.org> - OSS
     Allura,
     /// NOTE: The rust masters said, this is better then `Option<None>`!
+    #[default]
     Unknown,
 }
 
@@ -160,12 +158,6 @@ impl HostingType {
             Self::Gitea | Self::Girocco | Self::Allura | Self::Unknown => "",
             Self::RocketGit => "rocketgit@",
         }
-    }
-}
-
-impl Default for HostingType {
-    fn default() -> Self {
-        Self::Unknown
     }
 }
 

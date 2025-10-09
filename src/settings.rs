@@ -16,6 +16,7 @@ use crate::{
 
 #[derive(
     Debug,
+    Default,
     ValueEnum,
     EnumString,
     VariantNames,
@@ -31,15 +32,10 @@ pub enum Verbosity {
     None,
     Errors,
     Warnings,
+    #[default]
     Info,
     Debug,
     Trace,
-}
-
-impl Default for Verbosity {
-    fn default() -> Self {
-        Self::Info
-    }
 }
 
 static VARIANTS_LIST: LazyLock<Vec<Verbosity>> = LazyLock::new(|| Verbosity::iter().collect());
@@ -72,8 +68,9 @@ impl From<bool> for Verbosity {
     }
 }
 
-#[derive(Debug, ValueEnum, EnumString, VariantNames, IntoStaticStr, Clone, Copy)]
+#[derive(Debug, Default, ValueEnum, EnumString, VariantNames, IntoStaticStr, Clone, Copy)]
 pub enum Overwrite {
+    #[default]
     All,
     None,
     Main,
@@ -95,12 +92,6 @@ impl Overwrite {
             Self::All | Self::Alternative => true,
             Self::None | Self::Main => false,
         }
-    }
-}
-
-impl Default for Overwrite {
-    fn default() -> Self {
-        Self::All
     }
 }
 
