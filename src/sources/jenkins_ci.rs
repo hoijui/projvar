@@ -4,12 +4,12 @@
 
 use crate::cleanup;
 use crate::environment::Environment;
-use crate::var::Key;
 use crate::var::C_HIGH;
+use crate::var::Key;
 
-use super::var;
 use super::Hierarchy;
 use super::RetrieveRes;
+use super::var;
 
 /// This sources values from the environment variables set by the CI provider Jenkins.
 pub struct VarSource;

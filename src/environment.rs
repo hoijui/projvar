@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use crate::settings::{Settings, STUB};
+use crate::settings::{STUB, Settings};
 use crate::storage::Storage;
 use crate::tools::git;
 use std::collections::HashMap;

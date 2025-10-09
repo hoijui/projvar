@@ -4,8 +4,8 @@
 
 use assert_fs::fixture::FileTouch;
 use cli_utils::BoxResult;
-use fake::uuid::UUIDv5;
 use fake::Fake;
+use fake::uuid::UUIDv5;
 use projvar::var;
 use regex::Regex;
 use uuid::Uuid;

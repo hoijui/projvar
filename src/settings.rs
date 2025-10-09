@@ -68,11 +68,7 @@ impl Verbosity {
 
 impl From<bool> for Verbosity {
     fn from(verbose: bool) -> Self {
-        if verbose {
-            Self::Info
-        } else {
-            Self::Warnings
-        }
+        if verbose { Self::Info } else { Self::Warnings }
     }
 }
 

@@ -4,12 +4,12 @@
 
 use crate::environment::Environment;
 use crate::var;
-use crate::var::Key;
 use crate::var::C_HIGH;
+use crate::var::Key;
 
-use super::var;
 use super::Hierarchy;
 use super::RetrieveRes;
+use super::var;
 
 /// Sources from environment variables
 /// with the same names as the those used for output.

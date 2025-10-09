@@ -9,7 +9,7 @@ use crate::cleanup;
 use crate::environment::Environment;
 use crate::license;
 use crate::std_error;
-use crate::var::{Confidence, Key, C_HIGH, C_LOW};
+use crate::var::{C_HIGH, C_LOW, Confidence, Key};
 use std::path::{Path, PathBuf};
 use std::{env, fs};
 

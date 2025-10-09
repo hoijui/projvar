@@ -8,7 +8,7 @@ mod repo_creation;
 use std::{collections::HashMap, path::PathBuf};
 
 use cli_utils::BoxResult;
-use common::{StrMatcher, R_DATE_TIME, R_NON_EMPTY};
+use common::{R_DATE_TIME, R_NON_EMPTY, StrMatcher};
 
 use crate::repo_creation::create_repo;
 

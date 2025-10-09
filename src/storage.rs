@@ -28,11 +28,7 @@ pub struct Storage {
 /// leaves it as-is otherwise.
 macro_rules! quote_empty {
     ($value:expr) => {
-        if $value.is_empty() {
-            "\"\""
-        } else {
-            $value
-        }
+        if $value.is_empty() { "\"\"" } else { $value }
     };
 }
 

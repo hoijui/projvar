@@ -10,7 +10,7 @@ extern crate remain;
 extern crate url;
 
 use clap::builder::ValueParser;
-use clap::{command, value_parser, Arg, ArgAction, ArgMatches, Command, ValueHint};
+use clap::{Arg, ArgAction, ArgMatches, Command, ValueHint, command, value_parser};
 use cli_utils::BoxResult;
 use const_format::formatcp;
 use regex::Regex;

@@ -18,7 +18,7 @@ homepage = "https://github.com/hoijui/projvar"
 keywords = ["cli", "ci", "utility", "parsing", "git"]
 categories = ["command-line-utilities", "filesystem", "text-processing"]
 readme = "README.md"
-edition = "2021"
+edition = "2024"
 
 [lints.rust]
 rust_2021_compatibility = { level = "warn", priority = -1 }

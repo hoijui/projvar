@@ -20,7 +20,7 @@ use cli_utils::{BoxError, BoxResult};
 use thiserror::Error;
 
 use crate::environment::Environment;
-use crate::var::{Confidence, Key, C_HIGH};
+use crate::var::{C_HIGH, Confidence, Key};
 use crate::{cleanup, std_error, tools, validator, value_conversions};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]

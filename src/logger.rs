@@ -8,10 +8,9 @@ use crate::settings::Verbosity;
 use cli_utils::BoxResult;
 use tracing::metadata::LevelFilter;
 use tracing_subscriber::{
-    fmt,
+    Registry, fmt,
     prelude::*,
     reload::{self, Handle},
-    Registry,
 };
 
 const fn verbosity_to_level(verbosity: Verbosity) -> LevelFilter {

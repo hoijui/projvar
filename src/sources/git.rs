@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::environment::Environment;
-use crate::var::{Key, C_HIGH};
+use crate::var::{C_HIGH, Key};
 
 use super::{Hierarchy, RetrieveRes};
 
