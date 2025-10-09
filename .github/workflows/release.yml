@@ -55,7 +55,7 @@ jobs:
           submodules: true
 
       - name: "Mark the build scripts as Git-ignored, locally"
-        run: if ! grep -q -r "^/run/rp/\$" .git/info/exclude; then echo '/run/rp/' >> .git/info/exclude; fi
+        run: run/rp/setup --skip-update
 
       - name: "Install STOML (BASH TOML parser)"
         run: run/rp/install_stoml
@@ -127,7 +127,7 @@ jobs:
         submodules: true
 
     - name: "Mark the build scripts as Git-ignored, locally"
-      run: if ! grep -q -r "^/run/rp/\$" .git/info/exclude; then echo '/run/rp/' >> .git/info/exclude; fi
+      run: run/rp/setup --skip-update
 
     - name: "Install STOML (BASH TOML parser)"
       run: |
