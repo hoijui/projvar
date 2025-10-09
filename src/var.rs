@@ -496,8 +496,8 @@ const VAR_REPO_COMMIT_PREFIX_URL: Variable = Variable {
     description: // TODO Elaborate the "Add commit SHA" part
         "The repo commit prefix URL. \
         Add commit SHA. \
-        The part in []: \
-        [https://github.com/hoijui/nim-ci/commit]/23f84b91]",
+        The part in `[...]`: \
+        `[https://github.com/hoijui/nim-ci/commit]/23f84b91`",
     default_required: true,
 };
 const VAR_REPO_ISSUES_URL: Variable = Variable {
