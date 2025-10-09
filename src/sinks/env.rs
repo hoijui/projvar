@@ -20,7 +20,9 @@ impl super::VarSink for VarSink {
         for (_key, var, (_confidence, value)) in values {
             let key = var.key(environment);
             if environment.settings.overwrite.main() || env::var(&*key).is_err() {
-                env::set_var(&*key, value);
+                unsafe {
+                    env::set_var(&*key, value);
+                }
             }
         }
         Ok(())
