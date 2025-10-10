@@ -276,7 +276,7 @@ fn validate_license(environment: &mut Environment, value: &str) -> Result {
                         source: Some(Box::new(err)),
                     }),
                     license::Error::NotApproved(_) => Ok(Validity::Low {
-                        // TODO We are loosing the detailed info here!
+                        // TODO We are losing the detailed info here!
                         msg: "Not only approved licenses".to_owned(),
                     }),
                 }
