@@ -271,10 +271,14 @@ fn validate_license(environment: &mut Environment, value: &str) -> Result {
                         msg: "Not a recognized SPDX license identifier".to_owned(),
                         source: Some(Box::new(err)),
                     }),
-                    license::Error::ParsingFailed(_) => Ok(Validity::Suboptimal {
-                        msg: "Not a valid SPDX license expression".to_owned(),
-                        source: Some(Box::new(err)),
-                    }),
+                    license::Error::ParsingFailed(spdx::ParseError { ref reason, .. }) => {
+                        Ok(Validity::Suboptimal {
+                            msg: format!(
+                                "Not a valid SPDX license expression (reason: {reason:?})"
+                            ),
+                            source: Some(Box::new(err)),
+                        })
+                    }
                     license::Error::NotApproved(_) => Ok(Validity::Low {
                         // TODO We are losing the detailed info here!
                         msg: "Not only approved licenses".to_owned(),
