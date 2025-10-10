@@ -1038,18 +1038,18 @@ mod tests {
     #[test]
     fn test_validate_license() {
         let mut environment = Environment::stub();
-        assert!(is_good(validate_license(&mut environment, "GPL-3.0")));
-        assert!(is_high(validate_license(&mut environment, "GPL-3.0")));
+        assert!(is_good(validate_license(&mut environment, "GPL-3.0-only")));
+        assert!(is_high(validate_license(&mut environment, "GPL-3.0-only")));
         assert!(is_good(validate_license(
             &mut environment,
             "GPL-3.0-or-later"
         )));
-        assert!(is_good(validate_license(&mut environment, "GPL-2.0")));
+        assert!(is_good(validate_license(&mut environment, "GPL-2.0-only")));
         assert!(is_good(validate_license(
             &mut environment,
             "GPL-2.0-or-later"
         )));
-        assert!(is_good(validate_license(&mut environment, "AGPL-3.0")));
+        assert!(is_good(validate_license(&mut environment, "AGPL-3.0-only")));
         assert!(is_good(validate_license(
             &mut environment,
             "AGPL-3.0-or-later"
@@ -1058,6 +1058,11 @@ mod tests {
         assert!(is_low(validate_license(&mut environment, "CC0-1.0")));
         assert!(is_suboptimal(validate_license(&mut environment, "CC0-2.0")));
         assert!(is_suboptimal(validate_license(&mut environment, "CC02.0")));
+        assert!(is_suboptimal(validate_license(&mut environment, "GPL-3.0")));
+        assert!(is_suboptimal(validate_license(
+            &mut environment,
+            "AGPL-3.0"
+        )));
         assert!(is_suboptimal(validate_license(&mut environment, "GPL")));
         assert!(is_suboptimal(validate_license(&mut environment, "AGPL")));
         assert!(is_suboptimal(validate_license(
