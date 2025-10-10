@@ -53,7 +53,10 @@ fn file_content(path: &Path) -> RetrieveRes {
 fn licenses_from_dir(repo_path: &Path) -> Result<Option<Vec<String>>, std_error::Error> {
     let licenses_dir = repo_path.join("LICENSES");
     if licenses_dir.is_dir() {
-        log::trace!("Fetching (REUSE) licenses from {licenses_dir:#?} ...");
+        log::trace!(
+            "Fetching (REUSE) licenses from {} ...",
+            licenses_dir.display()
+        );
         let mut licenses = Vec::<String>::new();
         for file in licenses_dir.read_dir()? {
             let file_name = file?.file_name();
