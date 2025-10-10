@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+#[cfg(feature = "env-sink")]
 pub mod env;
 pub mod file;
 pub mod json;
@@ -54,7 +55,13 @@ pub fn cli_list(
 ) -> Vec<Box<dyn VarSink>> {
     let mut sinks: Vec<Box<dyn VarSink>> = vec![];
     if env_out {
+        #[cfg(feature = "env-sink")]
         sinks.push(Box::new(env::VarSink {}));
+        #[cfg(not(feature = "env-sink"))]
+        log::error!(
+            "This release was compiled without the `env-sink` feature, \
+so we can not write to the environment!"
+        );
     }
     if default_out_file {
         log::info!("Using the default out file: {DEFAULT_FILE_OUT}");

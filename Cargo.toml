@@ -20,6 +20,10 @@ categories = ["command-line-utilities", "filesystem", "text-processing"]
 readme = "README.md"
 edition = "2024"
 
+[features]
+default = []
+env-sink = []
+
 [lints.rust]
 rust_2021_compatibility = { level = "warn", priority = -1 }
 
