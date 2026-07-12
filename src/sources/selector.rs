@@ -86,7 +86,7 @@ impl super::VarSource for VarSource {
                         entry.1.1,
                     );
                     log::trace!("    ... evaluated from (validity, confidence, source_index): ({:?}, {}, {})",
-                        &entry.2,
+                        entry.2,
                         entry.1 .0,
                         entry.0
                     );

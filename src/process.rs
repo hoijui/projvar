@@ -147,7 +147,7 @@ pub fn run(
                 variable.key(environment),
                 confidence,
                 sinking,
-                &value
+                value
             );
         }
     }
