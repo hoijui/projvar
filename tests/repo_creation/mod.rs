@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+// SPDX-FileCopyrightText: 2021 - 2026 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -32,7 +32,7 @@ macro_rules! create_repo {
             .join("repos")
             .join($creation_code_file);
 
-        let code_hash_file = format!("{}.chechsum.txt", repo_dir.display());
+        let code_hash_file = format!("{}.checksum.txt", repo_dir.display());
         let code_hash_on_fs = std::fs::read_to_string(code_hash_file).ok();
         let code_hash_we_want = crate::repo_creation::hash_file!($creation_code_file);
         if code_hash_on_fs
