@@ -596,7 +596,7 @@ pub fn clone_url_conversion(
     let scheme = protocol.scheme_str();
     Ok(Some(match protocol {
         TransferProtocol::Https | TransferProtocol::Git => {
-            format!("{scheme}://{host}/{path_and_rest}",)
+            format!("{scheme}://{host}/{path_and_rest}")
         }
         TransferProtocol::Ssh => {
             let host_path_sep = if host == constants::D_GIT_SOURCE_HUT {
