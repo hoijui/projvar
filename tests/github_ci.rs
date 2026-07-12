@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+// SPDX-FileCopyrightText: 2021 - 2026 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -48,89 +48,64 @@ fn setup() -> BoxResult<HashMap<&'static str, &'static str>> {
     ]))
 }
 
-fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>> {
+fn expected_pats() -> BoxResult<HashMap<&'static str, (&'static dyn StrMatcher, bool)>> {
     let vars = vec![
         (
             "PROJECT_BUILD_BRANCH",
             (
-                Box::new(&"feature-branch-1" as &'static dyn StrMatcher)
-                    as Box<&'static dyn StrMatcher>,
+                &"feature-branch-1" as &'static dyn StrMatcher as &'static dyn StrMatcher,
                 true,
             ),
         ),
         (
             "PROJECT_BUILD_HOSTING_URL",
-            (Box::new(&"https://octocat.github.io/Hello-World"), true),
+            (&"https://octocat.github.io/Hello-World", true),
         ),
-        ("PROJECT_CI", (Box::new(&"true"), true)),
-        ("PROJECT_NAME", (Box::new(&"Hello-World"), true)),
-        (
-            "PROJECT_NAME_MACHINE_READABLE",
-            (Box::new(&"Hello-World"), true),
-        ),
+        ("PROJECT_CI", (&"true", true)),
+        ("PROJECT_NAME", (&"Hello-World", true)),
+        ("PROJECT_NAME_MACHINE_READABLE", (&"Hello-World", true)),
         (
             "PROJECT_REPO_CLONE_URL",
-            (
-                Box::new(&"https://github.com/octocat/Hello-World.git"),
-                true,
-            ),
+            (&"https://github.com/octocat/Hello-World.git", true),
         ),
         (
             "PROJECT_REPO_CLONE_URL_HTTP",
-            (
-                Box::new(&"https://github.com/octocat/Hello-World.git"),
-                true,
-            ),
+            (&"https://github.com/octocat/Hello-World.git", true),
         ),
         (
             "PROJECT_REPO_CLONE_URL_SSH",
-            (
-                Box::new(&"ssh://git@github.com/octocat/Hello-World.git"),
-                true,
-            ),
+            (&"ssh://git@github.com/octocat/Hello-World.git", true),
         ),
         (
             "PROJECT_REPO_COMMIT_PREFIX_URL",
-            (
-                Box::new(&"https://github.com/octocat/Hello-World/commit"),
-                true,
-            ),
+            (&"https://github.com/octocat/Hello-World/commit", true),
         ),
         (
             "PROJECT_REPO_ISSUES_URL",
-            (
-                Box::new(&"https://github.com/octocat/Hello-World/issues"),
-                true,
-            ),
+            (&"https://github.com/octocat/Hello-World/issues", true),
         ),
         (
             "PROJECT_REPO_RAW_VERSIONED_PREFIX_URL",
             (
-                Box::new(&"https://raw.githubusercontent.com/octocat/Hello-World"),
+                &"https://raw.githubusercontent.com/octocat/Hello-World",
                 true,
             ),
         ),
         (
             "PROJECT_REPO_VERSIONED_DIR_PREFIX_URL",
-            (
-                Box::new(&"https://github.com/octocat/Hello-World/tree"),
-                true,
-            ),
+            (&"https://github.com/octocat/Hello-World/tree", true),
         ),
         (
             "PROJECT_REPO_VERSIONED_FILE_PREFIX_URL",
-            (
-                Box::new(&"https://github.com/octocat/Hello-World/blob"),
-                true,
-            ),
+            (&"https://github.com/octocat/Hello-World/blob", true),
         ),
         (
             "PROJECT_REPO_WEB_URL",
-            (Box::new(&"https://github.com/octocat/Hello-World"), true),
+            (&"https://github.com/octocat/Hello-World", true),
         ),
         (
             "PROJECT_VERSION",
-            (Box::new(&"ffac537e6cbbf934b08745a378932722df287a53"), true),
+            (&"ffac537e6cbbf934b08745a378932722df287a53", true),
         ),
     ];
     Ok(vars.into_iter().collect())

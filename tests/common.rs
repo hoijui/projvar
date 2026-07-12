@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2023 Robin Vobruba <hoijui.quaero@gmail.com>
+// SPDX-FileCopyrightText: 2021 - 2026 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -82,8 +82,8 @@ pub struct Errors {
     pub children: Vec<Error>,
 }
 
-pub fn compare(
-    expected: &HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>,
+pub fn compare<S: ::std::hash::BuildHasher>(
+    expected: &HashMap<&'static str, (&'static dyn StrMatcher, bool), S>,
     actual: &mut HashMap<String, String>,
 ) -> Result<(), Errors> {
     let mut errors = vec![];
@@ -125,7 +125,7 @@ pub fn compare(
 }
 
 fn projvar_test_internal<I, K, V>(
-    expected_pats: &HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>,
+    expected_pats: &HashMap<&'static str, (&'static dyn StrMatcher, bool)>,
     args: &[&str],
     cwd: &Path,
     envs: I,
@@ -151,7 +151,7 @@ where
     let out_file_str = &out_file.display().to_string();
 
     let mut cmd = Command::cargo_bin("projvar")?;
-    cmd.arg("-O").arg(&out_file_str);
+    cmd.arg("-O").arg(out_file_str);
     if debug {
         cmd.arg("-A").arg("/tmp/pv-dbg-out-all.md");
         cmd.arg("-F").arg("trace");
@@ -180,7 +180,7 @@ where
 }
 
 pub fn projvar_test<I, K, V>(
-    expected_pats: &HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>,
+    expected_pats: &HashMap<&'static str, (&'static dyn StrMatcher, bool)>,
     args: &[&str],
     cwd: &Path,
     envs: I,
@@ -194,7 +194,7 @@ where
 }
 
 pub fn projvar_test_clean(
-    expected_pats: &HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>,
+    expected_pats: &HashMap<&'static str, (&'static dyn StrMatcher, bool)>,
     args: &[&str],
 ) -> BoxResult<()> {
     let tmp_proj_dir_empty = assert_fs::TempDir::new()?;

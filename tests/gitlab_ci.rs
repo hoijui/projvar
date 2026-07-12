@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+// SPDX-FileCopyrightText: 2021 - 2026 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -135,96 +135,63 @@ fn setup() -> BoxResult<HashMap<&'static str, String>> {
         ("CI_SERVER", CI_SERVER.to_owned()),
         ("GITLAB_CI", GITLAB_CI.to_owned()),
         ("GITLAB_USER_EMAIL", GITLAB_USER_EMAIL.to_owned()),
-        ("GITLAB_USER_ID", GITLAB_USER_ID().to_owned()),
+        ("GITLAB_USER_ID", GITLAB_USER_ID()),
         ("GITLAB_USER_LOGIN", GITLAB_USER_LOGIN.to_owned()),
         ("GITLAB_USER_NAME", GITLAB_USER_NAME.to_owned()),
     ]))
 }
 
-fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>> {
+fn expected_pats() -> BoxResult<HashMap<&'static str, (&'static dyn StrMatcher, bool)>> {
     Ok(vec![
         (
             "PROJECT_BUILD_BRANCH",
-            (
-                Box::new(&"master" as &'static dyn StrMatcher) as Box<&'static dyn StrMatcher>,
-                true,
-            ),
+            (&"master" as &'static dyn StrMatcher, true),
         ),
         (
             "PROJECT_BUILD_HOSTING_URL",
-            (Box::new(&"https://my-org.gitlab.io/my-proj"), true),
+            (&"https://my-org.gitlab.io/my-proj", true),
         ),
-        ("PROJECT_BUILD_TAG", (Box::new(&"v0.1.0"), true)),
-        ("PROJECT_CI", (Box::new(&"true"), true)),
-        ("PROJECT_NAME", (Box::new(&"Project-1"), true)),
-        (
-            "PROJECT_NAME_MACHINE_READABLE",
-            (Box::new(&"Project-1"), true),
-        ),
+        ("PROJECT_BUILD_TAG", (&"v0.1.0", true)),
+        ("PROJECT_CI", (&"true", true)),
+        ("PROJECT_NAME", (&"Project-1", true)),
+        ("PROJECT_NAME_MACHINE_READABLE", (&"Project-1", true)),
         (
             "PROJECT_REPO_CLONE_URL_SSH",
-            (
-                Box::new(&"ssh://git@gitlab.com/User-Name/Project-1.git"),
-                true,
-            ),
+            (&"ssh://git@gitlab.com/User-Name/Project-1.git", true),
         ),
         (
             "PROJECT_REPO_WEB_URL",
-            (Box::new(&"https://gitlab.com/User-Name/Project-1"), true),
+            (&"https://gitlab.com/User-Name/Project-1", true),
         ),
-        ("PROJECT_VERSION", (Box::new(&"0.1.0"), true)),
-        (
-            "PROJECT_VERSION_DATE",
-            (Box::new(&"2021-12-23 07:25:21"), true),
-        ),
+        ("PROJECT_VERSION", (&"0.1.0", true)),
+        ("PROJECT_VERSION_DATE", (&"2021-12-23 07:25:21", true)),
         (
             "PROJECT_REPO_ISSUES_URL",
-            (
-                Box::new(&"https://gitlab.com/User-Name/Project-1/-/issues"),
-                true,
-            ),
+            (&"https://gitlab.com/User-Name/Project-1/-/issues", true),
         ),
         (
             "PROJECT_REPO_VERSIONED_FILE_PREFIX_URL",
-            (
-                Box::new(&"https://gitlab.com/User-Name/Project-1/-/blob"),
-                true,
-            ),
+            (&"https://gitlab.com/User-Name/Project-1/-/blob", true),
         ),
         (
             "PROJECT_REPO_CLONE_URL_HTTP",
-            (
-                Box::new(&"https://gitlab.com/User-Name/Project-1.git"),
-                true,
-            ),
+            (&"https://gitlab.com/User-Name/Project-1.git", true),
         ),
         (
             "PROJECT_REPO_CLONE_URL",
-            (
-                Box::new(&"https://gitlab.com/User-Name/Project-1.git"),
-                true,
-            ),
+            (&"https://gitlab.com/User-Name/Project-1.git", true),
         ),
         (
             "PROJECT_REPO_VERSIONED_DIR_PREFIX_URL",
-            (
-                Box::new(&"https://gitlab.com/User-Name/Project-1/-/tree"),
-                true,
-            ),
+            (&"https://gitlab.com/User-Name/Project-1/-/tree", true),
         ),
         (
             "PROJECT_REPO_RAW_VERSIONED_PREFIX_URL",
-            (
-                Box::new(&"https://gitlab.com/User-Name/Project-1/-/raw"),
-                true,
-            ),
+            (&"https://gitlab.com/User-Name/Project-1/-/raw", true),
         ),
         (
             "PROJECT_REPO_COMMIT_PREFIX_URL",
-            (
-                Box::new(&"https://gitlab.com/User-Name/Project-1/-/commit"),
-                true,
-            ),
+            (&"https://gitlab.com/User-Name/Project-1/-/commit", true),
         ),
     ]
     .into_iter()

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022 Robin Vobruba <hoijui.quaero@gmail.com>
+// SPDX-FileCopyrightText: 2022 - 2026 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -8,16 +8,12 @@ use cli_utils::BoxResult;
 use common::StrMatcher;
 use std::collections::HashMap;
 
-fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>> {
-    Ok(vec![(
-        "PROJECT_CI",
-        (
-            Box::new(&"false" as &'static dyn StrMatcher) as Box<&'static dyn StrMatcher>,
-            true,
-        ),
-    )]
-    .into_iter()
-    .collect())
+fn expected_pats() -> BoxResult<HashMap<&'static str, (&'static dyn StrMatcher, bool)>> {
+    Ok(
+        vec![("PROJECT_CI", (&"false" as &'static dyn StrMatcher, true))]
+            .into_iter()
+            .collect(),
+    )
 }
 
 #[test]
@@ -34,17 +30,12 @@ fn cli_arg_variable() -> BoxResult<()> {
     common::projvar_test_clean(&expected_pats()?, &["-DE=e"])
 }
 
-fn expected_pats_tuetue() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>>
-{
-    Ok(vec![(
-        "TUETUE_CI",
-        (
-            Box::new(&"false" as &'static dyn StrMatcher) as Box<&'static dyn StrMatcher>,
-            true,
-        ),
-    )]
-    .into_iter()
-    .collect())
+fn expected_pats_tuetue() -> BoxResult<HashMap<&'static str, (&'static dyn StrMatcher, bool)>> {
+    Ok(
+        vec![("TUETUE_CI", (&"false" as &'static dyn StrMatcher, true))]
+            .into_iter()
+            .collect(),
+    )
 }
 
 #[test]

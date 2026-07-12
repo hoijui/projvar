@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+// SPDX-FileCopyrightText: 2021 - 2026 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -71,68 +71,53 @@ fn setup() -> BoxResult<HashMap<&'static str, String>> {
     ]))
 }
 
-fn expected_pats() -> BoxResult<HashMap<&'static str, (Box<&'static dyn StrMatcher>, bool)>> {
+fn expected_pats() -> BoxResult<HashMap<&'static str, (&'static dyn StrMatcher, bool)>> {
     Ok(vec![
         (
             "PROJECT_BUILD_BRANCH",
-            (
-                Box::new(&"master" as &'static dyn StrMatcher) as Box<&'static dyn StrMatcher>,
-                true,
-            ),
+            (&"master" as &'static dyn StrMatcher, true),
         ),
-        ("PROJECT_BUILD_TAG", (Box::new(&"v0.1.0"), true)),
-        ("PROJECT_CI", (Box::new(&"true"), true)),
-        ("PROJECT_NAME", (Box::new(&"my-project-group"), true)),
-        (
-            "PROJECT_NAME_MACHINE_READABLE",
-            (Box::new(&"my-project-group"), true),
-        ),
+        ("PROJECT_BUILD_TAG", (&"v0.1.0", true)),
+        ("PROJECT_CI", (&"true", true)),
+        ("PROJECT_NAME", (&"my-project-group", true)),
+        ("PROJECT_NAME_MACHINE_READABLE", (&"my-project-group", true)),
         (
             "PROJECT_REPO_CLONE_URL",
-            (Box::new(&"git@bitbucket.org:my-user/my-proj.git"), true),
+            (&"git@bitbucket.org:my-user/my-proj.git", true),
         ),
         (
             "PROJECT_REPO_CLONE_URL_HTTP",
-            (Box::new(&"https://bitbucket.org/my-user/my-proj"), true),
+            (&"https://bitbucket.org/my-user/my-proj", true),
         ),
         (
             "PROJECT_REPO_CLONE_URL_SSH",
-            (
-                Box::new(&"ssh://git@bitbucket.org/my-user/my-proj.git"),
-                true,
-            ),
+            (&"ssh://git@bitbucket.org/my-user/my-proj.git", true),
         ),
         (
             "PROJECT_REPO_COMMIT_PREFIX_URL",
-            (
-                Box::new(&"https://bitbucket.org/my-user/my-proj/commits"),
-                true,
-            ),
+            (&"https://bitbucket.org/my-user/my-proj/commits", true),
         ),
         (
             "PROJECT_REPO_ISSUES_URL",
-            (
-                Box::new(&"https://bitbucket.org/my-user/my-proj/issues"),
-                true,
-            ),
+            (&"https://bitbucket.org/my-user/my-proj/issues", true),
         ),
         (
             "PROJECT_REPO_RAW_VERSIONED_PREFIX_URL",
-            (Box::new(&"https://bitbucket.org/my-user/my-proj/raw"), true),
+            (&"https://bitbucket.org/my-user/my-proj/raw", true),
         ),
         (
             "PROJECT_REPO_VERSIONED_DIR_PREFIX_URL",
-            (Box::new(&"https://bitbucket.org/my-user/my-proj/src"), true),
+            (&"https://bitbucket.org/my-user/my-proj/src", true),
         ),
         (
             "PROJECT_REPO_VERSIONED_FILE_PREFIX_URL",
-            (Box::new(&"https://bitbucket.org/my-user/my-proj/src"), true),
+            (&"https://bitbucket.org/my-user/my-proj/src", true),
         ),
         (
             "PROJECT_REPO_WEB_URL",
-            (Box::new(&"https://bitbucket.org/my-user/my-proj"), true),
+            (&"https://bitbucket.org/my-user/my-proj", true),
         ),
-        ("PROJECT_VERSION", (Box::new(&"0.1.0"), true)),
+        ("PROJECT_VERSION", (&"0.1.0", true)),
     ]
     .into_iter()
     .collect())
