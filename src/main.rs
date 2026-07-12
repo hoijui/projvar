@@ -603,7 +603,7 @@ fn repo_path(args: &ArgMatches) -> PathBuf {
         .get_one::<PathBuf>(A_L_PROJECT_ROOT)
         .cloned()
         .unwrap_or_else(PathBuf::new);
-    log::debug!("Using repo path {:#?}.", &repo_path);
+    log::debug!("Using repo path {}.", repo_path.display());
     repo_path
 }
 

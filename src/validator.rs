@@ -361,7 +361,7 @@ fn check_public_url(
                 })
             } else if let Some(query) = url.query() {
                 Err(Error::AlmostUsableValue {
-                    msg: format!("Should be a simple URL, but uses query arguments: {query}",),
+                    msg: format!("Should be a simple URL, but uses query arguments: {query}"),
                     value: value.to_owned(),
                 })
             } else if let Some(fragment) = url.fragment() {

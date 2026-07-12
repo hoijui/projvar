@@ -26,6 +26,7 @@ pub static R_DATE_TIME: LazyLock<Regex> = LazyLock::new(|| {
 pub static R_NON_EMPTY: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^.+$").unwrap());
 pub static R_BOOL: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(true|false)$").unwrap());
 
+#[must_use]
 pub fn random_uuid() -> String {
     UUIDv5.fake::<Uuid>().to_string()
 }
@@ -87,7 +88,7 @@ pub fn compare<S: ::std::hash::BuildHasher>(
     actual: &mut HashMap<String, String>,
 ) -> Result<(), Errors> {
     let mut errors = vec![];
-    for (key, (expected_pat, required)) in expected.iter() {
+    for (key, (expected_pat, required)) in expected {
         let actual_val = actual.remove(key.to_owned());
         match actual_val {
             Some(actual_val) => {
@@ -112,8 +113,8 @@ pub fn compare<S: ::std::hash::BuildHasher>(
 
     for (key, actual_val) in actual.iter() {
         errors.push(Error::Unexpected {
-            key: key.to_string(),
-            actual_val: actual_val.to_string(),
+            key: key.clone(),
+            actual_val: actual_val.clone(),
         }); // TODO We should rather use a consuming iterator over `actual` (if such a thing exists... it should!)
     }
 
