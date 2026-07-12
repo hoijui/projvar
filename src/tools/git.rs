@@ -436,14 +436,22 @@ This may indicate either:
                             ),
                         })?
                         .name()
-                        .ok_or_else(|| Error::from("Remote branch name is not UTF-8 compatible"))?,
+                        .map_err(|from| Error {
+                            from,
+                            message: String::from(
+                                "Remote branch name is not UTF-8 compatible",
+                            ),
+                        })?
                 )
                 .map_err(|from| Error {
                     from,
                     message: String::from("Failed to get branch remote name"),
                 })?
                 .as_str()
-                .ok_or_else(|| Error::from("Remote name is not UTF-8 compatible"))?
+                .map_err(|from| Error {
+                    from,
+                    message: String::from("Remote name is not UTF-8 compatible"),
+                })?
                 .to_owned())
             } else {
                 None
@@ -468,7 +476,10 @@ This may indicate either:
                         message: String::from("Failed to find remote name for remote clone URL"),
                     })?
                     .url()
-                    .ok_or_else(|| Error::from("Remote URL is not UTF-8 compatible"))?
+                    .map_err(|from| Error {
+                        from,
+                        message: String::from("Remote URL is not UTF-8 compatible"),
+                    })?
                     .to_owned(),
             )
         } else {
