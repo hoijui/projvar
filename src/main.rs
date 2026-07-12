@@ -11,7 +11,7 @@ extern crate url;
 
 use clap::builder::ValueParser;
 use clap::{Arg, ArgAction, ArgMatches, Command, ValueHint, command, value_parser};
-use cli_utils::BoxResult;
+use cli_utils::{BoxResult, StreamIdent};
 use const_format::formatcp;
 use regex::Regex;
 use std::collections::HashSet;
@@ -768,13 +768,14 @@ fn main() -> BoxResult<()> {
     }
     // fetch variables files
     if let Some(var_files) = args.get_many::<PathBuf>(A_L_VARIABLES_FILE) {
-        for var_file in var_files.cloned() {
+        for var_file in var_files {
             if var_file.to_string_lossy() == "-" {
                 log::trace!("Fetching variables from stdin ...");
             } else {
                 log::trace!("Fetching variables from file '{}' ...", var_file.display());
             }
-            let mut reader = cli_utils::create_input_reader(Some(var_file))?;
+            let mut reader = StreamIdent::from_path(var_file, true).create_input_reader()?;
+
             environment
                 .vars
                 .extend(var::parse_vars_file_reader(&mut reader)?);

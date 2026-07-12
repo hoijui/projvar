@@ -4,6 +4,7 @@
 
 use assert_fs::fixture::FileTouch;
 use cli_utils::BoxResult;
+use cli_utils::StreamIdent;
 use fake::Fake;
 use fake::uuid::UUIDv5;
 use projvar::var;
@@ -170,7 +171,7 @@ where
     }
 
     assert!(out_file.exists());
-    let mut output_reader = cli_utils::create_input_reader(Some(&out_file_str))?;
+    let mut output_reader = StreamIdent::from_path(out_file_str, true).create_input_reader()?;
     let mut actual_vars = var::parse_vars_file_reader(&mut output_reader)?;
 
     compare(expected_pats, &mut actual_vars)?;

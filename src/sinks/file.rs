@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-use cli_utils::BoxResult;
+use cli_utils::{BoxResult, StreamIdent};
 
 use crate::environment::Environment;
 use crate::storage;
@@ -32,7 +32,9 @@ impl super::VarSink for VarSink {
             self.file.display()
         );
         let previous_vars = if self.file.exists() {
-            var::parse_vars_file_reader(cli_utils::create_input_reader(Some(&self.file))?)?
+            var::parse_vars_file_reader(
+                StreamIdent::from_path(&self.file, true).create_input_reader()?,
+            )?
         } else {
             HashMap::new()
         };
