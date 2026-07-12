@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2021 - 2024 Robin Vobruba <hoijui.quaero@gmail.com>
+# SPDX-FileCopyrightText: 2021 - 2026 Robin Vobruba <hoijui.quaero@gmail.com>
 #
 # SPDX-License-Identifier: Unlicense
 
@@ -38,7 +38,7 @@ jobs:
       our_version: ${{ env.OUR_VERSION }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         if: env.OUR_VERSION == ''
         with:
           # This makes sure we also get tags,
@@ -48,7 +48,7 @@ jobs:
           submodules: true
 
       - name: "Check out the build scripts"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: 'hoijui/rust-project-scripts'
           path: 'run/rp'
@@ -67,7 +67,7 @@ jobs:
 
       - name: Create GitHub release
         id: release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           name: ${{ env.OUR_VERSION }}
 
@@ -114,13 +114,13 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
         submodules: true
 
     - name: "Check out the build scripts"
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         repository: 'hoijui/rust-project-scripts'
         path: 'run/rp'
@@ -149,7 +149,7 @@ jobs:
     #     ci/macos-install-packages
 
     - name: Install Rust
-      uses: dtolnay/rust-toolchain@master
+      uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: ${{ matrix.rust }}
         target: ${{ matrix.target }}
