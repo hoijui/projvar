@@ -140,7 +140,7 @@ fn missing(environment: &mut Environment, key: Key) -> Result {
     }
 }
 
-fn validate_version(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_version(environment: &mut Environment, value: &str) -> Result {
     // The official SemVer regex as of September 2021, taken from
     // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
     // TODO PRIO Think of what to do if we have a "v" prefix, as in "v1.2.3" -> best: remove it, but where.. a kind of pre-validator function?
@@ -260,7 +260,7 @@ but not a release-version, and not human-readable"
     }
 }
 
-fn validate_license(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_license(environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
         missing(environment, Key::License)
     } else {
@@ -294,7 +294,7 @@ fn validate_license(environment: &mut Environment, value: &str) -> Result {
     }
 }
 
-fn validate_licenses(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_licenses(environment: &mut Environment, value: &str) -> Result {
     if value.is_empty() {
         missing(environment, Key::Licenses)
     } else {
@@ -458,7 +458,7 @@ fn check_url_host(value: &str, url_desc: &str, url: &Url, host_reg: Option<&Rege
     }
 }
 
-fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_repo_web_url(environment: &mut Environment, value: &str) -> Result {
     static R_GIT_HUB_PATH: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/?$").unwrap());
     static R_GIT_LAB_PATH: LazyLock<Regex> = LazyLock::new(|| {
@@ -489,7 +489,7 @@ static R_BIT_BUCKET_CLONE_PATH: LazyLock<Regex> = LazyLock::new(|| (*R_GIT_HUB_C
 /// * <https://github.com/tjtelan/git-url-parse-rs>
 /// * <https://github.com/Byron/gitoxide/blob/main/git-url>
 /// * <>
-fn validate_repo_clone_url(_environment: &mut Environment, value: &str) -> Result {
+pub fn validate_repo_clone_url(_environment: &mut Environment, value: &str) -> Result {
     gix_url::parse(value.into())
         .map(|_url| Validity::Middle {
             msg:
@@ -502,7 +502,7 @@ fn validate_repo_clone_url(_environment: &mut Environment, value: &str) -> Resul
         })
 }
 
-fn validate_repo_clone_url_generic(
+pub fn validate_repo_clone_url_generic(
     environment: &mut Environment,
     value: &str,
     protocol: TransferProtocol,
@@ -534,18 +534,18 @@ fn validate_repo_clone_url_generic(
 }
 
 // * git://repo.or.cz/girocco.git
-fn validate_repo_clone_url_git(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_repo_clone_url_git(environment: &mut Environment, value: &str) -> Result {
     validate_repo_clone_url_generic(environment, value, TransferProtocol::Git)
 }
 
 // * https://git@bitbucket.org/Aouatef/master_arbeit.git
-fn validate_repo_clone_url_http(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_repo_clone_url_http(environment: &mut Environment, value: &str) -> Result {
     validate_repo_clone_url_generic(environment, value, TransferProtocol::Https)
 }
 
 // * git@bitbucket.org:Aouatef/master_arbeit.git
 // * ssh://bitbucket.org/Aouatef/master_arbeit.git
-fn validate_repo_clone_url_ssh(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_repo_clone_url_ssh(environment: &mut Environment, value: &str) -> Result {
     // NOTE We only accept the user "git", as it stands for anonymous access
     static R_SSH_CLONE_URL: LazyLock<Regex> = LazyLock::new(|| {
         Regex::new(r"^(?P<user>git@)?(?P<host>[^/:]+)((:|/)(?P<path>.+))?$").unwrap()
@@ -591,7 +591,10 @@ fn validate_repo_clone_url_ssh(environment: &mut Environment, value: &str) -> Re
 // * https://gitlab.com/OSEGermany/osh-tool/-/raw/master/data/source_extension_formats.csv
 // * https://gitlab.com/OSEGermany/osh-tool/raw/master/data/source_extension_formats.csv
 // * https://bitbucket.org/Aouatef/master_arbeit/raw/ae4a42a850b359a23da2483eb8f867f21c5382d4/procExData/import.sh
-fn validate_repo_raw_versioned_prefix_url(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_repo_raw_versioned_prefix_url(
+    environment: &mut Environment,
+    value: &str,
+) -> Result {
     static R_GIT_HUB_PATH: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)$").unwrap());
     static R_GIT_LAB_PATH: LazyLock<Regex> = LazyLock::new(|| {
@@ -612,7 +615,10 @@ fn validate_repo_raw_versioned_prefix_url(environment: &mut Environment, value: 
 }
 
 /// See also `sources::try_construct_file_prefix_url`.
-fn validate_repo_versioned_file_prefix_url(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_repo_versioned_file_prefix_url(
+    environment: &mut Environment,
+    value: &str,
+) -> Result {
     static R_GIT_HUB_PATH: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/blob$").unwrap());
     static R_GIT_LAB_PATH: LazyLock<Regex> = LazyLock::new(|| {
@@ -633,7 +639,10 @@ fn validate_repo_versioned_file_prefix_url(environment: &mut Environment, value:
 }
 
 /// See also `sources::try_construct_file_prefix_url`.
-fn validate_repo_versioned_dir_prefix_url(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_repo_versioned_dir_prefix_url(
+    environment: &mut Environment,
+    value: &str,
+) -> Result {
     static R_GIT_HUB_PATH: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/tree$").unwrap());
     static R_GIT_LAB_PATH: LazyLock<Regex> = LazyLock::new(|| {
@@ -654,7 +663,7 @@ fn validate_repo_versioned_dir_prefix_url(environment: &mut Environment, value: 
 }
 
 /// See also `sources::try_construct_commit_prefix_url`.
-fn validate_repo_commit_prefix_url(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_repo_commit_prefix_url(environment: &mut Environment, value: &str) -> Result {
     static R_GIT_HUB_PATH: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/commit$").unwrap());
     static R_GIT_LAB_PATH: LazyLock<Regex> = LazyLock::new(|| {
@@ -675,7 +684,7 @@ fn validate_repo_commit_prefix_url(environment: &mut Environment, value: &str) -
     check_url_path(value, "commit prefix", &url, host_reg)
 }
 
-fn validate_repo_issues_url(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_repo_issues_url(environment: &mut Environment, value: &str) -> Result {
     static R_GIT_HUB_PATH: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"^/(?P<user>[^/]+)/(?P<repo>[^/]+)/issues$").unwrap());
     static R_GIT_LAB_PATH: LazyLock<Regex> = LazyLock::new(|| {
@@ -696,7 +705,7 @@ fn validate_repo_issues_url(environment: &mut Environment, value: &str) -> Resul
     check_url_path(value, "issues", &url, host_reg)
 }
 
-fn validate_build_hosting_url(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_build_hosting_url(environment: &mut Environment, value: &str) -> Result {
     static R_GIT_HUB_HOST: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"^(?P<user>[^/.]+)\.github\.io$").unwrap());
     static R_GIT_LAB_HOST: LazyLock<Regex> =
@@ -713,11 +722,11 @@ fn validate_build_hosting_url(environment: &mut Environment, value: &str) -> Res
     check_url_host(value, "build hosting", &url, host_reg)
 }
 
-fn validate_name(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_name(environment: &mut Environment, value: &str) -> Result {
     check_empty(environment, value, "Project name (human-readable)")
 }
 
-fn validate_name_machine_readable(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_name_machine_readable(environment: &mut Environment, value: &str) -> Result {
     static R_MACHINE_READABLE: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"^[0-9a-zA-Z_-]+$").unwrap());
 
@@ -768,27 +777,27 @@ fn check_date(environment: &mut Environment, value: &str, date_desc: &str) -> Re
     }
 }
 
-fn validate_version_date(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_version_date(environment: &mut Environment, value: &str) -> Result {
     check_date(environment, value, "version")
 }
 
-fn validate_build_date(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_build_date(environment: &mut Environment, value: &str) -> Result {
     check_date(environment, value, "build")
 }
 
-fn validate_build_branch(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_build_branch(environment: &mut Environment, value: &str) -> Result {
     check_empty(environment, value, "Branch")
 }
 
-fn validate_build_tag(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_build_tag(environment: &mut Environment, value: &str) -> Result {
     check_empty(environment, value, "Tag")
 }
 
-fn validate_build_os(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_build_os(environment: &mut Environment, value: &str) -> Result {
     check_empty(environment, value, "Build OS") // TODO Maybe add a list of known good (just like for OsFamily), and mark the others as Ok(Validity::Unknown)
 }
 
-fn validate_build_os_family(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_build_os_family(environment: &mut Environment, value: &str) -> Result {
     check_empty(environment, value, "Build OS Family")?;
     if constants::VALID_OS_FAMILIES.contains(&value) {
         Ok(Validity::High { msg: None })
@@ -808,7 +817,7 @@ fn validate_build_os_family(environment: &mut Environment, value: &str) -> Resul
     }
 }
 
-fn validate_build_arch(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_build_arch(environment: &mut Environment, value: &str) -> Result {
     check_empty(environment, value, "Build arch")?;
     if constants::VALID_ARCHS.contains(&value) {
         Ok(Validity::High { msg: None })
@@ -828,7 +837,7 @@ fn validate_build_arch(environment: &mut Environment, value: &str) -> Result {
     }
 }
 
-fn validate_build_number(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_build_number(environment: &mut Environment, value: &str) -> Result {
     check_empty(environment, value, "Build number")?;
     match value.parse::<i32>() {
         Err(_err) => Ok(Validity::Suboptimal {
@@ -839,7 +848,7 @@ fn validate_build_number(environment: &mut Environment, value: &str) -> Result {
     }
 }
 
-fn validate_ci(environment: &mut Environment, value: &str) -> Result {
+pub fn validate_ci(environment: &mut Environment, value: &str) -> Result {
     check_empty(environment, value, "CI")?;
     match value {
         "true" => Ok(Validity::High { msg: None }),
