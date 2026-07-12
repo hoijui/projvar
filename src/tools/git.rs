@@ -420,7 +420,7 @@ This may indicate either:
     /// # Errors
     ///
     /// If some git-related magic goes south,
-    /// or the reomte name is not valid UTF-8.
+    /// or the remote name is not valid UTF-8.
     pub fn remote_name(&self) -> Result<Option<String>, Error> {
         Ok(
             if let Some(remote_tracking_branch) = self.remote_tracking_branch()? {
