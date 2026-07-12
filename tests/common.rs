@@ -83,9 +83,9 @@ pub struct Errors {
     pub children: Vec<Error>,
 }
 
-pub fn compare<S: ::std::hash::BuildHasher>(
-    expected: &HashMap<&'static str, (&'static dyn StrMatcher, bool), S>,
-    actual: &mut HashMap<String, String>,
+pub fn compare<S1: ::std::hash::BuildHasher, S2: ::std::hash::BuildHasher>(
+    expected: &HashMap<&'static str, (&'static dyn StrMatcher, bool), S1>,
+    actual: &mut HashMap<String, String, S2>,
 ) -> Result<(), Errors> {
     let mut errors = vec![];
     for (key, (expected_pat, required)) in expected {
@@ -125,8 +125,8 @@ pub fn compare<S: ::std::hash::BuildHasher>(
     }
 }
 
-fn projvar_test_internal<I, K, V>(
-    expected_pats: &HashMap<&'static str, (&'static dyn StrMatcher, bool)>,
+fn projvar_test_internal<I, K, V, S: ::std::hash::BuildHasher>(
+    expected_pats: &HashMap<&'static str, (&'static dyn StrMatcher, bool), S>,
     args: &[&str],
     cwd: &Path,
     envs: I,
@@ -180,8 +180,8 @@ where
     Ok(())
 }
 
-pub fn projvar_test<I, K, V>(
-    expected_pats: &HashMap<&'static str, (&'static dyn StrMatcher, bool)>,
+pub fn projvar_test<I, K, V, S: ::std::hash::BuildHasher>(
+    expected_pats: &HashMap<&'static str, (&'static dyn StrMatcher, bool), S>,
     args: &[&str],
     cwd: &Path,
     envs: I,
@@ -194,8 +194,8 @@ where
     projvar_test_internal(expected_pats, args, cwd, envs, false)
 }
 
-pub fn projvar_test_clean(
-    expected_pats: &HashMap<&'static str, (&'static dyn StrMatcher, bool)>,
+pub fn projvar_test_clean<S: ::std::hash::BuildHasher>(
+    expected_pats: &HashMap<&'static str, (&'static dyn StrMatcher, bool), S>,
     args: &[&str],
 ) -> BoxResult<()> {
     let tmp_proj_dir_empty = assert_fs::TempDir::new()?;
