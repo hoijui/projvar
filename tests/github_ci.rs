@@ -32,8 +32,8 @@ const GITHUB_REF_TYPE: [Option<&str>; 3] = [Some("branch"), Some("tag"), None];
 const GITHUB_HEAD_REF: [Option<&str>; 2] = [Some("head-branch"), None];
 const GITHUB_BASE_REF: [Option<&str>; 2] = [Some("base-branch"), None];
 
-fn setup() -> BoxResult<HashMap<&'static str, &'static str>> {
-    Ok(HashMap::from([
+fn setup() -> HashMap<&'static str, &'static str> {
+    HashMap::from([
         ("CI", CI),
         ("GITHUB_ACTOR", GITHUB_ACTOR),
         ("GITHUB_REPOSITORY", GITHUB_REPOSITORY),
@@ -45,10 +45,10 @@ fn setup() -> BoxResult<HashMap<&'static str, &'static str>> {
         ("GITHUB_REF_TYPE", GITHUB_REF_TYPE[0].unwrap()),
         ("GITHUB_HEAD_REF", GITHUB_HEAD_REF[0].unwrap()),
         ("GITHUB_BASE_REF", GITHUB_BASE_REF[0].unwrap()),
-    ]))
+    ])
 }
 
-fn expected_pats() -> BoxResult<HashMap<&'static str, (&'static dyn StrMatcher, bool)>> {
+fn expected_pats() -> HashMap<&'static str, (&'static dyn StrMatcher, bool)> {
     let vars = vec![
         (
             "PROJECT_BUILD_BRANCH",
@@ -108,15 +108,15 @@ fn expected_pats() -> BoxResult<HashMap<&'static str, (&'static dyn StrMatcher, 
             (&"ffac537e6cbbf934b08745a378932722df287a53", true),
         ),
     ];
-    Ok(vars.into_iter().collect())
+    vars.into_iter().collect()
 }
 
 #[test]
 fn github_ci() -> BoxResult<()> {
     let tmp_proj_dir_empty = assert_fs::TempDir::new()?;
-    let envs = setup()?;
+    let envs = setup();
     common::projvar_test(
-        &expected_pats()?,
+        &expected_pats(),
         &["--all"],
         tmp_proj_dir_empty.path(),
         envs,

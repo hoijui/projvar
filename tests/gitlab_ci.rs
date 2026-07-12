@@ -90,8 +90,8 @@ const GITLAB_USER_ID: fn() -> String = common::random_uuid;
 const GITLAB_USER_LOGIN: &str = "jobtriggerer";
 const GITLAB_USER_NAME: &str = "Job Triggerer";
 
-fn setup() -> BoxResult<HashMap<&'static str, String>> {
-    Ok(HashMap::from([
+fn setup() -> HashMap<&'static str, String> {
+    HashMap::from([
         ("CI", CI.to_owned()),
         ("CI_COMMIT_AUTHOR", CI_COMMIT_AUTHOR.to_owned()),
         ("CI_COMMIT_BRANCH", CI_COMMIT_BRANCH[0].unwrap().to_owned()),
@@ -138,11 +138,11 @@ fn setup() -> BoxResult<HashMap<&'static str, String>> {
         ("GITLAB_USER_ID", GITLAB_USER_ID()),
         ("GITLAB_USER_LOGIN", GITLAB_USER_LOGIN.to_owned()),
         ("GITLAB_USER_NAME", GITLAB_USER_NAME.to_owned()),
-    ]))
+    ])
 }
 
-fn expected_pats() -> BoxResult<HashMap<&'static str, (&'static dyn StrMatcher, bool)>> {
-    Ok(vec![
+fn expected_pats() -> HashMap<&'static str, (&'static dyn StrMatcher, bool)> {
+    vec![
         (
             "PROJECT_BUILD_BRANCH",
             (&"master" as &'static dyn StrMatcher, true),
@@ -195,12 +195,12 @@ fn expected_pats() -> BoxResult<HashMap<&'static str, (&'static dyn StrMatcher, 
         ),
     ]
     .into_iter()
-    .collect())
+    .collect()
 }
 
 #[test]
 fn gitlab_ci() -> BoxResult<()> {
     let tmp_proj_dir_empty = assert_fs::TempDir::new()?;
-    let envs = setup()?;
-    common::projvar_test(&expected_pats()?, &["--all"], &tmp_proj_dir_empty, envs)
+    let envs = setup();
+    common::projvar_test(&expected_pats(), &["--all"], &tmp_proj_dir_empty, envs)
 }

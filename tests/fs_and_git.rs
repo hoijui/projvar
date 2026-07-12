@@ -33,8 +33,8 @@ fn setup() -> BoxResult<(PathBuf, HashMap<&'static str, &'static str>)> {
     Ok((repo_dir, HashMap::<&'static str, &'static str>::new()))
 }
 
-fn expected_pats() -> BoxResult<HashMap<&'static str, (&'static dyn StrMatcher, bool)>> {
-    Ok(vec![
+fn expected_pats() -> HashMap<&'static str, (&'static dyn StrMatcher, bool)> {
+    vec![
         (
             "PROJECT_BUILD_DATE",
             (&*R_DATE_TIME as &'static dyn StrMatcher, true),
@@ -87,11 +87,11 @@ fn expected_pats() -> BoxResult<HashMap<&'static str, (&'static dyn StrMatcher, 
         ("PROJECT_VERSION_DATE", (&*R_DATE_TIME, true)),
     ]
     .into_iter()
-    .collect())
+    .collect()
 }
 
 #[test]
 fn git() -> BoxResult<()> {
     let (cwd, envs) = setup()?;
-    common::projvar_test(&expected_pats()?, &["--all"], &cwd, envs)
+    common::projvar_test(&expected_pats(), &["--all"], &cwd, envs)
 }

@@ -37,8 +37,8 @@ const BITBUCKET_GIT_SSH_ORIGIN: &str = "git@bitbucket.org:my-user/my-proj.git";
 const BITBUCKET_PROJECT_KEY: [Option<&str>; 2] = [Some("my-project-group"), None];
 const BITBUCKET_PROJECT_UUID: &str = "123e4567-e89b-12d3-a456-426614174001";
 
-fn setup() -> BoxResult<HashMap<&'static str, String>> {
-    Ok(HashMap::from([
+fn setup() -> HashMap<&'static str, String> {
+    HashMap::from([
         ("CI", CI.to_owned()),
         ("BITBUCKET_COMMIT", BITBUCKET_COMMIT.to_owned()),
         ("BITBUCKET_WORKSPACE", BITBUCKET_WORKSPACE[0].to_owned()),
@@ -68,11 +68,11 @@ fn setup() -> BoxResult<HashMap<&'static str, String>> {
             BITBUCKET_PROJECT_KEY[0].unwrap().to_owned(),
         ),
         ("BITBUCKET_PROJECT_UUID", BITBUCKET_PROJECT_UUID.to_owned()),
-    ]))
+    ])
 }
 
-fn expected_pats() -> BoxResult<HashMap<&'static str, (&'static dyn StrMatcher, bool)>> {
-    Ok(vec![
+fn expected_pats() -> HashMap<&'static str, (&'static dyn StrMatcher, bool)> {
+    vec![
         (
             "PROJECT_BUILD_BRANCH",
             (&"master" as &'static dyn StrMatcher, true),
@@ -120,12 +120,12 @@ fn expected_pats() -> BoxResult<HashMap<&'static str, (&'static dyn StrMatcher, 
         ("PROJECT_VERSION", (&"0.1.0", true)),
     ]
     .into_iter()
-    .collect())
+    .collect()
 }
 
 #[test]
 fn bitbucket_ci() -> BoxResult<()> {
     let tmp_proj_dir_empty = assert_fs::TempDir::new()?;
-    let envs = setup()?;
-    common::projvar_test(&expected_pats()?, &["--all"], &tmp_proj_dir_empty, envs)
+    let envs = setup();
+    common::projvar_test(&expected_pats(), &["--all"], &tmp_proj_dir_empty, envs)
 }
