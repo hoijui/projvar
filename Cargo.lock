@@ -1843,9 +1843,9 @@ dependencies = [
 
 [[package]]
 name = "repvar"
-version = "0.14.4"
+version = "0.14.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9a3e7a41c337c3095cd1495aa0c7eaef9a545b6c12703e5df9b8e6e29943d94"
+checksum = "8c6301c4968fa3bd7fad54165a93b7e5bbc9fb6c39d090ab69429ee734a3a08f"
 dependencies = [
  "clap",
  "cli_utils_hoijui",
@@ -1853,7 +1853,6 @@ dependencies = [
  "dotenvy",
  "env_logger",
  "git-version",
- "regex",
  "thiserror",
  "tracing",
  "tracing-subscriber",
