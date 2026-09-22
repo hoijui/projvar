@@ -14,7 +14,6 @@ description = """
     See --list for the keys set by this tool.
     """
 repository = "https://github.com/hoijui/projvar"
-homepage = "https://github.com/hoijui/projvar"
 keywords = ["cli", "ci", "utility", "parsing", "git"]
 categories = ["command-line-utilities", "filesystem", "text-processing"]
 readme = "README.md"
