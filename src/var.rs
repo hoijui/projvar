@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021-2023 Robin Vobruba <hoijui.quaero@gmail.com>
+// SPDX-FileCopyrightText: 2021-2026 Robin Vobruba <hoijui.quaero@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -16,7 +16,7 @@ use std::{
     sync::LazyLock,
 };
 use strum::{EnumCount, IntoEnumIterator};
-use strum_macros::{EnumCount, EnumIter, EnumString, IntoStaticStr};
+use strum_macros::{EnumIter, EnumString, IntoStaticStr};
 use thiserror::Error;
 
 use std::str::FromStr;
@@ -83,7 +83,7 @@ impl<'a> Default for &'a Variable {
 // #[derive(Debug, EnumString, EnumIter, IntoStaticStr, Hash, Enum, EnumSetType)]
 #[derive(
     Debug,
-    EnumCount,
+    strum_macros::EnumCount,
     EnumString,
     EnumIter,
     IntoStaticStr,
