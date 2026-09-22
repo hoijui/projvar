@@ -490,7 +490,7 @@ static R_BIT_BUCKET_CLONE_PATH: LazyLock<Regex> = LazyLock::new(|| (*R_GIT_HUB_C
 /// * <https://github.com/Byron/gitoxide/blob/main/git-url>
 /// * <>
 pub fn validate_repo_clone_url(_environment: &mut Environment, value: &str) -> Result {
-    gix_url::parse(value.into())
+    gix_url::parse(value)
         .map(|_url| Validity::Middle {
             msg:
                 "Nothing wrong with that; but we can/do not check more than that it is a valid URL"
