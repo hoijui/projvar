@@ -611,7 +611,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_camel_to_upper_snake_case() -> BoxResult<()> {
+    fn test_camel_to_upper_snake_case() {
         assert_eq!(camel_to_upper_snake_case("Version"), "VERSION");
         assert_eq!(camel_to_upper_snake_case("version"), "VERSION");
         assert_eq!(
@@ -624,8 +624,6 @@ mod tests {
         );
         assert_eq!(camel_to_upper_snake_case("RepoWebUrl"), "REPO_WEB_URL");
         assert_eq!(camel_to_upper_snake_case("repoWebUrl"), "REPO_WEB_URL");
-
-        Ok(())
     }
 
     #[test]
